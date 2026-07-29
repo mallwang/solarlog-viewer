@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -v -E '\\\\.\\(gif|jpg|ico|JPG\\)$')"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/z003f3jd/projects/github/solarlog-viewer && npm run format"
+          }
+        ]
+      }
+    ]
+  }
+}

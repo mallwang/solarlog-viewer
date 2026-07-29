@@ -1,0 +1,11 @@
+# SolarLog FTP-pushed data files — never reformat these
+*.js
+*.css
+*.html
+
+# Re-include only source trees we own
+!src/**
+!tests/**
+!docs/**
+!specs/**
+!*.md
