@@ -19,9 +19,12 @@ export default [
     },
   },
   {
-    files: ['tests/**/*.js'],
+    files: ['tests/**/*.js', 'scripts/**/*.js'],
     languageOptions: {
-      globals: { console: 'readonly' },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+      },
     },
   },
 ];
