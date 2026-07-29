@@ -33,3 +33,26 @@ console.log('errors:', errors);
 Run with: `npx playwright test --reporter=line`
 
 The test suite in `tests/e2e/navigation.spec.js` covers all four modes and frameset structure — run it after any change to navigation, `serve.json`, or `visu.html`.
+
+## Helper scripts
+
+All helper scripts must be **ESM JavaScript** (`scripts/*.js`). Do not create or extend Python scripts. New scripts require a co-located `*.test.js` file using `node:test` and JSDoc on every exported function.
+
+### Test-driven development
+
+Write tests in `scripts/*.test.js` **before** implementing the script. Export every logic function so tests can import them directly without hitting the filesystem. Use inline fixture strings as test data — no real file I/O in unit tests. Only wire the CLI entry point (`if (process.argv[1] === ...)`) after all tests pass.
+
+Run script tests with: `node --test scripts/backfill-min-day.test.js`
+
+### Linting (mandatory before finishing)
+
+Fix all ESLint errors and SonarLint warnings before considering a script done. Run:
+
+```bash
+npx eslint scripts/your-script.js scripts/your-script.test.js
+```
+
+Zero errors required. SonarLint issues visible in the IDE must also be resolved before finishing — they surface real problems even when ESLint passes. Common ones to watch for:
+
+- Prefer `Number.parseInt` / `Number.parseFloat` / `Number.isNaN` over the global equivalents (`S7773`)
+- Missing assertions in test cases (`S2699`) — only suppress if the test framework is not recognised by SonarLint (e.g. `node:test`)

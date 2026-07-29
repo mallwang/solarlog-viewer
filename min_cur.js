@@ -1,0 +1,16 @@
+var Datum="29.07.26"
+var Uhrzeit="18:30:04"
+var Pac=1653
+var aPdc=new Array(1239,550,0)
+var curStatusCode = new Array(2)
+curStatusCode[0]=7
+curStatusCode[1]=7
+var curFehlerCode = new Array(2)
+curFehlerCode[0]=0
+curFehlerCode[1]=0
+var PacArr= [[1053], [600]];
+var PdcArr= [[608,550,0], [631,0,0]];
+var sStrWIFI = 0
+var sStrGPRS = 0
+var tBsent = 9396804
+var tBrecv = 1892259

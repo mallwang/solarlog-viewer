@@ -1,16 +1,4 @@
 node_modules/
-
-# SolarLog data exports (device-specific, not source)
-min*.js
-days.js
-days_hist.js
-days_hist_*.js
-daysall.js
-months.js
-years.js
-events.js
-events_day.js
-base_vars.js
 WR*
 config_*.dat
 ftpstat.csv
