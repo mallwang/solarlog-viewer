@@ -9,23 +9,24 @@ This guide describes how to detect data gaps, validate totals, and repair aggreg
 
 ---
 
-## Step 1 — Detect missing daily files
+## Step 1 — Detect gaps in archive data
 
+`gap-detect.js` can check two data sources:
+
+**Min files** (default) — scans `min*.js` filenames for missing calendar days:
 ```bash
 node scripts/gap-detect.js
-```
-
-Scans all `min*.js` filenames and reports which calendar days have no file. Output is a human-readable list of missing date ranges, or "No gaps detected."
-
-Limit to recent history:
-```bash
 node scripts/gap-detect.js --since 2020-01-01
-```
-
-Export as JSON:
-```bash
 node scripts/gap-detect.js --output json --out-file gap-report.json
 ```
+
+**`days_hist.js`** — checks for missing entries in the aggregated history file:
+```bash
+node scripts/gap-detect.js --source days_hist
+node scripts/gap-detect.js --source days_hist --since 2020-01-01
+```
+
+Both modes produce the same output format: a human-readable list of missing date ranges, or "No gaps detected." The `--since`, `--output json`, and `--out-file` flags work with both sources.
 
 ---
 

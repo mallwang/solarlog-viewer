@@ -9,23 +9,24 @@ Dieses Dokument beschreibt, wie Datenlücken erkannt, Summen validiert und aggre
 
 ---
 
-## Schritt 1 — Fehlende Tagesdateien erkennen
+## Schritt 1 — Lücken in Archivdaten erkennen
 
+`gap-detect.js` kann zwei Datenquellen prüfen:
+
+**Min-Dateien** (Standard) — scannt `min*.js`-Dateinamen auf fehlende Kalendertage:
 ```bash
 node scripts/gap-detect.js
-```
-
-Scannt alle `min*.js`-Dateinamen und listet Kalendertage ohne Datei auf. Ausgabe als lesbare Liste fehlender Datumsbereiche oder „No gaps detected."
-
-Auf neuere Daten einschränken:
-```bash
 node scripts/gap-detect.js --since 2020-01-01
-```
-
-JSON-Export:
-```bash
 node scripts/gap-detect.js --output json --out-file gap-report.json
 ```
+
+**`days_hist.js`** — prüft auf fehlende Einträge in der aggregierten Historiendatei:
+```bash
+node scripts/gap-detect.js --source days_hist
+node scripts/gap-detect.js --source days_hist --since 2020-01-01
+```
+
+Beide Modi erzeugen das gleiche Ausgabeformat: eine lesbare Liste fehlender Datumsbereiche oder „No gaps detected." Die Optionen `--since`, `--output json` und `--out-file` funktionieren mit beiden Quellen.
 
 ---
 

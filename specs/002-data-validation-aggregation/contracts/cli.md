@@ -4,22 +4,23 @@ All scripts are ESM JS in `scripts/`. Run with `node scripts/<name>.js [args]`.
 
 ---
 
-## `gap-detect.js` — Detect Missing Daily Files
+## `gap-detect.js` — Detect Gaps in Archive Data
 
 ```
-node scripts/gap-detect.js [--since YYYY-MM-DD] [--output json] [--out-file PATH]
+node scripts/gap-detect.js [--source days_hist] [--since YYYY-MM-DD] [--output json] [--out-file PATH]
 ```
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--since YYYY-MM-DD` | optional | earliest known file | Limit gap reporting to dates on or after this date |
+| `--source days_hist` | optional | min files | Parse `days_hist.js` entries instead of scanning `min*.js` filenames |
+| `--since YYYY-MM-DD` | optional | earliest known entry | Limit gap reporting to dates on or after this date |
 | `--output json` | optional | human-readable | Also emit a JSON report |
 | `--out-file PATH` | optional | `gap-report.json` | JSON output path (only used with `--output json`) |
 
 **Exit codes**:
 - `0` — no gaps detected (or `--since` filter produced no results)
 - `1` — one or more gaps found
-- `2` — argument error or archive directory not readable
+- `2` — argument error or source not readable
 
 **Stdout (human-readable)**:
 ```

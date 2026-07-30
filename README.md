@@ -21,11 +21,17 @@ The `min*.js` files (one per day, ~7000+ files) contain the raw solar yield data
 
 Run from the repo root with Node.js 22+.
 
-**Detect missing daily files:**
+**Detect missing daily files (scans `min*.js` filenames):**
 ```bash
 node scripts/gap-detect.js
 node scripts/gap-detect.js --since 2020-01-01
 node scripts/gap-detect.js --output json --out-file gap-report.json
+```
+
+**Detect missing entries in `days_hist.js`:**
+```bash
+node scripts/gap-detect.js --source days_hist
+node scripts/gap-detect.js --source days_hist --since 2020-01-01
 ```
 
 **Cross-check min file totals against `days_hist.js`:**

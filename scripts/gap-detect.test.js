@@ -5,7 +5,49 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseArchiveFilenames, detectGaps, formatRanges, buildJsonReport } from './gap-detect.js';
+import { parseArchiveFilenames, parseDaysHistLines, parseInstallDate, detectGaps, formatRanges, buildJsonReport } from './gap-detect.js';
+
+// --- parseDaysHistLines ---
+
+describe('parseDaysHistLines', () => {
+  it('parses DD.MM.YY dates and returns sorted ISO strings', () => {
+    const lines = [
+      'da[dx++]="03.07.26|19008;0|9408;0"',
+      'da[dx++]="01.07.26|18000;0|9000;0"',
+      'da[dx++]="02.07.26|17000;0|8000;0"',
+    ];
+    assert.deepEqual(parseDaysHistLines(lines), ['2026-07-01', '2026-07-02', '2026-07-03']);
+  });
+
+  it('handles century boundary: YY >= 06 → 20YY', () => {
+    const lines = [
+      'da[dx++]="18.08.09|660;0|337;0"',
+      'da[dx++]="03.11.06|1234;0|500;0"',
+    ];
+    assert.deepEqual(parseDaysHistLines(lines), ['2006-11-03', '2009-08-18']);
+  });
+
+  it('ignores lines that do not match the expected format', () => {
+    const lines = [
+      '// comment',
+      'var da = [];',
+      'da[dx++]="01.07.26|19008;0|9408;0"',
+    ];
+    assert.deepEqual(parseDaysHistLines(lines), ['2026-07-01']);
+  });
+
+  it('returns empty array for empty input', () => {
+    assert.deepEqual(parseDaysHistLines([]), []);
+  });
+
+  it('deduplicates dates that appear more than once', () => {
+    const lines = [
+      'da[dx++]="01.07.26|19008;0|9408;0"',
+      'da[dx++]="01.07.26|19008;0|9408;0"',
+    ];
+    assert.deepEqual(parseDaysHistLines(lines), ['2026-07-01']);
+  });
+});
 
 // --- parseArchiveFilenames ---
 
@@ -117,5 +159,58 @@ describe('buildJsonReport', () => {
     assert.equal(report.gapCount, 0);
     assert.equal(report.totalMissingDays, 0);
     assert.deepEqual(report.gaps, []);
+  });
+});
+
+// --- parseInstallDate ---
+
+describe('parseInstallDate', () => {
+  it('parses HPInbetrieb in DD.MM.YYYY format', () => {
+    const content = 'var HPInbetrieb="15.03.2006"';
+    assert.equal(parseInstallDate(content), '2006-03-15');
+  });
+
+  it('returns null when HPInbetrieb is absent', () => {
+    assert.equal(parseInstallDate('var HPLeistung="6,2 kWp"'), null);
+  });
+
+  it('returns null for an invalid date value', () => {
+    assert.equal(parseInstallDate('var HPInbetrieb="99.99.2006"'), null);
+  });
+});
+
+// --- detectGaps with startDate ---
+
+describe('detectGaps with startDate', () => {
+  it('reports a leading gap between startDate and first data entry', () => {
+    const dates = ['2006-03-18', '2006-03-19'];
+    const gaps = detectGaps(dates, undefined, '2006-03-15');
+    assert.equal(gaps.length, 1);
+    assert.deepEqual(gaps[0], { start: '2006-03-15', end: '2006-03-17', count: 3 });
+  });
+
+  it('reports no leading gap when first entry equals startDate', () => {
+    const dates = ['2006-03-15', '2006-03-16'];
+    const gaps = detectGaps(dates, undefined, '2006-03-15');
+    assert.deepEqual(gaps, []);
+  });
+
+  it('ignores startDate when first entry is before it', () => {
+    const dates = ['2006-03-10', '2006-03-16'];
+    const gaps = detectGaps(dates, undefined, '2006-03-15');
+    assert.equal(gaps.length, 1);
+    assert.deepEqual(gaps[0], { start: '2006-03-11', end: '2006-03-15', count: 5 });
+  });
+
+  it('combines leading gap with internal gaps', () => {
+    const dates = ['2006-03-18', '2006-03-20'];
+    const gaps = detectGaps(dates, undefined, '2006-03-15');
+    assert.equal(gaps.length, 2);
+    assert.deepEqual(gaps[0], { start: '2006-03-15', end: '2006-03-17', count: 3 });
+    assert.deepEqual(gaps[1], { start: '2006-03-19', end: '2006-03-19', count: 1 });
+  });
+
+  it('startDate is ignored when dates list is empty', () => {
+    assert.deepEqual(detectGaps([], undefined, '2006-03-15'), []);
   });
 });

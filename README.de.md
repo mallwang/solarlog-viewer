@@ -21,11 +21,17 @@ Die `min*.js`-Dateien (eine pro Tag, ~7000+ Dateien) enthalten die vom SolarLog-
 
 Ausführung vom Repo-Wurzelverzeichnis mit Node.js 22+.
 
-**Fehlende Tagesdateien erkennen:**
+**Fehlende Tagesdateien erkennen (scannt `min*.js`-Dateinamen):**
 ```bash
 node scripts/gap-detect.js
 node scripts/gap-detect.js --since 2020-01-01
 node scripts/gap-detect.js --output json --out-file gap-report.json
+```
+
+**Fehlende Einträge in `days_hist.js` erkennen:**
+```bash
+node scripts/gap-detect.js --source days_hist
+node scripts/gap-detect.js --source days_hist --since 2020-01-01
 ```
 
 **Min-Datei-Summen gegen `days_hist.js` prüfen:**
