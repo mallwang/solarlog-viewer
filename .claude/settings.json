@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -v -E '\\\\.\\(gif|jpg|ico|JPG\\)$')"
+      "Bash(grep -v -E '\\\\.\\(gif|jpg|ico|JPG\\)$')",
+      "Bash(node --test *)",
+      "Bash(npx eslint *)"
     ]
   },
   "hooks": {

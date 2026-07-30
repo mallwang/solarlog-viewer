@@ -135,14 +135,12 @@ m[mi++] = 'DD.MM.YY HH:MM:SS|<WR1-block>|<WR2-block>|...|<WRn-block>';
 
 Records are stored in **reverse chronological order** (newest first).
 
-### Per-inverter block format
+### Per-inverter block format (current — epoch 3, 2013-01-04 to present)
 
-Each inverter block is a semicolon-separated list. The number of fields depends
-on the **string count** of that inverter (from `WRInfo[n][5]`):
+Each inverter block is a semicolon-separated list:
 
-```
-PAC ; PDC_str1 [; PDC_str2 ...] ; daily_yield_Wh ; UDC_str1 [; UDC_str2 ...]
-```
+**WR1 (2 strings, SB 4200 TL):** `PAC;PDC_str1;PDC_str2;daily_yield_Wh;UDC_str1;UDC_str2`
+**WR2 (1 string, SB 2100 TL):** `PAC;PDC_str1;daily_yield_Wh;UDC_str1`
 
 | Field               | Unit | Description                                                                  |
 | ------------------- | ---- | ---------------------------------------------------------------------------- |
@@ -151,32 +149,30 @@ PAC ; PDC_str1 [; PDC_str2 ...] ; daily_yield_Wh ; UDC_str1 [; UDC_str2 ...]
 | daily_yield_Wh      | Wh   | Cumulative daily energy yield counter for this inverter (resets at midnight) |
 | UDC_str1 … UDC_strN | V    | DC string voltage per string                                                 |
 
-**WR1 (2 strings, SB 4200 TL):** `PAC;PDC_str1;PDC_str2;daily_yield_Wh;UDC_str1;UDC_str2`
-**WR2 (1 string, SB 2100 TL):** `PAC;PDC_str1;daily_yield_Wh;UDC_str1`
-
 ### Concrete example
 
 ```
-m[mi++]="03.11.06 15:00:00|1314;1399;6653;406|2529;1346;13059"
+m[mi++]="01.07.25 13:00:00|3053;1592;1593;9293;347;338|1572;1693;4866;348"
 ```
-
-Decoded:
 
 | Part            | Value               | Meaning                                      |
 | --------------- | ------------------- | -------------------------------------------- |
-| Timestamp       | `03.11.06 15:00:00` | 2006-11-03 at 15:00:00                       |
-| WR1 PAC         | 1314 W              | AC output of inverter 1                      |
-| WR1 PDC_str1    | 1399 W              | DC power from string "Orange"                |
-| WR1 daily_yield | 6653 Wh             | Running daily yield of WR1 at this timestamp |
-| WR1 UDC_str1    | 406 V               | DC voltage of string "Orange"                |
-| WR2 PAC         | 2529 W              | AC output of inverter 2                      |
-| WR2 PDC_str1    | 1346 W              | DC power from WR2's single string            |
-| WR2 daily_yield | 13059 Wh            | Running daily yield of WR2                   |
+| Timestamp       | `01.07.25 13:00:00` | 2025-07-01 at 13:00                          |
+| WR1 PAC         | 3053 W              | AC output of SB 4200 TL                      |
+| WR1 PDC_str1    | 1592 W              | DC power from string "Orange"                |
+| WR1 PDC_str2    | 1593 W              | DC power from string "Grün"                  |
+| WR1 daily_yield | 9293 Wh             | Running daily yield of WR1 at this timestamp |
+| WR1 UDC_str1    | 347 V               | DC voltage of string "Orange"                |
+| WR1 UDC_str2    | 338 V               | DC voltage of string "Grün"                  |
+| WR2 PAC         | 1572 W              | AC output of SB 2100 TL                      |
+| WR2 PDC_str1    | 1693 W              | DC power from WR2's single string            |
+| WR2 daily_yield | 4866 Wh             | Running daily yield of WR2 at this timestamp |
+| WR2 UDC_str1    | 348 V               | DC voltage of WR2's string                   |
 
-> **Note on WR1 string count:** In early 2006 data, WR1 had only 1 string
-> connected, so the block format is shorter. After a hardware change, 2-string
-> format appears. `getWRToken()` in `functions.js` uses `WRInfo[n][5]` (current
-> string count) to parse — there may be subtle mismatches on very early records.
+> **Historical format variants:** The block layout and inverter order changed
+> twice between 2006 and 2013. See
+> [data-format-daily.md](data-format-daily.md) for a full breakdown of all
+> three epochs.
 
 ---
 
