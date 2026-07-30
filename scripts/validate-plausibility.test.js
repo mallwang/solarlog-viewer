@@ -29,9 +29,9 @@ describe('parseMinFile', () => {
     assert.deepEqual(result, { wr1Wh: 19008, wr2Wh: 9408 });
   });
 
-  it('extracts WR1 and WR2 Wh from older-format first line', () => {
+  it('extracts WR1 and WR2 Wh from older-format first line (Epoch 1: 4|4 fields)', () => {
     const result = parseMinFile(MIN_OLDER);
-    assert.deepEqual(result, { wr1Wh: 7793, wr2Wh: 6 });
+    assert.deepEqual(result, { wr1Wh: 7793, wr2Wh: 15130 });
   });
 
   it('returns null for empty content', () => {

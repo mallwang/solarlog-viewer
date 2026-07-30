@@ -7,6 +7,7 @@
     "start": "browser-sync start --server --files '*.html, *.css, *.js, !min*.js, !base_vars.js, !days*.js, !months.js, !years.js, !daysall.js' --no-open",
     "open": "explorer.exe http://localhost:3000",
     "test": "playwright test",
+    "test:scripts": "node --test scripts/*.test.js",
     "lint": "eslint --no-error-on-unmatched-pattern src tests",
     "format": "prettier --write --no-error-on-unmatched-pattern \"src/**/*.{js,css,html}\" \"tests/**/*.js\" \"docs/**/*.md\" \"specs/**/*.md\" \"*.md\"",
     "format:check": "prettier --check --no-error-on-unmatched-pattern \"src/**/*.{js,css,html}\" \"tests/**/*.js\" \"docs/**/*.md\" \"specs/**/*.md\" \"*.md\""

@@ -10,6 +10,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createInterface } from 'node:readline';
+import { parseMinFirstLine } from './utils.js';
 
 /**
  * Filter filenames to those matching the given YYYY.
@@ -24,27 +25,6 @@ export function collectYearMinFiles(allFilenames, yyyy) {
 }
 
 /**
- * Parse first line of a min file for Wh totals.
- * @param {string} content
- * @returns {{ wr1Wh: number, wr2Wh: number } | null}
- */
-function parseMinFile(content) {
-  const firstLine = content.split('\n')[0]?.trim();
-  if (!firstLine) return null;
-  const pipeIdx = firstLine.indexOf('|');
-  if (pipeIdx === -1) return null;
-  const blocks = firstLine.slice(pipeIdx + 1).replace(/"$/, '').split('|');
-  if (blocks.length < 2) return null;
-  // ponytail: Wh index varies by block length: 4-field→index 2, 6-field→index 3
-  const b0 = blocks[0].split(';');
-  const wr1Wh = Number.parseInt(b0[b0.length >= 5 ? 3 : 2], 10);
-  const b1 = blocks[1].split(';');
-  const wr2Wh = Number.parseInt(b1[b1.length >= 5 ? 3 : 2], 10);
-  if (Number.isNaN(wr1Wh) || Number.isNaN(wr2Wh)) return null;
-  return { wr1Wh, wr2Wh };
-}
-
-/**
  * Sum WR1 and WR2 Wh across an array of min file contents.
  * @param {string[]} minContents
  * @returns {{ wr1Wh: number, wr2Wh: number }}
@@ -52,7 +32,7 @@ function parseMinFile(content) {
 export function aggregateYear(minContents) {
   let wr1Wh = 0, wr2Wh = 0;
   for (const c of minContents) {
-    const parsed = parseMinFile(c);
+    const parsed = parseMinFirstLine(c);
     if (parsed) { wr1Wh += parsed.wr1Wh; wr2Wh += parsed.wr2Wh; }
   }
   return { wr1Wh, wr2Wh };
