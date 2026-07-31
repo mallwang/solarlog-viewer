@@ -4,3 +4,4 @@ config_*.dat
 ftpstat.csv
 pm.csv
 min_day.part
+data/

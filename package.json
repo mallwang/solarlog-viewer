@@ -16,7 +16,8 @@
     "validate:plausibility": "node scripts/validate-plausibility.js",
     "fill:days-hist": "node scripts/fill-days-hist.js --dry-run",
     "fill:months": "node scripts/fill-months.js --dry-run",
-    "fill:years": "node scripts/fill-years.js --dry-run"
+    "fill:years": "node scripts/fill-years.js --dry-run",
+    "sync:sqlite": "node scripts/sync-sqlite.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
