@@ -5,7 +5,9 @@
       "Bash(node --test *)",
       "Bash(npx eslint *)",
       "Bash(.specify/scripts/bash/setup-plan.sh --json)",
-      "Bash(rtk git *)"
+      "Bash(rtk git *)",
+      "Bash(.specify/scripts/bash/setup-tasks.sh --json)",
+      "Bash(.specify/extensions/git/scripts/bash/auto-commit.sh after_tasks)"
     ]
   },
   "hooks": {
