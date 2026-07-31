@@ -3,7 +3,9 @@
     "allow": [
       "Bash(grep -v -E '\\\\.\\(gif|jpg|ico|JPG\\)$')",
       "Bash(node --test *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(.specify/scripts/bash/setup-plan.sh --json)",
+      "Bash(rtk git *)"
     ]
   },
   "hooks": {
