@@ -10,7 +10,14 @@
     "test:scripts": "node --test scripts/*.test.js",
     "lint": "eslint --no-error-on-unmatched-pattern src tests",
     "format": "prettier --write --no-error-on-unmatched-pattern \"src/**/*.{js,css,html}\" \"tests/**/*.js\" \"docs/**/*.md\" \"specs/**/*.md\" \"*.md\"",
-    "format:check": "prettier --check --no-error-on-unmatched-pattern \"src/**/*.{js,css,html}\" \"tests/**/*.js\" \"docs/**/*.md\" \"specs/**/*.md\" \"*.md\""
+    "format:check": "prettier --check --no-error-on-unmatched-pattern \"src/**/*.{js,css,html}\" \"tests/**/*.js\" \"docs/**/*.md\" \"specs/**/*.md\" \"*.md\"",
+    "gap:detect": "node scripts/gap-detect.js",
+    "gap:detect:days-history": "node scripts/gap-detect.js --source days_hist",
+    "validate:plausibility": "node scripts/validate-plausibility.js",
+    "fill:days-hist": "node scripts/fill-days-hist.js --dry-run",
+    "fill:months": "node scripts/fill-months.js --dry-run",
+    "fill:years": "node scripts/fill-years.js --dry-run",
+    "sync:sqlite": "node scripts/sync-sqlite.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
