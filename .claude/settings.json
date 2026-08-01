@@ -11,7 +11,10 @@
       "Bash(rtk grep *)",
       "Bash(rtk stat *)",
       "Bash(rtk read *)",
-      "Bash(rtk wc *)"
+      "Bash(rtk wc *)",
+      "Bash(rtk ls *)",
+      "Bash(node scripts/* --help)",
+      "Bash(rtk find *)"
     ]
   },
   "hooks": {
