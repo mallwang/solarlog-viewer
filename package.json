@@ -4,7 +4,7 @@
   "description": "Static viewer for SolarLog data exports",
   "type": "module",
   "scripts": {
-    "start": "browser-sync start --server --files '*.html, *.css, *.js, !min*.js, !base_vars.js, !days*.js, !months.js, !years.js, !daysall.js' --no-open",
+    "start": "browser-sync start --server --files 'legacy-site/**/*.html, legacy-site/**/*.css, legacy-site/**/*.js' --no-open",
     "open": "explorer.exe http://localhost:3000",
     "test": "playwright test",
     "test:scripts": "node --test scripts/*.test.js",

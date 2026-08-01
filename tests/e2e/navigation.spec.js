@@ -8,7 +8,7 @@ test.describe('SolarLog navigation', () => {
     });
     page.on('pageerror', (err) => errors.push(err.message));
 
-    await page.goto('/index.html');
+    await page.goto('/legacy-site/index.html');
     await expect(page.locator('frame[name="links"]')).toHaveCount(1);
     await expect(page.locator('frame[name="visu"]')).toHaveCount(1);
     console.log('Console errors on index:', errors);
@@ -27,7 +27,7 @@ test.describe('SolarLog navigation', () => {
       });
       page.on('pageerror', (err) => errors.push(err.message));
 
-      await page.goto(`/visu.html?mode=${mode}&offset=0`);
+      await page.goto(`/legacy-site/visu.html?mode=${mode}&offset=0`);
       await page.waitForLoadState('networkidle');
 
       // The page title header reflects the active mode
@@ -41,7 +41,7 @@ test.describe('SolarLog navigation', () => {
   }
 
   test('links frame contains correct nav hrefs', async ({ page }) => {
-    await page.goto('/links.html');
+    await page.goto('/legacy-site/links.html');
     await expect(page.locator('a[href*="mode=0"]')).toHaveCount(1);
     await expect(page.locator('a[href*="mode=1"]')).toHaveCount(1);
     await expect(page.locator('a[href*="mode=2"]')).toHaveCount(1);
