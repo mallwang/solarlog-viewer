@@ -22,13 +22,16 @@ Records are stored in **reverse chronological order** (newest first).
 
 | Period                  | Files                           | Block 1            | Block 2                    | Fields |
 | ----------------------- | ------------------------------- | ------------------ | -------------------------- | ------ |
-| 2006-11-03 … 2007-03-27 | `min061103.js` … `min070327.js` | SB 2100 TL (1 str) | SB 4200 TL (2 str, no UDC) | 4 \| 4 |
-| 2007-03-28 … 2012-12-04 | `min070328.js` … `min121204.js` | SB 2100 TL (1 str) | SB 4200 TL (2 str)         | 4 \| 6 |
+| 2006-03-15 … 2007-03-27 | `min060315.js` … `min070327.js` | SB 2100 TL (1 str) | SB 4200 TL (2 str, no UDC) | 4 \| 4 |
+| 2007-03-28 … 2013-01-03 | `min070328.js` … `min130103.js` | SB 2100 TL (1 str) | SB 4200 TL (2 str)         | 4 \| 6 |
 | 2013-01-04 … present    | `min130104.js` … `min_cur.js`   | SB 4200 TL (2 str) | SB 2100 TL (1 str)         | 6 \| 4 |
 
 ---
 
-## Epoch 1 — 2006-11-03 to 2007-03-27 (4 | 4 fields)
+## Epoch 1 — 2006-03-15 to 2007-03-27 (4 | 4 fields)
+
+2006-03-15 is the plant's commissioning date (`HPInbetrieb` in `base_vars.js`)
+and the date of the earliest file in the archive, `min060315.js`.
 
 Block order: **block 1 = SB 2100 TL, block 2 = SB 4200 TL.**
 
@@ -80,7 +83,7 @@ m[mi++]="03.11.06 15:00:00|1314;1399;6653;406|2529;1346;1339;13059"
 
 ---
 
-## Epoch 2 — 2007-03-28 to 2012-12-04 (4 | 6 fields)
+## Epoch 2 — 2007-03-28 to 2013-01-03 (4 | 6 fields)
 
 Block order unchanged: **block 1 = SB 2100 TL, block 2 = SB 4200 TL.**
 
