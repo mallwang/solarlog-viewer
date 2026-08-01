@@ -45,6 +45,10 @@ test('parseMinFirstLine: accepts full file content and reads the first line', ()
 // epochFromDate
 // ---------------------------------------------------------------------------
 
+test('epochFromDate: 2006-03-15 → Epoch 1 (plant install date)', () => { // NOSONAR
+  assert.equal(epochFromDate('15.03.06')?.epoch, 1);
+});
+
 test('epochFromDate: 2006-11-03 → Epoch 1 (first file date)', () => { // NOSONAR
   assert.equal(epochFromDate('03.11.06')?.epoch, 1);
 });

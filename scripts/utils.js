@@ -4,11 +4,11 @@
  */
 
 // Epoch boundaries (inclusive start dates in YYMMDD numeric form).
-// Epoch 1: 4|4 fields — SB2100 TL | SB4200 TL (no UDC)          2006-11-03
+// Epoch 1: 4|4 fields — SB2100 TL | SB4200 TL (no UDC)          2006-03-15 (plant install; assumed unchanged through the archive's first file, 2006-11-03)
 // Epoch 2: 4|6 fields — SB2100 TL | SB4200 TL (+UDC)            2007-03-28
 // Epoch 3: 6|4 fields — SB4200 TL | SB2100 TL (blocks swapped)  2013-01-04
 const EPOCH_STARTS = [
-  { epoch: 1, from: 61103, b0Fields: 4, b1Fields: 4, b0IsSB4200: false },
+  { epoch: 1, from: 60315, b0Fields: 4, b1Fields: 4, b0IsSB4200: false },
   { epoch: 2, from: 70328, b0Fields: 4, b1Fields: 6, b0IsSB4200: false },
   { epoch: 3, from: 130104, b0Fields: 6, b1Fields: 4, b0IsSB4200: true },
 ];
