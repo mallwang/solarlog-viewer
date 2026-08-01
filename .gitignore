@@ -5,3 +5,6 @@ ftpstat.csv
 pm.csv
 min_day.part
 data/
+
+# React Component Preview
+previewConfig.json
