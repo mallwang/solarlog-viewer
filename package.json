@@ -14,6 +14,7 @@
     "gap:detect": "node scripts/gap-detect.js",
     "gap:detect:days-history": "node scripts/gap-detect.js --source days_hist",
     "validate:plausibility": "node scripts/validate-plausibility.js",
+    "validate:min-consistency": "node scripts/validate-min-consistency.js",
     "fill:days-hist": "node scripts/fill-days-hist.js --dry-run",
     "fill:months": "node scripts/fill-months.js --dry-run",
     "fill:years": "node scripts/fill-years.js --dry-run",
