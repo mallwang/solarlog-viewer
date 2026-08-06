@@ -4,7 +4,7 @@ config_*.dat
 ftpstat.csv
 pm.csv
 min_day.part
-data/
+/data/
 
 # React Component Preview
 previewConfig.json

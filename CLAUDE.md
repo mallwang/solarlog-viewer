@@ -1,7 +1,7 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/004-sqlite-meter-sync/plan.md
+at specs/001-website-modernization/plan.md
 <!-- SPECKIT END -->
 
 ## Local Development Server
