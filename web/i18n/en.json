@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "dayView": "Daily Values",
+    "monthView": "Monthly Values",
+    "yearView": "Yearly Values",
+    "totalView": "Lifetime Overview",
+    "compareView": "Year Comparison"
+  },
+  "day": {
+    "noData": "Data not available for today."
+  },
+  "month": {
+    "noData": "No data available for this month."
+  },
+  "year": {
+    "noData": "No data available for this year."
+  },
+  "compare": {
+    "noData": "No comparison data available."
+  },
+  "total": {
+    "noData": "No data available.",
+    "totalYield": "Total yield",
+    "co2Saved": "Avoided CO2 emissions",
+    "feedIn": "Feed-in tariff total"
+  },
+  "widget": {
+    "notProducing": "0 W — not producing",
+    "currentProduction": "Current Production",
+    "todayYield": "Today's Yield",
+    "monthYield": "Month's Yield",
+    "yearYield": "Year's Yield",
+    "totalYield": "Total Yield"
+  },
+  "chart": {
+    "timeAxis": "Time",
+    "dayOfYearAxis": "Day of year",
+    "cumulativeYield": "Cumulative yield",
+    "powerAxis": "Power",
+    "energyAxis": "Energy"
+  }
+}

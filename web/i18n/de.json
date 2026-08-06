@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "dashboard": "Übersicht",
+    "dayView": "Tageswerte",
+    "monthView": "Monatswerte",
+    "yearView": "Jahreswerte",
+    "totalView": "Gesamtübersicht",
+    "compareView": "Jahresvergleich"
+  },
+  "day": {
+    "noData": "Für diesen Tag liegen keine Daten vor."
+  },
+  "month": {
+    "noData": "Für diesen Monat liegen keine Daten vor."
+  },
+  "year": {
+    "noData": "Für dieses Jahr liegen keine Daten vor."
+  },
+  "compare": {
+    "noData": "Keine Vergleichsdaten verfügbar."
+  },
+  "total": {
+    "noData": "Keine Daten verfügbar.",
+    "totalYield": "Gesamtertrag",
+    "co2Saved": "Vermiedene CO2-Emission",
+    "feedIn": "Einspeisevergütung"
+  },
+  "widget": {
+    "notProducing": "0 W — keine Einspeisung",
+    "currentProduction": "Aktuelle Leistung",
+    "todayYield": "Tagesertrag",
+    "monthYield": "Monatsertrag",
+    "yearYield": "Jahresertrag",
+    "totalYield": "Gesamtertrag"
+  },
+  "chart": {
+    "timeAxis": "Uhrzeit",
+    "dayOfYearAxis": "Tag im Jahr",
+    "cumulativeYield": "Kumulierter Ertrag",
+    "powerAxis": "Leistung",
+    "energyAxis": "Energie"
+  }
+}

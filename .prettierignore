@@ -4,7 +4,10 @@
 *.html
 
 # Re-include only source trees we own
-!src/**
+!web/**
+web/data/**
+web/hist/**
+web/vendor/**
 !tests/**
 !docs/**
 !specs/**
