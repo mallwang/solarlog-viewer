@@ -36,14 +36,14 @@ Add four ESM validation/aggregation scripts (`gap-detect.js`, `validate-plausibi
 
 ## Constitution Check
 
-| Principle | Applicability | How Satisfied |
-|-----------|---------------|---------------|
-| I. Static-File Data Model is Sacred | ✅ Core | Scripts never modify raw `minYYMMDD.js` files. Output files (`days_hist.js`, `months.js`, `years.js`) are derived aggregates, not device-push files. `daysall.js` is never written. |
-| II. Zero Historical Data Loss | ✅ Core | Validation detects gaps; fill scripts require explicit `--force` or confirmation. Dry-run available. |
-| III. No Backend Introduction | ✅ Core | Pure Node.js CLI scripts. No server, database, or build pipeline. |
-| IV. Responsive-First Layout | N/A | No UI changes. |
-| V. Modern Charting | N/A | No chart changes. |
-| VI. Preserve All Five Visualization Modes | ✅ Core | Repaired aggregation files feed the existing viewer unchanged; no viewer code modified. |
+| Principle                                 | Applicability | How Satisfied                                                                                                                                                                       |
+| ----------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Static-File Data Model is Sacred       | ✅ Core       | Scripts never modify raw `minYYMMDD.js` files. Output files (`days_hist.js`, `months.js`, `years.js`) are derived aggregates, not device-push files. `daysall.js` is never written. |
+| II. Zero Historical Data Loss             | ✅ Core       | Validation detects gaps; fill scripts require explicit `--force` or confirmation. Dry-run available.                                                                                |
+| III. No Backend Introduction              | ✅ Core       | Pure Node.js CLI scripts. No server, database, or build pipeline.                                                                                                                   |
+| IV. Responsive-First Layout               | N/A           | No UI changes.                                                                                                                                                                      |
+| V. Modern Charting                        | N/A           | No chart changes.                                                                                                                                                                   |
+| VI. Preserve All Five Visualization Modes | ✅ Core       | Repaired aggregation files feed the existing viewer unchanged; no viewer code modified.                                                                                             |
 
 **Gate result**: All applicable principles satisfied. No violations.
 

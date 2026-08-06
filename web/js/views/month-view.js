@@ -7,6 +7,7 @@ import {
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { fetchFromBothSources } from '../data/data-source.js';
+import { emptyStateMarkup } from './empty-state.js';
 
 function monthKey({ year, month }) {
   return `${year}-${String(month).padStart(2, '0')}`;
@@ -19,8 +20,9 @@ function monthKey({ year, month }) {
  */
 export async function render(container, { route }) {
   const key = monthKey(route.params);
-  container.innerHTML = `<h2 class="view-title">${t('nav.monthView')} — ${key}</h2>
-    <div class="chart-container"><canvas></canvas></div>`;
+  const title = `${t('nav.monthView')} — ${key}`;
+  container.innerHTML = `<h2 class="view-title text-lg mb-md">${title}</h2>
+    <div class="chart-container"><div class="chart-mount"></div></div>`;
 
   const [monthsSources, daysSources] = await Promise.all([
     fetchFromBothSources('months.js'),
@@ -33,8 +35,7 @@ export async function render(container, { route }) {
     !daysSources.hist.ok &&
     !daysSources.data.ok
   ) {
-    container.innerHTML = `<h2 class="view-title">${t('nav.monthView')} — ${key}</h2>
-      <p class="empty-state">${t('month.noData')}</p>`;
+    container.innerHTML = emptyStateMarkup(title, 'month.noData');
     return;
   }
 
@@ -56,11 +57,10 @@ export async function render(container, { route }) {
   monthTotal.dailyBreakdown = dailyBreakdown;
 
   if (dailyBreakdown.length === 0) {
-    container.innerHTML = `<h2 class="view-title">${t('nav.monthView')} — ${key}</h2>
-      <p class="empty-state">${t('month.noData')}</p>`;
+    container.innerHTML = emptyStateMarkup(title, 'month.noData');
     return;
   }
 
-  const canvas = container.querySelector('canvas');
-  renderChart(canvas, 'month', monthTotal, { lang: getLanguage() });
+  const mount = container.querySelector('.chart-mount');
+  renderChart(mount, 'month', monthTotal, { lang: getLanguage() });
 }

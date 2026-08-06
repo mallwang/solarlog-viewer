@@ -28,10 +28,15 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { formatEpoch3Blocks } from './scripts/migrate-min-epoch.js';
 
 const content = readFileSync('archive/min-original/min08MMDD.js', 'utf8'); // confirm exact archive path first
-const rawLines = content.split('\n').map((l) => l.trim()).filter(Boolean);
+const rawLines = content
+  .split('\n')
+  .map((l) => l.trim())
+  .filter(Boolean);
 
 const lines = rawLines.map((raw) => {
-  const match = /^m\[mi\+\+\]="(\d{2}\.\d{2}\.\d{2}) (\d{2}:\d{2}:\d{2})\|([^|]+)\|([^"]+)"$/.exec(raw);
+  const match = /^m\[mi\+\+\]="(\d{2}\.\d{2}\.\d{2}) (\d{2}:\d{2}:\d{2})\|([^|]+)\|([^"]+)"$/.exec(
+    raw,
+  );
   const [, date, time, b0raw, b1raw] = match;
   const b0 = b0raw.split(';').map((n) => Number.parseInt(n, 10)); // [pac, pdc1, wh, udc1] — 1-string block
   const b1 = b1raw.split(';').map((n) => Number.parseInt(n, 10)); // [pac, pdc1, pdc2, wh, udc1, udc2] — 2-string block

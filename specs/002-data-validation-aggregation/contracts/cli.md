@@ -10,19 +10,21 @@ All scripts are ESM JS in `scripts/`. Run with `node scripts/<name>.js [args]`.
 node scripts/gap-detect.js [--source days_hist] [--since YYYY-MM-DD] [--output json] [--out-file PATH]
 ```
 
-| Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--source days_hist` | optional | min files | Parse `days_hist.js` entries instead of scanning `min*.js` filenames |
-| `--since YYYY-MM-DD` | optional | earliest known entry | Limit gap reporting to dates on or after this date |
-| `--output json` | optional | human-readable | Also emit a JSON report |
-| `--out-file PATH` | optional | `gap-report.json` | JSON output path (only used with `--output json`) |
+| Flag                 | Type     | Default              | Description                                                          |
+| -------------------- | -------- | -------------------- | -------------------------------------------------------------------- |
+| `--source days_hist` | optional | min files            | Parse `days_hist.js` entries instead of scanning `min*.js` filenames |
+| `--since YYYY-MM-DD` | optional | earliest known entry | Limit gap reporting to dates on or after this date                   |
+| `--output json`      | optional | human-readable       | Also emit a JSON report                                              |
+| `--out-file PATH`    | optional | `gap-report.json`    | JSON output path (only used with `--output json`)                    |
 
 **Exit codes**:
+
 - `0` — no gaps detected (or `--since` filter produced no results)
 - `1` — one or more gaps found
 - `2` — argument error or source not readable
 
 **Stdout (human-readable)**:
+
 ```
 Gap Report: 2006-11-03 – 2026-07-30 (7152 files found)
 
@@ -45,19 +47,21 @@ No gaps detected. ✓
 node scripts/validate-plausibility.js [--since YYYY-MM-DD] [--tolerance N] [--output json] [--out-file PATH]
 ```
 
-| Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--since YYYY-MM-DD` | optional | earliest known file | Limit check to dates on or after this date |
-| `--tolerance N` | optional | `1` (Wh) | Days with abs(delta) ≤ N are not flagged |
-| `--output json` | optional | human-readable | Also emit a machine-readable JSON report |
-| `--out-file PATH` | optional | `plausibility-report.json` | JSON output path |
+| Flag                 | Type     | Default                    | Description                                |
+| -------------------- | -------- | -------------------------- | ------------------------------------------ |
+| `--since YYYY-MM-DD` | optional | earliest known file        | Limit check to dates on or after this date |
+| `--tolerance N`      | optional | `1` (Wh)                   | Days with abs(delta) ≤ N are not flagged   |
+| `--output json`      | optional | human-readable             | Also emit a machine-readable JSON report   |
+| `--out-file PATH`    | optional | `plausibility-report.json` | JSON output path                           |
 
 **Exit codes**:
+
 - `0` — all checked days within tolerance
 - `1` — one or more mismatches found
 - `2` — argument error
 
 **Stdout (human-readable, mismatch row)**:
+
 ```
 Date        WR1 min(Wh)  WR1 hist(Wh)  Δ WR1  Δ%     WR2 min(Wh)  WR2 hist(Wh)  Δ WR2  Δ%
 2026-07-14  19100        19200          +100   +0.52%  9408         9408           0      0.00%
@@ -71,19 +75,21 @@ Date        WR1 min(Wh)  WR1 hist(Wh)  Δ WR1  Δ%     WR2 min(Wh)  WR2 hist(Wh)
 node scripts/fill-days-hist.js YYYY-MM [--dry-run] [--force] [--tolerance N]
 ```
 
-| Argument/Flag | Type | Required | Description |
-|---------------|------|----------|-------------|
-| `YYYY-MM` | positional | yes | Target calendar month to process |
-| `--dry-run` | flag | no | Print computed values; do not write |
-| `--force` | flag | no | Overwrite existing entries without confirmation prompt |
-| `--tolerance N` | optional | no | Wh tolerance for considering existing entries as already correct (default 0 = exact match required to skip) |
+| Argument/Flag   | Type       | Required | Description                                                                                                 |
+| --------------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `YYYY-MM`       | positional | yes      | Target calendar month to process                                                                            |
+| `--dry-run`     | flag       | no       | Print computed values; do not write                                                                         |
+| `--force`       | flag       | no       | Overwrite existing entries without confirmation prompt                                                      |
+| `--tolerance N` | optional   | no       | Wh tolerance for considering existing entries as already correct (default 0 = exact match required to skip) |
 
 **Exit codes**:
+
 - `0` — success (or dry-run completed)
 - `1` — one or more unfillable dates (no source data)
 - `2` — argument error or file write failure
 
 **Stdout summary**:
+
 ```
 fill-days-hist 2026-06
   Checked: 30 days
@@ -101,17 +107,18 @@ fill-days-hist 2026-06
 node scripts/fill-months.js YYYY-MM [--dry-run] [--force]
 ```
 
-| Argument/Flag | Type | Required | Description |
-|---------------|------|----------|-------------|
-| `YYYY-MM` | positional | yes | Target month to aggregate |
-| `--dry-run` | flag | no | Print computed values; do not write |
-| `--force` | flag | no | Overwrite without confirmation |
+| Argument/Flag | Type       | Required | Description                         |
+| ------------- | ---------- | -------- | ----------------------------------- |
+| `YYYY-MM`     | positional | yes      | Target month to aggregate           |
+| `--dry-run`   | flag       | no       | Print computed values; do not write |
+| `--force`     | flag       | no       | Overwrite without confirmation      |
 
 **Source**: All `minYYYYMM*.js` files for the given month. Never reads `days_hist.js`.
 
 **Exit codes**: `0` success, `1` no min files found for month, `2` argument error.
 
 **Stdout**:
+
 ```
 fill-months 2026-06
   Min files: 30
@@ -129,17 +136,18 @@ fill-months 2026-06
 node scripts/fill-years.js YYYY [--dry-run] [--force]
 ```
 
-| Argument/Flag | Type | Required | Description |
-|---------------|------|----------|-------------|
-| `YYYY` | positional | yes | Target year to aggregate |
-| `--dry-run` | flag | no | Print computed values; do not write |
-| `--force` | flag | no | Overwrite without confirmation |
+| Argument/Flag | Type       | Required | Description                         |
+| ------------- | ---------- | -------- | ----------------------------------- |
+| `YYYY`        | positional | yes      | Target year to aggregate            |
+| `--dry-run`   | flag       | no       | Print computed values; do not write |
+| `--force`     | flag       | no       | Overwrite without confirmation      |
 
 **Source**: All `minYYYY*.js` files for the given year. Never reads `days_hist.js` or `months.js`.
 
 **Exit codes**: `0` success, `1` no min files found for year, `2` argument error.
 
 **Stdout**:
+
 ```
 fill-years 2026
   Min files: 211

@@ -2,6 +2,7 @@ import { parseYearsFile, mergeYearlyTotals } from '../data/aggregates.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { fetchFromBothSources } from '../data/data-source.js';
+import { emptyStateMarkup } from './empty-state.js';
 
 /**
  * Mounts the Mode 2 year detail view: all-years annual-total bars, verifying every year from
@@ -10,13 +11,13 @@ import { fetchFromBothSources } from '../data/data-source.js';
  * @param {{ plant: object | null }} ctx
  */
 export async function render(container, { plant }) {
-  container.innerHTML = `<h2 class="view-title">${t('nav.yearView')}</h2>
-    <div class="chart-container"><canvas></canvas></div>`;
+  const title = t('nav.yearView');
+  container.innerHTML = `<h2 class="view-title text-lg mb-md">${title}</h2>
+    <div class="chart-container"><div class="chart-mount"></div></div>`;
 
   const { hist, data } = await fetchFromBothSources('years.js');
   if (!hist.ok && !data.ok) {
-    container.innerHTML = `<h2 class="view-title">${t('nav.yearView')}</h2>
-      <p class="empty-state">${t('year.noData')}</p>`;
+    container.innerHTML = emptyStateMarkup(title, 'year.noData');
     return;
   }
 
@@ -30,11 +31,10 @@ export async function render(container, { plant }) {
     : years.length === 0;
 
   if (missing) {
-    container.innerHTML = `<h2 class="view-title">${t('nav.yearView')}</h2>
-      <p class="empty-state">${t('year.noData')}</p>`;
+    container.innerHTML = emptyStateMarkup(title, 'year.noData');
     return;
   }
 
-  const canvas = container.querySelector('canvas');
-  renderChart(canvas, 'year', years, { lang: getLanguage() });
+  const mount = container.querySelector('.chart-mount');
+  renderChart(mount, 'year', years, { lang: getLanguage() });
 }

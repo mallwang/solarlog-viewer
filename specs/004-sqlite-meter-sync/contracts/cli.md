@@ -6,18 +6,18 @@
 node scripts/sync-sqlite.js [--data-dir <path>] [--db <path>] [--dry-run]
 ```
 
-| Flag | Default | Meaning |
-|---|---|---|
-| `--data-dir` | repository root (`.`) | Directory containing `min*.js` files, matching existing scripts' convention (e.g. `scripts/gap-detect.js`). |
-| `--db` | `data/solarlog.sqlite3` | Path to the SQLite database file; created if it doesn't exist. |
-| `--dry-run` | off | Parse and report what would change without writing to the database, matching the `--dry-run` convention used by `scripts/fill-months.js` / `scripts/fill-years.js`. |
+| Flag         | Default                 | Meaning                                                                                                                                                             |
+| ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--data-dir` | repository root (`.`)   | Directory containing `min*.js` files, matching existing scripts' convention (e.g. `scripts/gap-detect.js`).                                                         |
+| `--db`       | `data/solarlog.sqlite3` | Path to the SQLite database file; created if it doesn't exist.                                                                                                      |
+| `--dry-run`  | off                     | Parse and report what would change without writing to the database, matching the `--dry-run` convention used by `scripts/fill-months.js` / `scripts/fill-years.js`. |
 
 ## Exit codes
 
-| Code | Meaning |
-|---|---|
-| `0` | Sync completed; zero or more files skipped/malformed-record warnings were logged but the run finished. |
-| `1` | Fatal error (e.g. database file unwritable, `--data-dir` does not exist). Individual malformed records/files never cause exit code `1` (FR-009). |
+| Code | Meaning                                                                                                                                          |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `0`  | Sync completed; zero or more files skipped/malformed-record warnings were logged but the run finished.                                           |
+| `1`  | Fatal error (e.g. database file unwritable, `--data-dir` does not exist). Individual malformed records/files never cause exit code `1` (FR-009). |
 
 ## stdout / stderr contract
 
@@ -31,6 +31,7 @@ node scripts/sync-sqlite.js [--data-dir <path>] [--db <path>] [--dry-run]
 ## Idempotency contract (FR-005, SC-002)
 
 Running the script twice in immediate succession with no new/changed source files MUST:
+
 - Produce identical `readings`, `daily_yield_summary`, `monthly_yield_summary`,
   `yearly_yield_summary` table contents after both runs.
 - Report `0 inserted, 0 updated` in the second run's summary.
@@ -39,6 +40,7 @@ Running the script twice in immediate succession with no new/changed source file
 
 Given a database already synced through day N, adding one new day N+1's file and re-running
 MUST:
+
 - Only insert rows for day N+1 (verified via `sync_state` row count delta = 1, `readings` row
   count delta = that day's record count only).
 - Not re-read or re-parse any file whose `sync_state.status = 'complete'` and whose content hash

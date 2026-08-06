@@ -19,8 +19,9 @@
 **Decision**: Parse each inverter block independently using a flexible field extractor that treats field index 2 (0-based, within each `|`-delimited block) as the Wh cumulative counter.
 
 **Rationale**: Observed formats in the archive:
+
 - Older files (2006–2009): `m[mi++]="29.03.07 HH:MM:SS|pdc1;pac1;wh1;v1|pdc2;dc2;pac2;wh2;v2a;v2b"` (4 + 6 fields)
-- Newer files (2024+): `m[mi++]="28.07.26 HH:MM:SS|pdc1;dc1;something;wh1;v1;v2|pdc2;pac2;wh2;v"`  (6 + 4 fields)
+- Newer files (2024+): `m[mi++]="28.07.26 HH:MM:SS|pdc1;dc1;something;wh1;v1;v2|pdc2;pac2;wh2;v"` (6 + 4 fields)
 
 The Wh cumulative counter is always the **third field (index 2)** of its inverter block in the known file set. The `backfill-min-day.js` regex confirms this for the 4-field WR1 block (group 5 = wh1) and 6-field WR2 block (group 10 = wh2). A flexible parser splits on `|`, then splits each block on `;`, and reads `fields[2]` for Wh.
 
@@ -67,6 +68,7 @@ The Wh cumulative counter is always the **third field (index 2)** of its inverte
 ## Decision 7 — Output Format Fidelity
 
 **Decision**: Generated lines use the exact same JS assignment patterns as device-generated files:
+
 - `da[dx++]="DD.MM.YY|WR1_Wh;WR1_feed|WR2_Wh;WR2_feed"`
 - `mo[mx++]="01.MM.YY|WR1_Wh|WR2_Wh"`
 - `ye[yx++]="01.01.YY|WR1_Wh|WR2_Wh"`

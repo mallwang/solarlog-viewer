@@ -12,16 +12,16 @@
 
 This feature is governed by the Photovoltaikanlage Allwang Modernization Constitution.
 
-| Principle                                 | Applicability | How Satisfied                                                                                                                                                                        |
-| ------------------------------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| I. Static-File Data Model is Sacred        | ✅ Core       | No `.js` data file is touched; the redesign is purely presentational and reads existing data exactly as today.                                                                       |
-| III. No Backend Introduction               | ✅ Core       | Styling is produced by a one-time/CI build step into a static CSS file; nothing new runs server-side or is required at request time.                                                 |
-| IV. Responsive-First Layout                | ✅ Core       | Navigation and all views MUST remain usable from 320 px to 2560 px.                                                                                                                    |
-| VI. Preserve All Five Visualization Modes  | ✅ Core       | This feature changes presentation and navigation only; all existing view behaviors and data are preserved unchanged.                                                                  |
-| Technical Standards → Frontend             | ⚠️ Amendment needed | The constitution currently states "no framework... unless explicitly approved" and "no bundler required unless a documented concern exists." Adopting Tailwind's compiled build step is an intentional, user-requested exception this feature introduces; `/speckit-plan` MUST record the resulting constitution amendment. |
-| V. Modern Charting — No Custom Pixel Math  | ✅ Core       | ApexCharts is an established, maintained charting library within the principle's existing allowance ("e.g., Chart.js, Apache ECharts, or Recharts"); it replaces the current Chart.js instance as the single rendering engine for all five visualization modes — no custom pixel-positioning engine is introduced. |
+| Principle                                 | Applicability       | How Satisfied                                                                                                                                                                                                                                                                                                               |
+| ----------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Static-File Data Model is Sacred       | ✅ Core             | No `.js` data file is touched; the redesign is purely presentational and reads existing data exactly as today.                                                                                                                                                                                                              |
+| III. No Backend Introduction              | ✅ Core             | Styling is produced by a one-time/CI build step into a static CSS file; nothing new runs server-side or is required at request time.                                                                                                                                                                                        |
+| IV. Responsive-First Layout               | ✅ Core             | Navigation and all views MUST remain usable from 320 px to 2560 px.                                                                                                                                                                                                                                                         |
+| VI. Preserve All Five Visualization Modes | ✅ Core             | This feature changes presentation and navigation only; all existing view behaviors and data are preserved unchanged.                                                                                                                                                                                                        |
+| Technical Standards → Frontend            | ⚠️ Amendment needed | The constitution currently states "no framework... unless explicitly approved" and "no bundler required unless a documented concern exists." Adopting Tailwind's compiled build step is an intentional, user-requested exception this feature introduces; `/speckit-plan` MUST record the resulting constitution amendment. |
+| V. Modern Charting — No Custom Pixel Math | ✅ Core             | ApexCharts is an established, maintained charting library within the principle's existing allowance ("e.g., Chart.js, Apache ECharts, or Recharts"); it replaces the current Chart.js instance as the single rendering engine for all five visualization modes — no custom pixel-positioning engine is introduced.          |
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Coherent, Polished Presentation of All Solar Data (Priority: P1)
 
@@ -79,7 +79,7 @@ A user on a narrow smartphone screen and a user on a large desktop monitor both 
 - How does the design communicate a "not producing" or error/offline state (e.g., 0 W at night) in a way that remains legible in both light and dark modes and doesn't rely on color alone?
 - What happens if a user's browser window is resized while a view is open — does the layout reflow live, or does it require a reload?
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -103,7 +103,7 @@ A user on a narrow smartphone screen and a user on a large desktop monitor both 
 - **Navigation Menu**: The always-reachable list of all views; adapts its layout by viewport width and tracks which view is currently active.
 - **Summary Element (stat/card)**: A visually distinct presentation unit for a single numeric metric (e.g., current power, monthly total).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

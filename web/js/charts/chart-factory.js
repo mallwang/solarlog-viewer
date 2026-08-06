@@ -1,19 +1,27 @@
-import '../../vendor/chart.js/chart.esm.js';
+import '../../vendor/apexcharts/apexcharts.esm.js';
 import { t } from '../i18n.js';
 
-// vendor/chart.js/chart.esm.js is Chart.js's UMD build; loaded as an ES module for its
-// side effect of attaching `window.Chart` (no bundler-free single-file ESM build is published).
-// Guarded for node:test, which imports view modules (for their pure helper exports) without a DOM.
-const Chart = typeof window !== 'undefined' ? window.Chart : undefined;
+// vendor/apexcharts/apexcharts.esm.js is ApexCharts' UMD build; loaded as an ES module for its
+// side effect of attaching `window.ApexCharts` (no bundler-free single-file ESM build is
+// published for the browser). Guarded for node:test, which imports view modules (for their pure
+// helper exports) without a DOM.
+const ApexCharts = typeof window !== 'undefined' ? window.ApexCharts : undefined;
 
-const INVERTER_COLORS = [
-  'var(--chart-color-1)',
-  'var(--chart-color-2)',
-  'var(--chart-color-3)',
-  'var(--chart-color-4)',
-  'var(--chart-color-5)',
-  'var(--chart-color-6)',
+const CHART_COLOR_VARS = [
+  '--chart-color-1',
+  '--chart-color-2',
+  '--chart-color-3',
+  '--chart-color-4',
+  '--chart-color-5',
+  '--chart-color-6',
 ];
+
+/** @returns {string[]} Resolved `--chart-color-1..6` values (SVG fill/stroke need resolved colors, not `var()` strings). */
+function getChartColors() {
+  if (typeof window === 'undefined') return [];
+  const styles = getComputedStyle(document.documentElement);
+  return CHART_COLOR_VARS.map((name) => styles.getPropertyValue(name).trim());
+}
 
 const charts = new WeakMap();
 
@@ -21,121 +29,103 @@ function formatTimeLabel(isoTimestamp) {
   return isoTimestamp.slice(11, 16);
 }
 
-function buildDayConfig(data) {
+function baseOptions(colors) {
+  return {
+    chart: {
+      height: '100%',
+      width: '100%',
+      toolbar: { show: false },
+      animations: { enabled: false },
+      fontFamily: 'inherit',
+      foreColor: 'var(--color-text-muted)',
+    },
+    colors,
+    dataLabels: { enabled: false },
+    grid: { borderColor: 'var(--color-border)' },
+    legend: { labels: { colors: 'var(--color-text)' } },
+  };
+}
+
+function buildDayOptions(data, colors) {
   const inverterIndices = data.readings.length
     ? Object.keys(data.readings[0].perInverter).map(Number)
     : [];
-  const labels = data.readings.map((r) => formatTimeLabel(r.timestamp));
-  const datasets = inverterIndices.map((idx, i) => ({
-    label: `WR${idx}`,
+  const categories = data.readings.map((r) => formatTimeLabel(r.timestamp));
+  const series = inverterIndices.map((idx) => ({
+    name: `WR${idx}`,
     data: data.readings.map((r) => r.perInverter[idx]?.pacW ?? null),
-    borderColor: INVERTER_COLORS[i % INVERTER_COLORS.length],
-    backgroundColor: INVERTER_COLORS[i % INVERTER_COLORS.length],
-    fill: false,
-    tension: 0.15,
-    pointRadius: 0,
   }));
 
   return {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          title: { display: true, text: t('chart.timeAxis') },
-          ticks: { maxTicksLimit: 12 },
-        },
-        y: {
-          title: { display: true, text: 'W' },
-          beginAtZero: true,
-        },
-      },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label(ctx) {
-              return `${ctx.dataset.label}: ${ctx.formattedValue} W`;
-            },
-          },
-        },
-      },
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'line' },
+    stroke: { width: 2, curve: 'smooth' },
+    markers: { size: 0 },
+    series,
+    xaxis: {
+      categories,
+      title: { text: t('chart.timeAxis') },
+      tickAmount: 12,
+    },
+    yaxis: {
+      title: { text: 'W' },
+      min: 0,
+    },
+    tooltip: {
+      y: { formatter: (value) => (value === null || value === undefined ? '—' : `${value} W`) },
     },
   };
 }
 
-function buildMonthConfig(data) {
+function buildMonthOptions(data, colors) {
   const inverterIndices = data.dailyBreakdown.length
     ? Object.keys(data.dailyBreakdown[0].perInverter).map(Number)
     : [];
-  const labels = data.dailyBreakdown.map((d) => d.date.slice(8, 10));
-  const datasets = inverterIndices.map((idx, i) => ({
-    label: `WR${idx}`,
+  const categories = data.dailyBreakdown.map((d) => d.date.slice(8, 10));
+  const series = inverterIndices.map((idx) => ({
+    name: `WR${idx}`,
     data: data.dailyBreakdown.map((d) => (d.perInverter[idx]?.yieldWh ?? 0) / 1000),
-    backgroundColor: INVERTER_COLORS[i % INVERTER_COLORS.length],
   }));
 
   return {
-    type: 'bar',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { stacked: true },
-        y: { stacked: true, title: { display: true, text: 'kWh' }, beginAtZero: true },
-      },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label(ctx) {
-              return `${ctx.dataset.label}: ${ctx.formattedValue} kWh`;
-            },
-          },
-        },
-      },
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'bar', stacked: true },
+    plotOptions: { bar: { columnWidth: '70%' } },
+    series,
+    xaxis: { categories },
+    yaxis: { title: { text: 'kWh' }, min: 0 },
+    tooltip: {
+      y: { formatter: (value) => `${value.toFixed(2)} kWh` },
     },
   };
 }
 
-function buildYearConfig(yearlyTotalsList) {
+function buildYearOptions(yearlyTotalsList, colors) {
   const inverterIndices = yearlyTotalsList.length
     ? Object.keys(yearlyTotalsList[0].perInverter).map(Number)
     : [];
-  const labels = yearlyTotalsList.map((y) => String(y.year));
-  const datasets = inverterIndices.map((idx, i) => ({
-    label: `WR${idx}`,
+  const categories = yearlyTotalsList.map((y) => String(y.year));
+  const series = inverterIndices.map((idx) => ({
+    name: `WR${idx}`,
     data: yearlyTotalsList.map((y) => (y.perInverter[idx] ?? 0) / 1000),
-    backgroundColor: INVERTER_COLORS[i % INVERTER_COLORS.length],
   }));
 
   return {
-    type: 'bar',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { stacked: true },
-        y: { stacked: true, title: { display: true, text: 'kWh' }, beginAtZero: true },
-      },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label(ctx) {
-              return `${ctx.dataset.label}: ${ctx.formattedValue} kWh`;
-            },
-          },
-        },
-      },
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'bar', stacked: true },
+    plotOptions: { bar: { columnWidth: '60%' } },
+    series,
+    xaxis: { categories },
+    yaxis: { title: { text: 'kWh' }, min: 0 },
+    tooltip: {
+      y: { formatter: (value) => `${value.toFixed(2)} kWh` },
     },
   };
 }
 
-function buildTotalConfig(lifetimeSummary) {
+function buildTotalOptions(lifetimeSummary, colors) {
   const byYearAscending = [...lifetimeSummary.byYear].sort((a, b) => a.year - b.year);
-  const labels = byYearAscending.map((y) => String(y.year));
+  const categories = byYearAscending.map((y) => String(y.year));
   let running = 0;
   const cumulativeKwh = byYearAscending.map((y) => {
     running += Object.values(y.perInverter).reduce((s, wh) => s + wh, 0) / 1000;
@@ -143,114 +133,90 @@ function buildTotalConfig(lifetimeSummary) {
   });
 
   return {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: t('chart.cumulativeYield'),
-          data: cumulativeKwh,
-          backgroundColor: INVERTER_COLORS[0],
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: { y: { title: { display: true, text: 'kWh' }, beginAtZero: true } },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label(ctx) {
-              return `${ctx.dataset.label}: ${ctx.formattedValue} kWh`;
-            },
-          },
-        },
-      },
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'bar' },
+    plotOptions: { bar: { columnWidth: '50%' } },
+    series: [{ name: t('chart.cumulativeYield'), data: cumulativeKwh }],
+    xaxis: { categories },
+    yaxis: { title: { text: 'kWh' }, min: 0 },
+    tooltip: {
+      y: { formatter: (value) => `${value.toFixed(2)} kWh` },
     },
   };
 }
 
-function buildCompareConfig(yearComparisonSeries) {
+function buildCompareOptions(yearComparisonSeries, colors) {
   const maxDay = yearComparisonSeries.reduce(
     (max, s) => Math.max(max, ...s.points.map((p) => p.dayOfYear)),
     0,
   );
-  const labels = Array.from({ length: maxDay }, (_, i) => i + 1);
-  const datasets = yearComparisonSeries.map((series, i) => {
-    const byDay = new Map(series.points.map((p) => [p.dayOfYear, p.totalWh / 1000]));
+  const categories = Array.from({ length: maxDay }, (_, i) => i + 1);
+  const series = yearComparisonSeries.map((s) => {
+    const byDay = new Map(s.points.map((p) => [p.dayOfYear, p.totalWh / 1000]));
     return {
-      label: String(series.year),
-      data: labels.map((day) => byDay.get(day) ?? null),
-      borderColor: INVERTER_COLORS[i % INVERTER_COLORS.length],
-      backgroundColor: INVERTER_COLORS[i % INVERTER_COLORS.length],
-      fill: false,
-      pointRadius: 0,
-      spanGaps: true,
+      name: String(s.year),
+      data: categories.map((day) => byDay.get(day) ?? null),
     };
   });
 
   return {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          title: { display: true, text: t('chart.dayOfYearAxis') },
-        },
-        y: { title: { display: true, text: 'kWh' }, beginAtZero: true },
-      },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label(ctx) {
-              return `${ctx.dataset.label}, day ${ctx.label}: ${ctx.formattedValue} kWh`;
-            },
-          },
-        },
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'line' },
+    stroke: { width: 2, curve: 'straight' },
+    markers: { size: 0 },
+    series,
+    xaxis: {
+      categories,
+      title: { text: t('chart.dayOfYearAxis') },
+      tickAmount: 12,
+    },
+    yaxis: { title: { text: 'kWh' }, min: 0 },
+    tooltip: {
+      y: {
+        formatter: (value) =>
+          value === null || value === undefined ? '—' : `${value.toFixed(2)} kWh`,
       },
     },
   };
 }
 
-function buildConfig(mode, data) {
+function buildOptions(mode, data, colors) {
   switch (mode) {
     case 'day':
-      return buildDayConfig(data);
+      return buildDayOptions(data, colors);
     case 'month':
-      return buildMonthConfig(data);
+      return buildMonthOptions(data, colors);
     case 'year':
-      return buildYearConfig(data);
+      return buildYearOptions(data, colors);
     case 'total':
-      return buildTotalConfig(data);
+      return buildTotalOptions(data, colors);
     case 'compare':
-      return buildCompareConfig(data);
+      return buildCompareOptions(data, colors);
     default:
       throw new Error(`chart-factory: unsupported mode "${mode}"`);
   }
 }
 
 /**
- * Creates (or updates, if `canvas` already has a Chart instance) a Chart.js chart for one of the
- * 5 modes. Calling again on the same canvas with new data updates the existing chart in place
- * rather than stacking multiple canvases.
- * @param {HTMLCanvasElement} canvas
+ * Creates (or updates, if `container` already hosts a chart) an ApexCharts chart for one of the
+ * 5 visualization modes. Calling again on the same container with new data destroys the previous
+ * chart instance before mounting a fresh one — no stacked/duplicate charts.
+ * @param {HTMLElement} container - A plain `<div>` (was `<canvas>` under Chart.js); ApexCharts
+ *   renders an inline SVG into it.
  * @param {'day' | 'month' | 'year' | 'total' | 'compare'} mode
- * @param {object} data
- * @param {{ lang: 'de' | 'en' }} [options] - Accepted for contract compatibility; axis/legend
- *   text is sourced from the i18n module's current language directly, so callers may omit it.
- * @returns {import('chart.js').Chart}
+ * @param {object} data - Same shape per mode as before (readings/dailyBreakdown/
+ *   yearlyTotalsList/lifetimeSummary/yearComparisonSeries).
+ * @returns {import('apexcharts')} The ApexCharts instance (for tests/cleanup).
  */
-export function renderChart(canvas, mode, data) {
-  const existing = charts.get(canvas);
+export function renderChart(container, mode, data) {
+  const existing = charts.get(container);
   if (existing) {
     existing.destroy();
-    charts.delete(canvas);
+    charts.delete(container);
   }
-  const config = buildConfig(mode, data);
-  const chart = new Chart(canvas, config);
-  charts.set(canvas, chart);
+  const options = buildOptions(mode, data, getChartColors());
+  const chart = new ApexCharts(container, options);
+  chart.render();
+  charts.set(container, chart);
   return chart;
 }

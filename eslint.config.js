@@ -9,7 +9,7 @@ export default [
       'WR*/**',      // per-inverter data subdirectories pushed by the device
       'web/data/**', // SolarLog device-pushed data files, new source since 2026-07-29
       'web/hist/**', // frozen historical SolarLog data, through 2026-07-28
-      'web/vendor/**', // vendored third-party build (Chart.js)
+      'web/vendor/**', // vendored third-party build (ApexCharts)
       'node_modules/**',
       '.specify/**',
       '.claude/**',
@@ -38,6 +38,7 @@ export default [
         process: 'readonly',
         window: 'readonly',
         document: 'readonly',
+        getComputedStyle: 'readonly',
       },
     },
   },
@@ -51,6 +52,7 @@ export default [
         console: 'readonly',
         setInterval: 'readonly',
         clearInterval: 'readonly',
+        getComputedStyle: 'readonly',
       },
     },
   },

@@ -11,6 +11,7 @@ committed to the repo like the existing `web/css/app.css`/`tokens.css`. `npm sta
 Tailwind CLI in `--watch` mode alongside `browser-sync` so hot-reload keeps working in dev.
 
 **Rationale**:
+
 - Satisfies the constitution's amended Frontend exception: a compiled, offline build step
   producing a static CSS file, not a CDN/runtime script (FR-012).
 - Tailwind v4's CLI needs no PostCSS config file or bundler for JS — it only touches CSS, so the
@@ -19,12 +20,13 @@ Tailwind CLI in `--watch` mode alongside `browser-sync` so hot-reload keeps work
   package manager, no webpack/vite pulled in for what is a CSS-only concern.
 
 **Alternatives considered**:
-- *Tailwind Play CDN script*: rejected outright — explicitly a runtime script, violates FR-012 and
+
+- _Tailwind Play CDN script_: rejected outright — explicitly a runtime script, violates FR-012 and
   the constitution amendment's "never at page-view time" clause.
-- *Full bundler (Vite) for the whole frontend*: rejected as disproportionate — the codebase has no
+- _Full bundler (Vite) for the whole frontend_: rejected as disproportionate — the codebase has no
   bundler today and Chart.js is loaded via a vendored ESM file specifically to avoid one; pulling
   in Vite for CSS alone would be a much larger, unrequested change to the JS module system.
-- *PostCSS with a custom config + `postcss-cli`*: viable but more moving parts than the Tailwind
+- _PostCSS with a custom config + `postcss-cli`_: viable but more moving parts than the Tailwind
   CLI, which wraps PostCSS internally; CLI-only was chosen for minimal `devDependencies` surface.
 
 ## 2. Reconciling Tailwind with existing CSS custom-property tokens
@@ -44,12 +46,13 @@ without Tailwind's separate `dark:` variant system — one source of truth for t
 duplicated dark-mode logic.
 
 **Alternatives considered**:
-- *Let Tailwind own all theme values via `tailwind.config` colors, drop `tokens.css`*: rejected —
+
+- _Let Tailwind own all theme values via `tailwind.config` colors, drop `tokens.css`_: rejected —
   would duplicate/replace the token system the constitution explicitly protects ("CSS custom
   properties MUST be used for all theme values... so the design can be reskinned in one place");
   also loses the existing dark-mode CSS with no equivalent gain.
-- *Use Tailwind's built-in `dark:` class/media variant instead of existing `prefers-color-scheme`
-  block*: rejected for this feature — existing dark mode already satisfies FR-006 automatically;
+- _Use Tailwind's built-in `dark:` class/media variant instead of existing `prefers-color-scheme`
+  block_: rejected for this feature — existing dark mode already satisfies FR-006 automatically;
   reimplementing it via Tailwind variants adds risk without benefit under a "presentation only, no
   behavior change" mandate (FR-007).
 
@@ -69,9 +72,10 @@ state changes client-side without a full page reload (FR-011), consistent with t
 `onRouteChange`/`dispatch()` flow in `main.js`.
 
 **Alternatives considered**:
-- *Two separate DOM trees (mobile nav + desktop nav) toggled via `display`*: rejected — doubles
+
+- _Two separate DOM trees (mobile nav + desktop nav) toggled via `display`_: rejected — doubles
   markup and active-state bookkeeping for no behavioral benefit over a single responsive component.
-- *Third-party nav/drawer component library*: rejected — adds a dependency for something Tailwind's
+- _Third-party nav/drawer component library_: rejected — adds a dependency for something Tailwind's
   utility classes and ~20 lines of vanilla JS already cover; conflicts with "no framework unless
   approved" for anything beyond the CSS exception already granted.
 
@@ -93,11 +97,12 @@ ApexCharts ships responsive/tooltip behavior out of the box, satisfying FR-013's
 better... tooltip/hover behavior, and responsiveness" bar without custom pixel math (Principle V).
 
 **Alternatives considered**:
-- *`npm install apexcharts` and import from `node_modules` directly in the browser*: rejected —
+
+- _`npm install apexcharts` and import from `node_modules` directly in the browser_: rejected —
   browsers can't resolve bare module specifiers without an import map or bundler; the existing
   vendoring pattern (copy a browser-ready build into `web/vendor/`) already solves this problem
   for Chart.js and is reused unchanged.
-- *Keep Chart.js for some modes, ApexCharts for others*: rejected — FR-013 explicitly requires
+- _Keep Chart.js for some modes, ApexCharts for others_: rejected — FR-013 explicitly requires
   ApexCharts as "the single rendering engine for all five visualization modes"; mixing libraries
   would also reintroduce the "no view visibly unstyled/inconsistent" risk FR-001/SC-003 guard
   against.
@@ -118,7 +123,8 @@ one test per visible UI change, behavior + visual/accessibility assertion) and d
 this spec's Independent Test statements and Success Criteria (SC-001–SC-005) as executable checks.
 
 **Alternatives considered**:
-- *Visual regression screenshots (pixel-diffing) for every view*: considered for SC-003's "no view
+
+- _Visual regression screenshots (pixel-diffing) for every view_: considered for SC-003's "no view
   visibly inconsistent" claim, but deferred — Playwright's built-in `toHaveScreenshot()` is
   available if needed during `/speckit-tasks`/implementation but is not mandated by the
   constitution beyond "screenshot or accessibility assertion", so DOM/class-based assertions (e.g.

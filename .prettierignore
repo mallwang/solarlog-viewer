@@ -8,6 +8,8 @@
 web/data/**
 web/hist/**
 web/vendor/**
+# Compiled/minified Tailwind build artifact, not hand-written
+web/css/tailwind.generated.css
 !tests/**
 !docs/**
 !specs/**

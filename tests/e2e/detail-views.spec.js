@@ -4,7 +4,7 @@ test.describe('Month detail view (US2)', () => {
   test('2008-07 renders per-inverter daily bars', async ({ page }) => {
     await page.goto('/#/month/2008/07');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.chart-container canvas')).toHaveCount(1);
+    await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
     await expect(page.locator('.empty-state')).toHaveCount(0);
   });
 });
@@ -13,15 +13,15 @@ test.describe('Year detail view (US2)', () => {
   test('renders all years with no drops, including the partial 2006 year', async ({ page }) => {
     await page.goto('/#/year/2019');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.chart-container canvas')).toHaveCount(1);
+    await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
     await expect(page.locator('.empty-state')).toHaveCount(0);
 
-    const labels = await page.evaluate(() => {
-      const canvas = document.querySelector('.chart-container canvas');
-      return window.Chart.getChart(canvas).data.labels;
-    });
-    expect(labels).toContain('2006');
-    expect(labels.length).toBeGreaterThanOrEqual(19);
+    const labels = await page
+      .locator('.chart-container .apexcharts-xaxis-texts-g text')
+      .allTextContents();
+    const uniqueLabels = [...new Set(labels)];
+    expect(uniqueLabels.some((label) => label.includes('2006'))).toBe(true);
+    expect(uniqueLabels.length).toBeGreaterThanOrEqual(19);
   });
 });
 
@@ -29,7 +29,7 @@ test.describe('Lifetime (total) view (US2)', () => {
   test('renders cumulative chart plus CO2/tariff summary', async ({ page }) => {
     await page.goto('/#/total');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.chart-container canvas')).toHaveCount(1);
+    await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
     const summaryText = await page.locator('.summary-table').innerText();
     expect(summaryText).toMatch(/kg/);
     expect(summaryText).toMatch(/€/);
@@ -40,16 +40,20 @@ test.describe('Compare (year-over-year) view (US3)', () => {
   test('renders at least 3 distinct year lines with a day/kWh tooltip', async ({ page }) => {
     await page.goto('/#/compare');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.chart-container canvas')).toHaveCount(1);
+    await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
 
-    const info = await page.evaluate(() => {
-      const canvas = document.querySelector('.chart-container canvas');
-      const chart = window.Chart.getChart(canvas);
-      return { datasetCount: chart.data.datasets.length, labels: chart.data.labels };
-    });
-    expect(info.datasetCount).toBeGreaterThanOrEqual(3);
-    // Feb 29 (leap year) is day 60 and must not shift later days out of range.
-    expect(info.labels).toContain(60);
+    const seriesCount = await page.locator('.chart-container .apexcharts-series').count();
+    expect(seriesCount).toBeGreaterThanOrEqual(3);
+
+    // The day-of-year axis must span (at least) a full leap year, 1-366; Feb 29 not shifting
+    // later days out of range is covered by groupByYear's own node:test unit coverage
+    // (compare-view.test.js). Here we only confirm the axis actually reaches that range.
+    const labels = (
+      await page.locator('.chart-container .apexcharts-xaxis-texts-g text').allTextContents()
+    )
+      .map((label) => Number.parseInt(label, 10))
+      .filter((n) => !Number.isNaN(n));
+    expect(Math.max(...labels)).toBeGreaterThanOrEqual(300);
   });
 });
 

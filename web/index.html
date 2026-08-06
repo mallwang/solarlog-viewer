@@ -6,6 +6,7 @@
     <title>SolarLog Viewer</title>
     <link rel="stylesheet" href="css/tokens.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/tailwind.generated.css" />
   </head>
   <body>
     <noscript>This site requires JavaScript to display your SolarLog production data.</noscript>
@@ -13,7 +14,18 @@
       <h1 class="app-header__title" id="app-title">SolarLog Viewer</h1>
       <div class="lang-switcher" id="lang-switcher"></div>
     </header>
-    <nav class="app-nav" id="app-nav"></nav>
+    <nav class="app-nav" id="app-nav">
+      <button
+        type="button"
+        class="app-nav__toggle"
+        id="app-nav-toggle"
+        aria-expanded="false"
+        aria-controls="app-nav-list"
+      >
+        ☰
+      </button>
+      <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
+    </nav>
     <main class="app-main" id="app-main"></main>
     <script type="module" src="js/main.js"></script>
   </body>

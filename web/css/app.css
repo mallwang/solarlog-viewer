@@ -41,29 +41,8 @@ a {
   margin: 0;
 }
 
-.app-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.app-nav__toggle {
-  display: none;
-}
-
-.app-nav a {
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  color: var(--color-text);
-}
-
-.app-nav a:hover,
-.app-nav a[aria-current='page'] {
-  background: var(--color-bg-elevated);
-}
+/* .app-nav / .app-nav__toggle / .app-nav__list — see tailwind.css `@layer components`,
+   which owns the responsive persistent/collapsible nav contract (contracts/navigation.md). */
 
 .app-main {
   padding: var(--space-md);
@@ -71,48 +50,8 @@ a {
   margin: 0 auto;
 }
 
-.widget-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-md);
-}
-
-@media (min-width: 480px) {
-  .widget-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 900px) {
-  .widget-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.widget {
-  background: var(--color-bg-elevated);
-  border-radius: var(--radius-lg);
-  padding: var(--space-md);
-}
-
-.widget__title {
-  margin: 0 0 var(--space-xs);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.widget__value {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-}
-
-.widget a {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
+/* .widget-grid / .widget / .widget__title / .widget__value — migrated to Tailwind utility
+   classes directly in web/js/views/dashboard.js's markup. */
 
 .chart-container {
   position: relative;
@@ -121,18 +60,13 @@ a {
   margin-top: var(--space-lg);
 }
 
-.view-title {
-  font-size: var(--font-size-lg);
-  margin: 0 0 var(--space-md);
+.chart-mount {
+  width: 100%;
+  height: 100%;
 }
 
-.empty-state {
-  padding: var(--space-lg);
-  text-align: center;
-  color: var(--color-text-muted);
-  background: var(--color-bg-elevated);
-  border-radius: var(--radius-lg);
-}
+/* .view-title / .empty-state base styling — migrated to Tailwind utility classes directly in
+   each view module's markup (web/js/views/*.js, empty-state.js). */
 
 .lang-switcher {
   display: flex;
@@ -154,21 +88,11 @@ a {
   border-color: var(--color-primary);
 }
 
-.summary-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: var(--space-md);
-}
-
+/* .summary-table's width/border-collapse/margin-top are Tailwind utilities inline
+   (web/js/views/total-view.js); cell borders/padding have no Tailwind equivalent applied yet. */
 .summary-table th,
 .summary-table td {
   text-align: left;
   padding: var(--space-xs) var(--space-sm);
   border-bottom: 1px solid var(--color-border);
-}
-
-@media (max-width: 767px) {
-  .app-nav {
-    flex-direction: column;
-  }
 }

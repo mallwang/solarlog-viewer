@@ -2,6 +2,7 @@ import { parseYearsFile, mergeYearlyTotals, deriveLifetimeSummary } from '../dat
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { fetchFromBothSources } from '../data/data-source.js';
+import { emptyStateMarkup } from './empty-state.js';
 
 function formatKwh(wh) {
   return (wh / 1000).toFixed(1);
@@ -14,14 +15,14 @@ function formatKwh(wh) {
  * @param {{ plant: object | null }} ctx
  */
 export async function render(container, { plant }) {
-  container.innerHTML = `<h2 class="view-title">${t('nav.totalView')}</h2>
-    <div class="chart-container"><canvas></canvas></div>
-    <table class="summary-table"><tbody id="total-summary"></tbody></table>`;
+  const title = t('nav.totalView');
+  container.innerHTML = `<h2 class="view-title text-lg mb-md">${title}</h2>
+    <div class="chart-container"><div class="chart-mount"></div></div>
+    <table class="summary-table w-full mt-md border-collapse"><tbody id="total-summary"></tbody></table>`;
 
   const { hist, data } = await fetchFromBothSources('years.js');
   if (!hist.ok && !data.ok) {
-    container.innerHTML = `<h2 class="view-title">${t('nav.totalView')}</h2>
-      <p class="empty-state">${t('total.noData')}</p>`;
+    container.innerHTML = emptyStateMarkup(title, 'total.noData');
     return;
   }
 
@@ -31,8 +32,8 @@ export async function render(container, { plant }) {
   );
   const summary = deriveLifetimeSummary(years, plant?.tariffRatePerKwh ?? 0);
 
-  const canvas = container.querySelector('canvas');
-  renderChart(canvas, 'total', summary, { lang: getLanguage() });
+  const mount = container.querySelector('.chart-mount');
+  renderChart(mount, 'total', summary, { lang: getLanguage() });
 
   const summaryBody = container.querySelector('#total-summary');
   summaryBody.innerHTML = `

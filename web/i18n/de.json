@@ -5,7 +5,9 @@
     "monthView": "Monatswerte",
     "yearView": "Jahreswerte",
     "totalView": "Gesamtübersicht",
-    "compareView": "Jahresvergleich"
+    "compareView": "Jahresvergleich",
+    "ariaLabel": "Hauptnavigation",
+    "toggleLabel": "Navigation ein-/ausblenden"
   },
   "day": {
     "noData": "Für diesen Tag liegen keine Daten vor."

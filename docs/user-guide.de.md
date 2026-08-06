@@ -2,6 +2,20 @@
 
 Dieses Dokument beschreibt, wie Datenlücken erkannt, Summen validiert und aggregierte Dateien repariert werden können.
 
+## Dashboard-Navigation & Diagramme
+
+`web/index.html` listet alle sechs Ansichten (Übersicht, Tag, Monat, Jahr, Gesamt, Vergleich) oben
+in der Navigationsleiste auf. Ab Desktop-Breiten (768px und mehr) ist die Navigation dauerhaft
+sichtbar; darunter klappt sie hinter einem Hamburger-Button zusammen — antippen öffnet die Liste,
+ein Klick auf einen Link (oder daneben, oder die Escape-Taste) schließt sie wieder. Die aktuelle
+Ansicht ist immer hervorgehoben.
+
+Diagramme in den Ansichten Tag/Monat/Jahr/Gesamt/Vergleich werden mit ApexCharts gerendert: beim
+Hovern über einen Balken oder eine Linie erscheint ein Tooltip mit dem genauen Wert und seiner
+Einheit (W für die Tagesansicht, kWh in den übrigen). Diagramme passen sich der Fenstergröße an,
+und das gesamte Layout — inklusive Navigation — bleibt von 320px breiten Smartphones bis zu
+2560px breiten Monitoren nutzbar, ohne horizontales Scrollen.
+
 ## Voraussetzungen
 
 - Node.js 22+
@@ -14,6 +28,7 @@ Dieses Dokument beschreibt, wie Datenlücken erkannt, Summen validiert und aggre
 `gap-detect.js` kann zwei Datenquellen prüfen:
 
 **Min-Dateien** (Standard) — scannt `min*.js`-Dateinamen auf fehlende Kalendertage:
+
 ```bash
 node scripts/gap-detect.js
 node scripts/gap-detect.js --since 2020-01-01
@@ -21,6 +36,7 @@ node scripts/gap-detect.js --output json --out-file gap-report.json
 ```
 
 **`days_hist.js`** — prüft auf fehlende Einträge in der aggregierten Historiendatei:
+
 ```bash
 node scripts/gap-detect.js --source days_hist
 node scripts/gap-detect.js --source days_hist --since 2020-01-01
@@ -39,11 +55,13 @@ node scripts/validate-plausibility.js
 Vergleicht die Wh-Summe aus der ersten Zeile jeder `minJJMMTT.js` mit dem Eintrag in `days_hist.js`. Tage, die die Toleranz von ±1 Wh überschreiten, werden mit den Abweichungen je Wechselrichter ausgegeben.
 
 Toleranz anpassen:
+
 ```bash
 node scripts/validate-plausibility.js --tolerance 10
 ```
 
 JSON-Ausgabe:
+
 ```bash
 node scripts/validate-plausibility.js --output json --out-file validation.json
 ```
@@ -55,21 +73,25 @@ node scripts/validate-plausibility.js --output json --out-file validation.json
 Für einen Monat mit fehlenden Einträgen in `days_hist.js`:
 
 Vorschau ohne Schreiben:
+
 ```bash
 node scripts/fill-days-hist.js 2026-06 --dry-run
 ```
 
 Anwenden (fragt vor dem Schreiben nach):
+
 ```bash
 node scripts/fill-days-hist.js 2026-06
 ```
 
 Ohne Bestätigungsabfrage anwenden:
+
 ```bash
 node scripts/fill-days-hist.js 2026-06 --force
 ```
 
 Das Skript verwendet pro fehlendem Tag eine zweistufige Strategie:
+
 - **Pass 1**: Sucht das Datum in allen `days*.js`-Dateien und übernimmt Wh- und Einspeisequoten direkt
 - **Pass 2**: Falls kein Treffer, liest die erste Zeile der `minJJMMTT.js`-Datei (Einspeisung wird auf 0 gesetzt)
 

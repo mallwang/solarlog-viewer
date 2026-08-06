@@ -1,6 +1,6 @@
 You're continuing a data migration in /home/markus/projects/solarlog-viewer. This repo archives historical SolarLog 5-minute interval files (minYYMMDD.js). Files before 2013-01-04 use an older block layout (see docs/data-format-daily.md) that needs migrating to the current Epoch 3 layout (block 0 = SB 4200 TL, block 1 = SB 2100 TL) using scripts/migrate-min-epoch.js. 2006 through 2009 are already fully migrated and reviewed. Your job is to do the same for 2010 (365 files, `min100101.js` … `min101231.js`) only, then stop — do not proceed to 2011 or any other year.
 
-This year is entirely Epoch 2 (2007-03-28 … 2013-01-03, 4|6 fields): the raw block0 is the 1-string SB2100-shaped block `[pac,pdc1,wh,udc1]`, raw block1 is the 2-string SB4200-shaped block `[pac,pdc1,pdc2,wh,udc1,udc2]`. A genuine swap means relabeling by *shape*, not slot position — see the 2007 fix example below.
+This year is entirely Epoch 2 (2007-03-28 … 2013-01-03, 4|6 fields): the raw block0 is the 1-string SB2100-shaped block `[pac,pdc1,wh,udc1]`, raw block1 is the 2-string SB4200-shaped block `[pac,pdc1,pdc2,wh,udc1,udc2]`. A genuine swap means relabeling by _shape_, not slot position — see the 2007 fix example below.
 
 Follow this exact procedure:
 
@@ -9,11 +9,12 @@ Follow this exact procedure:
 **2. Check the SB4200/SB2100 ratio for every file.** Use `parseMinFirstLine` from `scripts/utils.js` — it takes the **full file content**, not just the first line — to get `sb4200Wh`/`sb2100Wh`, and compute `sb4200Wh / sb2100Wh`. The physical baseline for this plant is ~1.95 (SB4200 TL is the ~2x larger inverter and should almost always yield roughly double SB2100 TL). Flag any file where the ratio is reversed (< 1) or wildly off baseline (e.g. < 1.3 or > 3) as a candidate for review.
 
 **3. Before concluding a flagged file is a genuine reversal, inspect the actual data, not just the ratio:**
-   - Pull the migrated file's full day of records and look at the PAC/PDC columns (not just the yield/Wh field) for both blocks.
-   - Compare against immediate neighboring days' totals for physical plausibility (does the "swapped" interpretation fit the neighbor pattern better than the as-recorded one? does either interpretation exceed a physical cap — SB2100 maxes out around ~21000 Wh/day, SB4200 around ~42000 Wh/day?).
-   - A low ratio caused by a generally low-output day (foggy/winter, small absolute Wh on both sides, PAC/PDC traces near-zero all day for both blocks) is **not** a bug — leave it alone.
-   - A low ratio caused by one inverter's yield counter being stuck (e.g. stuck at 0 all day) while its PAC/PDC trace still shows a normal-looking curve is **not** a block swap — it's an isolated counter fault. Leave it alone.
-   - Only treat it as a genuine source-side block swap if the yield values are physically implausible as recorded (e.g. one exceeds its inverter's cap) AND the swapped interpretation matches the neighbor-day pattern. 2007 had exactly one genuine swap out of a full year (`min070422.js`) — expect most years to have zero or very few; don't assume every flagged file needs fixing.
+
+- Pull the migrated file's full day of records and look at the PAC/PDC columns (not just the yield/Wh field) for both blocks.
+- Compare against immediate neighboring days' totals for physical plausibility (does the "swapped" interpretation fit the neighbor pattern better than the as-recorded one? does either interpretation exceed a physical cap — SB2100 maxes out around ~21000 Wh/day, SB4200 around ~42000 Wh/day?).
+- A low ratio caused by a generally low-output day (foggy/winter, small absolute Wh on both sides, PAC/PDC traces near-zero all day for both blocks) is **not** a bug — leave it alone.
+- A low ratio caused by one inverter's yield counter being stuck (e.g. stuck at 0 all day) while its PAC/PDC trace still shows a normal-looking curve is **not** a block swap — it's an isolated counter fault. Leave it alone.
+- Only treat it as a genuine source-side block swap if the yield values are physically implausible as recorded (e.g. one exceeds its inverter's cap) AND the swapped interpretation matches the neighbor-day pattern. 2007 had exactly one genuine swap out of a full year (`min070422.js`) — expect most years to have zero or very few; don't assume every flagged file needs fixing.
 
 4. **If a genuine reversal is found**, fix it by re-deriving that single file from its archived original (the raw pre-migration file — confirm the exact archive path the script uses, e.g. `archive/min-original/` or `scripts/archive/min-original/`), **not** the already-migrated working file. Do this with a small one-off script, not by reusing `blockToReading` with flipped `isSB4200` flags blindly — that function's positional destructuring does NOT correctly relabel a 4-field block as SB4200 or a 6-field block as SB2100 (field positions don't line up: e.g. treating a 4-field `[pac,pdc1,wh,udc1]` array as SB4200-shaped `[pac,pdc1,pdc2,wh,udc1,udc2]` puts the real `wh` value into the `pdc2` slot). Instead manually construct the swapped readings from the raw fields' true positional meaning:
 
@@ -22,10 +23,15 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { formatEpoch3Blocks } from './scripts/migrate-min-epoch.js';
 
 const content = readFileSync('archive/min-original/minYYMMDD.js', 'utf8'); // confirm exact archive path first
-const rawLines = content.split('\n').map((l) => l.trim()).filter(Boolean);
+const rawLines = content
+  .split('\n')
+  .map((l) => l.trim())
+  .filter(Boolean);
 
 const lines = rawLines.map((raw) => {
-  const match = /^m\[mi\+\+\]="(\d{2}\.\d{2}\.\d{2}) (\d{2}:\d{2}:\d{2})\|([^|]+)\|([^"]+)"$/.exec(raw);
+  const match = /^m\[mi\+\+\]="(\d{2}\.\d{2}\.\d{2}) (\d{2}:\d{2}:\d{2})\|([^|]+)\|([^"]+)"$/.exec(
+    raw,
+  );
   const [, date, time, b0raw, b1raw] = match;
   const b0 = b0raw.split(';').map((n) => Number.parseInt(n, 10)); // [pac, pdc1, wh, udc1] — 1-string block
   const b1 = b1raw.split(';').map((n) => Number.parseInt(n, 10)); // [pac, pdc1, pdc2, wh, udc1, udc2] — 2-string block

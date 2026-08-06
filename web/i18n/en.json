@@ -5,7 +5,9 @@
     "monthView": "Monthly Values",
     "yearView": "Yearly Values",
     "totalView": "Lifetime Overview",
-    "compareView": "Year Comparison"
+    "compareView": "Year Comparison",
+    "ariaLabel": "Main navigation",
+    "toggleLabel": "Toggle navigation"
   },
   "day": {
     "noData": "Data not available for today."

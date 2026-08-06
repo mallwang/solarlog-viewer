@@ -38,7 +38,7 @@ test.describe('Live production widget (US4)', () => {
       .locator('.widget-grid .widget')
       .first()
       .locator('.widget__value');
-    await expect(currentProductionValue).toHaveText(/^(\d+ W|0 W — .+)$/);
+    await expect(currentProductionValue).toHaveText(/^●\s\d+ W$|^○\s0 W — .+$/);
     expect(requestCount).toBeGreaterThanOrEqual(1);
 
     const countAfterLoad = requestCount;
@@ -51,7 +51,7 @@ test.describe('Day detail view (US1)', () => {
   test('shows chart with tooltip for a date with data', async ({ page }) => {
     await page.goto('/#/day/2019/07/15');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.chart-container canvas')).toHaveCount(1);
+    await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
   });
 
   test('shows "no data" state for a date without a min file', async ({ page }) => {

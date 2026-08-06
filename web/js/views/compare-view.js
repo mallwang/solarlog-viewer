@@ -2,6 +2,7 @@ import { parseDailyTotalsFile, mergeDailyTotals } from '../data/aggregates.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { fetchFromBothSources } from '../data/data-source.js';
+import { emptyStateMarkup } from './empty-state.js';
 
 function dayOfYear(isoDate) {
   const [year, month, day] = isoDate.split('-').map(Number);
@@ -37,13 +38,13 @@ export function groupByYear(dailyTotals) {
  * @param {HTMLElement} container
  */
 export async function render(container) {
-  container.innerHTML = `<h2 class="view-title">${t('nav.compareView')}</h2>
-    <div class="chart-container"><canvas></canvas></div>`;
+  const title = t('nav.compareView');
+  container.innerHTML = `<h2 class="view-title text-lg mb-md">${title}</h2>
+    <div class="chart-container"><div class="chart-mount"></div></div>`;
 
   const { hist, data } = await fetchFromBothSources('days_hist.js');
   if (!hist.ok && !data.ok) {
-    container.innerHTML = `<h2 class="view-title">${t('nav.compareView')}</h2>
-      <p class="empty-state">${t('compare.noData')}</p>`;
+    container.innerHTML = emptyStateMarkup(title, 'compare.noData');
     return;
   }
 
@@ -52,6 +53,6 @@ export async function render(container) {
     data.ok ? parseDailyTotalsFile(data.text) : [],
   );
   const series = groupByYear(dailyTotals);
-  const canvas = container.querySelector('canvas');
-  renderChart(canvas, 'compare', series, { lang: getLanguage() });
+  const mount = container.querySelector('.chart-mount');
+  renderChart(mount, 'compare', series, { lang: getLanguage() });
 }
