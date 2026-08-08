@@ -15,6 +15,33 @@ function monthKey({ year, month }) {
   return `${year}-${String(month).padStart(2, '0')}`;
 }
 
+function todayParams() {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+
+/** @param {{ year: number, month: number }} params @returns {number} Number of days in that month. */
+function daysInMonth({ year, month }) {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/**
+ * Expands a month's DailyTotal[] (which only lists days that actually have data) into one entry
+ * per calendar day of the month, so the chart's x-axis always spans the full month (FR: always
+ * show all days, including future ones with no data yet) instead of stopping at "today".
+ * @param {{ year: number, month: number }} params
+ * @param {ReturnType<typeof import('../data/aggregates.js').parseDailyTotalsFile>} dailyBreakdown
+ * @returns {ReturnType<typeof import('../data/aggregates.js').parseDailyTotalsFile>}
+ */
+function fillMonthDays(params, dailyBreakdown) {
+  const byDate = new Map(dailyBreakdown.map((d) => [d.date, d]));
+  const key = monthKey(params);
+  return Array.from({ length: daysInMonth(params) }, (_, i) => {
+    const date = `${key}-${String(i + 1).padStart(2, '0')}`;
+    return byDate.get(date) ?? { date, perInverter: {} };
+  });
+}
+
 /**
  * Mounts the Mode 1 month detail view: per-inverter daily-energy bars for the routed month.
  * @param {HTMLElement} container
@@ -23,7 +50,8 @@ function monthKey({ year, month }) {
 export async function render(container, { route }) {
   const { params } = route;
   const key = monthKey(params);
-  const title = `${t('nav.monthView')} — ${key}`;
+  const title = `${t('nav.monthView')} - ${key}`;
+  const isCurrentMonth = key === monthKey(todayParams());
 
   const nextParams = addMonths(params, 1);
   const nav = periodNavMarkup({
@@ -33,6 +61,8 @@ export async function render(container, { route }) {
       ? null
       : formatRoute({ view: 'month', params: nextParams }),
     nextLabel: t('month.next'),
+    todayHref: isCurrentMonth ? null : formatRoute({ view: 'month', params: todayParams() }),
+    todayLabel: t('month.thisMonth'),
   });
 
   container.innerHTML = `<div class="view-header flex items-center justify-between gap-sm flex-wrap mb-md">
@@ -78,6 +108,7 @@ export async function render(container, { route }) {
     chartContainer.innerHTML = emptyStateBody('month.noData');
     return;
   }
+  monthTotal.dailyBreakdown = fillMonthDays(params, dailyBreakdown);
 
   const mount = container.querySelector('.chart-mount');
   renderChart(mount, 'month', monthTotal, { lang: getLanguage() });

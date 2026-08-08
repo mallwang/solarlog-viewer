@@ -6,7 +6,6 @@
     --font-sans: var(--font-family);
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
-    --color-white: #fff;
     --text-sm: var(--font-size-sm);
     --text-sm--line-height: calc(1.25 / 0.875);
     --text-lg: var(--font-size-lg);
@@ -437,6 +436,7 @@
     border-bottom-style: var(--tw-border-style);
     border-bottom-width: 1px;
     border-color: var(--color-border);
+    background-color: var(--color-bg);
     padding-inline: var(--spacing-md);
     padding-block: var(--spacing-sm);
   }
@@ -500,7 +500,6 @@
     background-color: var(--color-primary);
     --tw-font-weight: var(--font-weight-semibold);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-white);
   }
   .period-nav__link {
     border-radius: var(--radius-md);

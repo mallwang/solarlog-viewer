@@ -77,3 +77,39 @@ test('periodNavMarkup disables next when nextHref is null', () => {
   assert.match(html, /aria-disabled="true"/);
   assert.doesNotMatch(html, /<a[^>]*>Next day/);
 });
+
+test('periodNavMarkup renders a today link when todayHref is set', () => {
+  const html = periodNavMarkup({
+    prevHref: '#/day/2026/08/06',
+    prevLabel: 'Previous day',
+    nextHref: '#/day/2026/08/08',
+    nextLabel: 'Next day',
+    todayHref: '#/day/2026/08/08',
+    todayLabel: 'Today',
+  });
+  assert.match(html, /period-nav__link--today/);
+  assert.match(html, /href="#\/day\/2026\/08\/08">Today/);
+});
+
+test('periodNavMarkup omits the today link when todayLabel is not set', () => {
+  const html = periodNavMarkup({
+    prevHref: '#/day/2026/08/06',
+    prevLabel: 'Previous day',
+    nextHref: '#/day/2026/08/08',
+    nextLabel: 'Next day',
+  });
+  assert.doesNotMatch(html, /period-nav__link--today/);
+});
+
+test('periodNavMarkup disables the today link when todayHref is null', () => {
+  const html = periodNavMarkup({
+    prevHref: '#/day/2026/08/06',
+    prevLabel: 'Previous day',
+    nextHref: '#/day/2026/08/08',
+    nextLabel: 'Next day',
+    todayHref: null,
+    todayLabel: 'Today',
+  });
+  assert.match(html, /period-nav__link--today period-nav__link--disabled[^>]*aria-disabled="true"[^<]*Today/);
+  assert.doesNotMatch(html, /<a[^>]*period-nav__link--today/);
+});

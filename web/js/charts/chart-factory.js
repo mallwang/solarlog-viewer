@@ -141,7 +141,12 @@ function buildMonthOptions(data, colors) {
     plotOptions: { bar: { columnWidth: '70%' } },
     series,
     xaxis: { categories },
-    yaxis: { title: { text: 'kWh' }, min: 0 },
+    yaxis: {
+      title: { text: 'kWh' },
+      min: 0,
+      forceNiceScale: true,
+      labels: { formatter: (value) => Math.round(value) },
+    },
     tooltip: {
       y: { formatter: (value) => `${value.toFixed(2)} kWh` },
     },
@@ -165,7 +170,12 @@ function buildYearOptions(yearlyTotalsList, colors) {
     plotOptions: { bar: { columnWidth: '60%' } },
     series,
     xaxis: { categories },
-    yaxis: { title: { text: 'kWh' }, min: 0 },
+    yaxis: {
+      title: { text: 'kWh' },
+      min: 0,
+      forceNiceScale: true,
+      labels: { formatter: (value) => Math.round(value) },
+    },
     tooltip: {
       y: { formatter: (value) => `${value.toFixed(2)} kWh` },
     },
@@ -187,7 +197,12 @@ function buildTotalOptions(lifetimeSummary, colors) {
     plotOptions: { bar: { columnWidth: '50%' } },
     series: [{ name: t('chart.cumulativeYield'), data: cumulativeKwh }],
     xaxis: { categories },
-    yaxis: { title: { text: 'kWh' }, min: 0 },
+    yaxis: {
+      title: { text: 'kWh' },
+      min: 0,
+      forceNiceScale: true,
+      labels: { formatter: (value) => Math.round(value) },
+    },
     tooltip: {
       y: { formatter: (value) => `${value.toFixed(2)} kWh` },
     },
@@ -221,7 +236,12 @@ function buildCompareOptions(yearComparisonSeries, colors) {
       title: { text: t('chart.dayOfYearAxis') },
       tickAmount: 12,
     },
-    yaxis: { title: { text: 'kWh' }, min: 0 },
+    yaxis: {
+      title: { text: 'kWh' },
+      min: 0,
+      forceNiceScale: true,
+      labels: { formatter: (value) => Math.round(value) },
+    },
     tooltip: {
       y: {
         formatter: (value) =>

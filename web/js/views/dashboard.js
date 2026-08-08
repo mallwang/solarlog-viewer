@@ -87,7 +87,7 @@ export async function render(container) {
   container.innerHTML = `
     <h2 class="view-title text-lg mb-md">${t('nav.dashboard')}</h2>
     <div class="widget-grid grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3" id="widget-grid">
-      ${widget('widget.currentProduction', '—', dayHref)}
+      ${widget('widget.currentProduction', '-', dayHref)}
       ${widget('widget.todayYield', '—', dayHref)}
       ${widget('widget.monthYield', '—', monthHref)}
       ${widget('widget.yearYield', '—', yearHref)}

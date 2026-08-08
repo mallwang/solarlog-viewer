@@ -2,6 +2,7 @@ import { fetchText } from './data/fetch-text.js';
 import { parseBaseVars } from './data/plant.js';
 import { onRouteChange, formatRoute } from './router.js';
 import { initI18n, getLanguage, t } from './i18n.js';
+import { SHOW_LANGUAGE_SWITCHER } from './config.js';
 
 function todayParams() {
   const now = new Date();
@@ -66,6 +67,19 @@ function renderNav() {
   }
 }
 
+/**
+ * Keeps the `--chrome-height` custom property in sync with the actual rendered height of the
+ * header + nav bar, so the animated `.sky-clouds` backdrop (fixed, positioned via that
+ * variable — see app.css) starts exactly below the nav instead of being clipped by it or
+ * leaving a gap. Header/nav height isn't a fixed constant: it depends on font rendering and can
+ * change on resize (e.g. the title wrapping to two lines on narrow viewports), so this is
+ * re-measured on load and on every resize rather than hard-coded.
+ */
+function updateChromeHeight() {
+  const bottom = Math.max(viewNav.getBoundingClientRect().bottom, 120);
+  document.documentElement.style.setProperty('--chrome-height', `${Math.ceil(bottom)}px`);
+}
+
 function initNavToggle() {
   navToggle.addEventListener('click', () => {
     const isOpen = viewNavList.dataset.open === 'true';
@@ -90,6 +104,10 @@ function initNavToggle() {
 
 function renderLangSwitcher() {
   langSwitcher.innerHTML = '';
+  if (!SHOW_LANGUAGE_SWITCHER) {
+    langSwitcher.hidden = true;
+    return;
+  }
   for (const lang of ['de', 'en']) {
     const button = document.createElement('button');
     button.type = 'button';
@@ -136,11 +154,14 @@ async function bootstrap() {
   await initI18n();
   renderLangSwitcher();
   initNavToggle();
+  updateChromeHeight();
+  window.addEventListener('resize', updateChromeHeight);
 
   const result = await fetchText('data/base_vars.js');
   if (result.ok) {
     plant = parseBaseVars(result.text);
     document.getElementById('app-title').textContent = plant.title || 'SolarLog Viewer';
+    updateChromeHeight();
   }
 
   onRouteChange((route) => {

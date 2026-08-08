@@ -1,5 +1,7 @@
 :root {
+  color-scheme: light;
   --color-bg: #ffffff;
+  --color-bg-app: #e3f2fd;
   --color-bg-elevated: #f4f6f8;
   --color-text: #1a1d21;
   --color-text-muted: #5b6470;
@@ -32,12 +34,5 @@
   --radius-lg: 12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #14171a;
-    --color-bg-elevated: #1e2226;
-    --color-text: #edf0f2;
-    --color-text-muted: #9aa4af;
-    --color-border: #2c3238;
-  }
-}
+/* The app always renders in light theme regardless of the OS/browser color-scheme preference —
+   no dark-mode override block here on purpose. */

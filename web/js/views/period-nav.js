@@ -40,16 +40,27 @@ export function isFutureMonth({ year, month }) {
 
 /**
  * Renders the prev/next stepper row. `next` is omitted (rendered disabled) when `nextHref`
- * is null, so callers can't link into dates with no data yet (e.g. tomorrow).
- * @param {{ prevHref: string, prevLabel: string, nextHref: string | null, nextLabel: string }} opts
+ * is null, so callers can't link into dates with no data yet (e.g. tomorrow). When `todayLabel`
+ * is given, an extra "jump to current period" link (e.g. "Heute" / "Dieser Monat") is appended,
+ * itself rendered disabled (like `next`) when `todayHref` is null — i.e. the routed period
+ * already *is* the current one.
+ * @param {{ prevHref: string, prevLabel: string, nextHref: string | null, nextLabel: string,
+ *   todayHref?: string | null, todayLabel?: string }} opts
  * @returns {string} HTML markup.
  */
-export function periodNavMarkup({ prevHref, prevLabel, nextHref, nextLabel }) {
+export function periodNavMarkup({ prevHref, prevLabel, nextHref, nextLabel, todayHref, todayLabel }) {
   const nextMarkup = nextHref
     ? `<a class="period-nav__link" href="${nextHref}">${nextLabel} →</a>`
     : `<span class="period-nav__link period-nav__link--disabled" aria-disabled="true">${nextLabel} →</span>`;
+  let todayMarkup = '';
+  if (todayLabel) {
+    todayMarkup = todayHref
+      ? `<a class="period-nav__link period-nav__link--today" href="${todayHref}">${todayLabel}</a>`
+      : `<span class="period-nav__link period-nav__link--today period-nav__link--disabled" aria-disabled="true">${todayLabel}</span>`;
+  }
   return `<nav class="period-nav flex items-center gap-sm" aria-label="${prevLabel} / ${nextLabel}">
     <a class="period-nav__link" href="${prevHref}">← ${prevLabel}</a>
     ${nextMarkup}
+    ${todayMarkup}
   </nav>`;
 }

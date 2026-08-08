@@ -13,12 +13,14 @@
     "noData": "Data not available for today.",
     "prev": "Previous day",
     "next": "Next day",
+    "today": "Today",
     "powerUnavailable": "No power curve was recorded for this day (archived/reconstructed data). Showing the cumulative yield instead."
   },
   "month": {
     "noData": "No data available for this month.",
     "prev": "Previous month",
-    "next": "Next month"
+    "next": "Next month",
+    "thisMonth": "This month"
   },
   "year": {
     "noData": "No data available for this year."

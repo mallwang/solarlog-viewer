@@ -43,7 +43,9 @@
 
 @layer components {
   .app-nav {
-    @apply flex items-center gap-xs border-b border-border px-md py-sm;
+    /* Opaque (bg-bg) so the fixed cloud backdrop, offset to start right below the nav,
+       never shows through the nav bar itself. */
+    @apply flex items-center gap-xs border-b border-border bg-bg px-md py-sm;
   }
 
   .app-nav__toggle {
@@ -68,8 +70,11 @@
     @apply bg-bg-elevated;
   }
 
+  /* text color for the active link is set in app.css, not here: app.css's plain (unlayered)
+     `a { color: ... }` rule always wins over anything in this @layer block regardless of
+     selector specificity, so overriding it here would silently have no effect. */
   .app-nav__list a[aria-current='page'] {
-    @apply bg-primary text-white font-semibold;
+    @apply bg-primary font-semibold;
   }
 
   .period-nav__link {

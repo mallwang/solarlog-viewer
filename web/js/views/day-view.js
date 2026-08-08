@@ -27,6 +27,11 @@ function todayIso() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
+function todayParams() {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
+}
+
 /**
  * Mounts the Mode 0 day detail view: fetches and renders the routed date's 5-minute trace,
  * or the "no data" state if the min file doesn't exist (FR-019).
@@ -35,7 +40,8 @@ function todayIso() {
  */
 export async function render(container, { route }) {
   const { params } = route;
-  const title = `${t('nav.dayView')} — ${ddmmyyFromParams(params)}`;
+  const title = `${t('nav.dayView')} - ${ddmmyyFromParams(params)}`;
+  const isToday = isoFromParams(params) === todayIso();
 
   const nextParams = addDays(params, 1);
   const nav = periodNavMarkup({
@@ -43,6 +49,8 @@ export async function render(container, { route }) {
     prevLabel: t('day.prev'),
     nextHref: isFutureDay(nextParams) ? null : formatRoute({ view: 'day', params: nextParams }),
     nextLabel: t('day.next'),
+    todayHref: isToday ? null : formatRoute({ view: 'day', params: todayParams() }),
+    todayLabel: t('day.today'),
   });
 
   container.innerHTML = `<div class="view-header flex items-center justify-between gap-sm flex-wrap mb-md">
@@ -53,7 +61,6 @@ export async function render(container, { route }) {
 
   // The SolarLog only finalizes min{YYMMDD}.js at end of day (final sync); until then,
   // today's readings live exclusively in the rolling min_day.js, so prefer it for today's date.
-  const isToday = isoFromParams(params) === todayIso();
   const result = isToday
     ? await fetchText(`${DATA_DIR}/min_day.js`)
     : await fetchText(`${sourceDirForDate(isoFromParams(params))}/min${yymmddFromParams(params)}.js`);

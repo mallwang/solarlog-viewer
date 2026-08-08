@@ -11,11 +11,88 @@ body {
 }
 
 body {
-  background: var(--color-bg);
+  background: linear-gradient(to bottom, #8ec9f0 0%, var(--color-bg-app) 60%);
   color: var(--color-text);
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Animated cloud backdrop — a fixed sky layer drifting behind the main content, modelled on the
+   "gooey" CSS clouds technique (freefrontend.com/css-clouds "2021 Clouds"): several overlapping
+   circles per cloud, fused into one soft fluffy blob by blurring the whole layer and then
+   cranking contrast back up so edges stay crisp instead of hazy.
+   Markup lives in index.html as `.sky-clouds` right after <body>. It's clipped to start exactly
+   at `--chrome-height` — the real measured height of the header+nav bar, kept in sync by
+   `updateChromeHeight()` in main.js — so clouds only ever exist in the main-content area and
+   never get sliced by (or peek out from under) the nav bar. The header/nav/chart-container also
+   get an opaque background of their own further down in this file as a second line of defence
+   for any measurement lag (e.g. the instant before JS runs). */
+.sky-clouds {
+  position: fixed;
+  top: var(--chrome-height, 120px);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  filter: blur(6px) contrast(30);
+}
+
+.cloud {
+  position: absolute;
+  top: var(--top, 10%);
+  left: 0;
+  width: 120px;
+  height: 50px;
+  background: #fff;
+  border-radius: 50%;
+  opacity: var(--opacity, 0.9);
+  transform: scale(var(--scale, 1)) translateX(-180px);
+  animation: cloud-drift var(--duration, 60s) linear var(--delay, 0s) infinite;
+  will-change: transform;
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.cloud::before {
+  width: 75px;
+  height: 75px;
+  top: -38px;
+  left: 12px;
+}
+
+.cloud::after {
+  width: 95px;
+  height: 65px;
+  top: -22px;
+  left: 58px;
+}
+
+@keyframes cloud-drift {
+  from {
+    transform: scale(var(--scale, 1)) translateX(-180px);
+  }
+
+  to {
+    transform: scale(var(--scale, 1)) translateX(calc(100vw + 180px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud {
+    animation: none;
+    /* Spread the clouds across the sky instead of stacking them all at the left edge. */
+    transform: scale(var(--scale, 1)) translateX(var(--rest-x, 20vw));
+  }
 }
 
 img {
@@ -28,17 +105,38 @@ a {
 }
 
 .app-header {
+  /* Opaque so the fixed cloud layer behind it (`.sky-clouds`, offset to start below the nav)
+     never shows through the header. */
+  background: var(--color-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  border-bottom: 1px solid var(--color-border);
+}
+
+/* Overrides the `a { color: ... }` rule above for the active nav link. Must live here, not in
+   tailwind.css: Tailwind's utilities live inside `@layer components`, and per the CSS cascade,
+   an unlayered rule like the one above always beats a layered one regardless of specificity. */
+.app-nav__list a[aria-current='page'] {
+  color: #000;
+}
+
+.app-header__brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
 .app-header__title {
   font-size: var(--font-size-lg);
   margin: 0;
+}
+
+.app-header__logo {
+  width: 28px;
+  height: 28px;
 }
 
 /* .app-nav / .app-nav__toggle / .app-nav__list — see tailwind.css `@layer components`,
@@ -54,10 +152,16 @@ a {
    classes directly in web/js/views/dashboard.js's markup. */
 
 .chart-container {
+  /* Opaque card background so the animated cloud backdrop never bleeds through the chart
+     canvas (charting libs render on a transparent background by default). */
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
   position: relative;
   width: 100%;
   height: min(60vh, 420px);
   margin-top: var(--space-lg);
+  box-sizing: border-box;
 }
 
 .chart-mount {
@@ -67,6 +171,12 @@ a {
 
 /* .view-title / .empty-state base styling — migrated to Tailwind utility classes directly in
    each view module's markup (web/js/views/*.js, empty-state.js). */
+
+/* .period-nav / .period-nav__link — see tailwind.css `@layer components`. This one modifier
+   (marking the "jump to current period" link) has no Tailwind equivalent yet. */
+.period-nav__link--today {
+  border: 1px solid var(--color-border);
+}
 
 .lang-switcher {
   display: flex;
