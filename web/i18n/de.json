@@ -13,7 +13,16 @@
     "prev": "Vorheriger Tag",
     "next": "Nächster Tag",
     "today": "Heute",
-    "powerUnavailable": "Für diesen Tag ist kein Leistungsverlauf gespeichert (archivierte/rekonstruierte Daten). Es wird stattdessen der kumulierte Ertrag angezeigt."
+    "powerUnavailable": "Für diesen Tag ist kein Leistungsverlauf gespeichert (archivierte/rekonstruierte Daten). Es wird stattdessen der kumulierte Ertrag angezeigt.",
+    "stats": {
+      "title": "Statistik",
+      "yieldKwh": "Tagesertrag",
+      "yieldEuro": "Tagesertrag in €",
+      "specificYield": "Ertrag spezifisch",
+      "maxDaily": "Maximalwert",
+      "soll": "Soll (auflaufend)",
+      "ist": "Ist"
+    }
   },
   "month": {
     "noData": "Für diesen Monat liegen keine Daten vor.",
@@ -27,19 +36,42 @@
     "long": {
       "01": "Januar", "02": "Februar", "03": "März", "04": "April", "05": "Mai", "06": "Juni",
       "07": "Juli", "08": "August", "09": "September", "10": "Oktober", "11": "November", "12": "Dezember"
+    },
+    "stats": {
+      "title": "Statistik",
+      "yieldKwh": "Monatsertrag",
+      "yieldEuro": "Monatsertrag in €",
+      "specificYield": "Ertrag spezifisch",
+      "maxDaily": "Maximalwert",
+      "sollAuflaufend": "Soll (auflaufend)",
+      "sollTotal": "Soll",
+      "ist": "Ist"
     }
   },
   "year": {
     "noData": "Für dieses Jahr liegen keine Daten vor.",
     "prev": "Vorheriges Jahr",
     "next": "Nächstes Jahr",
-    "thisYear": "Dieses Jahr"
+    "thisYear": "Dieses Jahr",
+    "stats": {
+      "title": "Statistik",
+      "yieldKwh": "Jahresertrag",
+      "yieldEuro": "Jahresertrag in €",
+      "specificYield": "Ertrag spezifisch",
+      "maxMonth": "Maximalwert",
+      "sollAuflaufend": "Soll (auflaufend)",
+      "sollTotal": "Soll",
+      "ist": "Ist"
+    }
   },
   "total": {
     "noData": "Keine Daten verfügbar.",
     "totalYield": "Gesamtertrag",
     "co2Saved": "Vermiedene CO2-Emission",
-    "feedIn": "Einspeisevergütung"
+    "feedIn": "Einspeisevergütung",
+    "stats": {
+      "title": "Statistik"
+    }
   },
   "widget": {
     "notProducing": "0 W — keine Einspeisung",

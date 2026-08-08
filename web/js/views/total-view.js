@@ -4,10 +4,8 @@ import { getLanguage, t } from '../i18n.js';
 import { fetchFromBothSources } from '../data/data-source.js';
 import { formatRoute } from '../router.js';
 import { emptyStateMarkup } from './empty-state.js';
-
-function formatKwh(wh) {
-  return (wh / 1000).toFixed(1);
-}
+import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { formatKwh, formatCurrency, formatNumber } from '../format.js';
 
 /**
  * Mounts the Mode 3 lifetime detail view: one bar per year of production (all years, ascending)
@@ -18,8 +16,8 @@ function formatKwh(wh) {
 export async function render(container, { plant }) {
   const title = t('nav.totalView');
   container.innerHTML = `<h2 class="view-title text-lg mb-md">${title}</h2>
-    <div class="chart-container"><div class="chart-mount"></div></div>
-    <table class="summary-table w-full mt-md border-collapse"><tbody id="total-summary"></tbody></table>`;
+    ${chartWithStatsLayoutMarkup()}`;
+  const periodLayout = container.querySelector('.period-layout');
 
   const { hist, data } = await fetchFromBothSources('years.js');
   if (!hist.ok && !data.ok) {
@@ -33,6 +31,15 @@ export async function render(container, { plant }) {
   );
   const summary = deriveLifetimeSummary(years, plant?.tariffRatePerKwh ?? 0);
 
+  periodLayout.insertAdjacentHTML(
+    'beforeend',
+    statsPanelMarkup('total.stats.title', [
+      ['total.totalYield', formatKwh(summary.totalYieldWh / 1000)],
+      ['total.co2Saved', `${formatNumber(summary.co2SavedKg, { decimals: 0 })} kg`],
+      ['total.feedIn', formatCurrency(summary.feedInTotal)],
+    ]),
+  );
+
   const mount = container.querySelector('.chart-mount');
   renderChart(mount, 'year', years, {
     lang: getLanguage(),
@@ -40,11 +47,4 @@ export async function render(container, { plant }) {
       window.location.hash = formatRoute({ view: 'year', params: { year: years[index].year } });
     },
   });
-
-  const summaryBody = container.querySelector('#total-summary');
-  summaryBody.innerHTML = `
-    <tr><th>${t('total.totalYield')}</th><td>${formatKwh(summary.totalYieldWh)} kWh</td></tr>
-    <tr><th>${t('total.co2Saved')}</th><td>${summary.co2SavedKg.toFixed(0)} kg</td></tr>
-    <tr><th>${t('total.feedIn')}</th><td>${summary.feedInTotal.toFixed(2)} €</td></tr>
-  `;
 }

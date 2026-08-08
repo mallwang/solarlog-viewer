@@ -1,5 +1,6 @@
 import '../../vendor/apexcharts/apexcharts.esm.js';
 import { t } from '../i18n.js';
+import { formatNumber, formatKwh } from '../format.js';
 
 // vendor/apexcharts/apexcharts.esm.js is ApexCharts' UMD build; loaded as an ES module for its
 // side effect of attaching `window.ApexCharts` (no bundler-free single-file ESM build is
@@ -52,7 +53,7 @@ function sumPerInverter(values) {
   return present.length ? present.reduce((s, v) => s + v, 0) : null;
 }
 
-function buildDayOptions(data, colors) {
+function buildDayOptions(data, colors, { lang } = {}) {
   const categories = data.readings.map((r) => formatTimeLabel(r.timestamp));
   const series = [
     {
@@ -80,7 +81,12 @@ function buildDayOptions(data, colors) {
       min: 0,
     },
     tooltip: {
-      y: { formatter: (value) => (value === null || value === undefined ? '—' : `${value} W`) },
+      y: {
+        formatter: (value) =>
+          value === null || value === undefined
+            ? '—'
+            : `${formatNumber(value, { decimals: 0, lang })} W`,
+      },
     },
   };
 }
@@ -91,7 +97,7 @@ function buildDayOptions(data, colors) {
  * reconstructed). Plots each inverter's running Wh total instead of a flat 0 W line, so the
  * day still shows something meaningful rather than looking like "no data".
  */
-function buildDayYieldOptions(data, colors) {
+function buildDayYieldOptions(data, colors, { lang } = {}) {
   const categories = data.readings.map((r) => formatTimeLabel(r.timestamp));
   const series = [
     {
@@ -119,7 +125,12 @@ function buildDayYieldOptions(data, colors) {
       min: 0,
     },
     tooltip: {
-      y: { formatter: (value) => (value === null || value === undefined ? '—' : `${value} Wh`) },
+      y: {
+        formatter: (value) =>
+          value === null || value === undefined
+            ? '—'
+            : `${formatNumber(value, { decimals: 0, lang })} Wh`,
+      },
     },
   };
 }
@@ -137,7 +148,7 @@ function buildDayYieldOptions(data, colors) {
  *   onDataPointClick?: (dataPointIndex: number) => void }} opts
  * @returns {object} Full ApexCharts options.
  */
-function buildBarOptions({ categories, seriesData, colors, columnWidth, onDataPointClick }) {
+function buildBarOptions({ categories, seriesData, colors, columnWidth, onDataPointClick, lang }) {
   const clickEvents = onDataPointClick
     ? {
         events: {
@@ -159,15 +170,15 @@ function buildBarOptions({ categories, seriesData, colors, columnWidth, onDataPo
       title: { text: 'kWh' },
       min: 0,
       forceNiceScale: true,
-      labels: { formatter: (value) => Math.round(value) },
+      labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
     },
     tooltip: {
-      y: { formatter: (value) => `${value.toFixed(2)} kWh` },
+      y: { formatter: (value) => formatKwh(value, { decimals: 2, lang }) },
     },
   };
 }
 
-function buildMonthOptions(data, colors, { onDataPointClick } = {}) {
+function buildMonthOptions(data, colors, { onDataPointClick, lang } = {}) {
   return buildBarOptions({
     categories: data.dailyBreakdown.map((d) => d.date.slice(8, 10)),
     seriesData: data.dailyBreakdown.map(
@@ -176,10 +187,11 @@ function buildMonthOptions(data, colors, { onDataPointClick } = {}) {
     colors,
     columnWidth: '70%',
     onDataPointClick,
+    lang,
   });
 }
 
-function buildYearOptions(yearlyTotalsList, colors, { onDataPointClick } = {}) {
+function buildYearOptions(yearlyTotalsList, colors, { onDataPointClick, lang } = {}) {
   return buildBarOptions({
     categories: yearlyTotalsList.map((y) => String(y.year)),
     seriesData: yearlyTotalsList.map(
@@ -188,6 +200,7 @@ function buildYearOptions(yearlyTotalsList, colors, { onDataPointClick } = {}) {
     colors,
     columnWidth: '60%',
     onDataPointClick,
+    lang,
   });
 }
 
@@ -197,7 +210,7 @@ function buildYearOptions(yearlyTotalsList, colors, { onDataPointClick } = {}) {
  * has 12 entries (Jan-Dec, missing months zero-filled by the caller) so the x-axis spans the
  * whole year regardless of how much of it has data yet.
  */
-function buildYearMonthsOptions(data, colors, { onDataPointClick } = {}) {
+function buildYearMonthsOptions(data, colors, { onDataPointClick, lang } = {}) {
   return buildBarOptions({
     categories: data.monthlyBreakdown.map((m) => t(`month.short.${m.month.slice(5, 7)}`)),
     seriesData: data.monthlyBreakdown.map(
@@ -206,15 +219,16 @@ function buildYearMonthsOptions(data, colors, { onDataPointClick } = {}) {
     colors,
     columnWidth: '60%',
     onDataPointClick,
+    lang,
   });
 }
 
 function buildOptions(mode, data, colors, config) {
   switch (mode) {
     case 'day':
-      return buildDayOptions(data, colors);
+      return buildDayOptions(data, colors, config);
     case 'day-yield':
-      return buildDayYieldOptions(data, colors);
+      return buildDayYieldOptions(data, colors, config);
     case 'month':
       return buildMonthOptions(data, colors, config);
     case 'year-months':

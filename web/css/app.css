@@ -11,7 +11,7 @@ body {
 }
 
 body {
-  background: linear-gradient(to bottom, #8ec9f0 0%, var(--color-bg-app) 60%);
+  background: linear-gradient(to bottom, #0d99f5 0%, var(--color-bg-app) 100%);
   color: var(--color-text);
   font-family: var(--font-family);
   font-size: var(--font-size-base);

@@ -10,6 +10,15 @@ import { fetchFromBothSources } from '../data/data-source.js';
 import { formatRoute } from '../router.js';
 import { addMonths, isFutureMonth, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
+import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { formatKwh, formatCurrency } from '../format.js';
+import {
+  maxDailyYieldKwh,
+  specificYieldKwhPerKwp,
+  monthlySollKwh,
+  monthSollAuflaufendKwh,
+  istPercent,
+} from '../data/yield-stats.js';
 
 function monthKey({ year, month }) {
   return `${year}-${String(month).padStart(2, '0')}`;
@@ -42,12 +51,50 @@ function fillMonthDays(params, dailyBreakdown) {
   });
 }
 
+function sumWh(perInverter) {
+  return Object.values(perInverter).reduce((s, wh) => s + wh, 0);
+}
+
+/**
+ * Builds the month-view stats panel's rows (kWh yield, € yield, specific yield, best daily
+ * yield, and the Soll/Ist target comparison). For the current (still in-progress) month, Soll is
+ * the running "auflaufend" total (see monthSollAuflaufendKwh); for any other month it's the
+ * month's full target (see monthlySollKwh), since the month is already complete either way.
+ * @param {{ perInverter: object, dailyBreakdown: object[] }} monthTotal
+ * @param {object | null} plant - PlantMetadata (see data/plant.js); Soll/tariff figures fall
+ *   back to 0 when unavailable.
+ * @param {{ year: number, month: number }} params
+ * @param {boolean} isCurrentMonth
+ * @returns {[string, string][]}
+ */
+function monthStatsRows(monthTotal, plant, params, isCurrentMonth) {
+  const yieldKwh = sumWh(monthTotal.perInverter) / 1000;
+  const feedInEuro = yieldKwh * (plant?.tariffRatePerKwh ?? 0);
+  const specificYield = specificYieldKwhPerKwp(yieldKwh, plant?.capacityKwp ?? 0);
+  const sollKwh = isCurrentMonth
+    ? monthSollAuflaufendKwh(plant ?? {}, params.year, params.month)
+    : monthlySollKwh(plant ?? {}, params.month);
+  const ist = istPercent(yieldKwh, sollKwh);
+
+  return [
+    ['month.stats.yieldKwh', formatKwh(yieldKwh)],
+    ['month.stats.yieldEuro', formatCurrency(feedInEuro)],
+    ['month.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
+    ['month.stats.maxDaily', formatKwh(maxDailyYieldKwh(monthTotal.dailyBreakdown))],
+    [
+      isCurrentMonth ? 'month.stats.sollAuflaufend' : 'month.stats.sollTotal',
+      formatKwh(sollKwh),
+    ],
+    ['month.stats.ist', `${ist}%`],
+  ];
+}
+
 /**
  * Mounts the Mode 1 month detail view: per-inverter daily-energy bars for the routed month.
  * @param {HTMLElement} container
- * @param {{ route: { params: { year: number, month: number } } }} ctx
+ * @param {{ plant: object | null, route: { params: { year: number, month: number } } }} ctx
  */
-export async function render(container, { route }) {
+export async function render(container, { route, plant }) {
   const { params } = route;
   const key = monthKey(params);
   const monthName = t(`month.long.${String(params.month).padStart(2, '0')}`);
@@ -70,7 +117,8 @@ export async function render(container, { route }) {
       <h2 class="view-title text-lg m-0">${title}</h2>
       ${nav}
     </div>
-    <div class="chart-container"><div class="chart-mount"></div></div>`;
+    ${chartWithStatsLayoutMarkup()}`;
+  const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');
 
   const [monthsSources, daysSources] = await Promise.all([
@@ -109,6 +157,15 @@ export async function render(container, { route }) {
     chartContainer.innerHTML = emptyStateBody('month.noData');
     return;
   }
+
+  periodLayout.insertAdjacentHTML(
+    'beforeend',
+    statsPanelMarkup(
+      'month.stats.title',
+      monthStatsRows(monthTotal, plant, params, isCurrentMonth),
+    ),
+  );
+
   monthTotal.dailyBreakdown = fillMonthDays(params, dailyBreakdown);
 
   const mount = container.querySelector('.chart-mount');

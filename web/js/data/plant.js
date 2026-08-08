@@ -25,11 +25,23 @@ function commissionedDateToIso(ddMmYyyy) {
 }
 
 /**
+ * Parses `var sollMonth = new Array(2,6,9,...)` — 12 numbers, index 0 = January, giving each
+ * month's percentage share of SollYearKWP's yearly specific-yield target (sums to 100).
+ * @param {string} fileText
+ * @returns {number[]} 12 entries, or 12 zeros if the variable isn't present.
+ */
+function parseSollMonth(fileText) {
+  const match = /var sollMonth\s*=\s*new Array\(([^)]*)\)/.exec(fileText);
+  if (!match) return new Array(12).fill(0);
+  return match[1].split(',').map((n) => Number.parseFloat(n.trim()));
+}
+
+/**
  * Parses base_vars.js into PlantMetadata, deriving inverters dynamically from WRInfo[]
  * rather than trusting AnzahlWR (FR-006: never hard-code inverter/string structure).
  * @param {string} fileText - Raw base_vars.js content.
  * @returns {{ title: string, location: string, operator: string, capacityKwp: number,
- *   commissionedDate: string, tariffRatePerKwh: number,
+ *   commissionedDate: string, tariffRatePerKwh: number, sollYearKwp: number, sollMonth: number[],
  *   inverters: { index: number, model: string, stringCount: number }[] }} PlantMetadata
  */
 export function parseBaseVars(fileText) {
@@ -53,6 +65,8 @@ export function parseBaseVars(fileText) {
     capacityKwp: extractNumericVar(fileText, 'AnlagenKWP'),
     commissionedDate: commissionedDateToIso(extractQuotedVar(fileText, 'HPInbetrieb')),
     tariffRatePerKwh: extractNumericVar(fileText, 'Verguetung') / 10000,
+    sollYearKwp: extractNumericVar(fileText, 'SollYearKWP'),
+    sollMonth: parseSollMonth(fileText),
     inverters,
   };
 }

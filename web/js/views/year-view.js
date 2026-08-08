@@ -5,9 +5,56 @@ import { fetchFromBothSources } from '../data/data-source.js';
 import { formatRoute } from '../router.js';
 import { addYears, isFutureYear, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
+import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { formatKwh, formatCurrency } from '../format.js';
+import {
+  maxMonthlyYieldKwh,
+  specificYieldKwhPerKwp,
+  yearlySollKwh,
+  yearSollAuflaufendKwh,
+  istPercent,
+} from '../data/yield-stats.js';
 
 function currentYear() {
   return new Date().getFullYear();
+}
+
+function sumWh(perInverter) {
+  return Object.values(perInverter).reduce((s, wh) => s + wh, 0);
+}
+
+/**
+ * Builds the year-view stats panel's rows (kWh yield, € yield, specific yield, best monthly
+ * yield, and the Soll/Ist target comparison). For the current (still in-progress) year, Soll is
+ * the running "auflaufend" total (see yearSollAuflaufendKwh); for any other year it's the whole
+ * year's target (see yearlySollKwh), since the year is already complete either way.
+ * @param {ReturnType<typeof import('../data/aggregates.js').parseMonthsFile>} monthlyBreakdown
+ * @param {object | null} plant - PlantMetadata (see data/plant.js); Soll/tariff figures fall
+ *   back to 0 when unavailable.
+ * @param {number} year
+ * @param {boolean} isCurrentYear
+ * @returns {[string, string][]}
+ */
+function yearStatsRows(monthlyBreakdown, plant, year, isCurrentYear) {
+  const yieldKwh = monthlyBreakdown.reduce((s, m) => s + sumWh(m.perInverter), 0) / 1000;
+  const feedInEuro = yieldKwh * (plant?.tariffRatePerKwh ?? 0);
+  const specificYield = specificYieldKwhPerKwp(yieldKwh, plant?.capacityKwp ?? 0);
+  const sollKwh = isCurrentYear
+    ? yearSollAuflaufendKwh(plant ?? {}, year)
+    : yearlySollKwh(plant ?? {});
+  const ist = istPercent(yieldKwh, sollKwh);
+
+  return [
+    ['year.stats.yieldKwh', formatKwh(yieldKwh)],
+    ['year.stats.yieldEuro', formatCurrency(feedInEuro)],
+    ['year.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
+    ['year.stats.maxMonth', formatKwh(maxMonthlyYieldKwh(monthlyBreakdown))],
+    [
+      isCurrentYear ? 'year.stats.sollAuflaufend' : 'year.stats.sollTotal',
+      formatKwh(sollKwh),
+    ],
+    ['year.stats.ist', `${ist}%`],
+  ];
 }
 
 /**
@@ -30,9 +77,9 @@ function fillYearMonths(year, monthlyTotals) {
  * Mounts the Mode 2 year detail view: per-month yield bars for the routed year (Jan-Dec), with
  * prev/next/this-year navigation mirroring the month view's day navigation.
  * @param {HTMLElement} container
- * @param {{ route: { params: { year: number } } }} ctx
+ * @param {{ plant: object | null, route: { params: { year: number } } }} ctx
  */
-export async function render(container, { route }) {
+export async function render(container, { route, plant }) {
   const { year } = route.params;
   const title = `${t('nav.yearView')} - ${year}`;
   const isCurrentYear = year === currentYear();
@@ -53,7 +100,8 @@ export async function render(container, { route }) {
       <h2 class="view-title text-lg m-0">${title}</h2>
       ${nav}
     </div>
-    <div class="chart-container"><div class="chart-mount"></div></div>`;
+    ${chartWithStatsLayoutMarkup()}`;
+  const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');
 
   const { hist, data } = await fetchFromBothSources('months.js');
@@ -73,6 +121,14 @@ export async function render(container, { route }) {
     chartContainer.innerHTML = emptyStateBody('year.noData');
     return;
   }
+
+  periodLayout.insertAdjacentHTML(
+    'beforeend',
+    statsPanelMarkup(
+      'year.stats.title',
+      yearStatsRows(monthlyBreakdown, plant, year, isCurrentYear),
+    ),
+  );
 
   const mount = container.querySelector('.chart-mount');
   renderChart(mount, 'year-months', { year, monthlyBreakdown: fillYearMonths(year, monthlyBreakdown) }, {

@@ -7,6 +7,14 @@ import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
 import { addDays, isFutureDay, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
+import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { formatKwh, formatCurrency, formatDate } from '../format.js';
+import {
+  dailyYieldWh,
+  specificYieldKwhPerKwp,
+  dailySollKwh,
+  istPercent,
+} from '../data/yield-stats.js';
 
 function ddmmyyFromParams({ year, month, day }) {
   const yy = String(year).slice(-2);
@@ -33,14 +41,40 @@ function todayParams() {
 }
 
 /**
+ * Builds the day-view stats panel's rows (kWh yield, € yield, specific yield, best daily yield,
+ * and the Soll/Ist target comparison).
+ * @param {{ readings: object[] }} trace
+ * @param {object | null} plant - PlantMetadata (see data/plant.js); Soll/tariff figures fall
+ *   back to 0 when unavailable.
+ * @param {{ year: number, month: number }} params
+ * @returns {[string, string][]}
+ */
+function dayStatsRows(trace, plant, params) {
+  const yieldKwh = dailyYieldWh(trace) / 1000;
+  const feedInEuro = yieldKwh * (plant?.tariffRatePerKwh ?? 0);
+  const specificYield = specificYieldKwhPerKwp(yieldKwh, plant?.capacityKwp ?? 0);
+  const sollKwh = dailySollKwh(plant ?? {}, params.year, params.month);
+  const ist = istPercent(yieldKwh, sollKwh);
+
+  return [
+    ['day.stats.yieldKwh', formatKwh(yieldKwh)],
+    ['day.stats.yieldEuro', formatCurrency(feedInEuro)],
+    ['day.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
+    ['day.stats.maxDaily', formatKwh(yieldKwh)],
+    ['day.stats.soll', formatKwh(sollKwh)],
+    ['day.stats.ist', `${ist}%`],
+  ];
+}
+
+/**
  * Mounts the Mode 0 day detail view: fetches and renders the routed date's 5-minute trace,
  * or the "no data" state if the min file doesn't exist (FR-019).
  * @param {HTMLElement} container
  * @param {{ plant: object | null, route: { params: { year: number, month: number, day: number } } }} ctx
  */
-export async function render(container, { route }) {
+export async function render(container, { route, plant }) {
   const { params } = route;
-  const title = `${t('nav.dayView')} - ${ddmmyyFromParams(params)}`;
+  const title = `${t('nav.dayView')} - ${formatDate(new Date(params.year, params.month - 1, params.day))}`;
   const isToday = isoFromParams(params) === todayIso();
 
   const nextParams = addDays(params, 1);
@@ -57,7 +91,7 @@ export async function render(container, { route }) {
       <h2 class="view-title text-lg m-0">${title}</h2>
       ${nav}
     </div>
-    <div class="chart-container"><div class="chart-mount"></div></div>`;
+    ${chartWithStatsLayoutMarkup()}`;
 
   // The SolarLog only finalizes min{YYMMDD}.js at end of day (final sync); until then,
   // today's readings live exclusively in the rolling min_day.js, so prefer it for today's date.
@@ -65,6 +99,7 @@ export async function render(container, { route }) {
     ? await fetchText(`${DATA_DIR}/min_day.js`)
     : await fetchText(`${sourceDirForDate(isoFromParams(params))}/min${yymmddFromParams(params)}.js`);
 
+  const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');
 
   if (!result.ok) {
@@ -77,6 +112,11 @@ export async function render(container, { route }) {
     chartContainer.innerHTML = emptyStateBody('day.noData');
     return;
   }
+
+  periodLayout.insertAdjacentHTML(
+    'beforeend',
+    statsPanelMarkup('day.stats.title', dayStatsRows(trace, plant, params)),
+  );
 
   // Backfilled/archived days (see .claude/skills/backfill-min-day) only reconstruct the
   // cumulative Wh counter and zero out PDC/PAC/Volt — a flat 0 W line would look identical to

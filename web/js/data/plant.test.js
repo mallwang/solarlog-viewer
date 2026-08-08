@@ -4,6 +4,8 @@ import { parseBaseVars } from './plant.js';
 
 const FIXTURE = `var Boot=99
 var AnlagenKWP=6200
+var sollMonth = new Array(2,6,9,11,12,13,13,12,10,7,3,2)
+var SollYearKWP=900
 var AnzahlWR = 2
 var WRInfo = new Array(AnzahlWR)
 WRInfo[0]=new Array("WR42MS05","1100082120",4100,1,"SB 4200 TL",2,null,null,4200,null,1,0,0,972,null)
@@ -32,6 +34,18 @@ test('parses plant metadata scalars', () => {
 test('converts the feed-in tariff from 0.1ct/kWh to Euro/kWh', () => {
   const plant = parseBaseVars(FIXTURE);
   assert.equal(plant.tariffRatePerKwh, 0.518);
+});
+
+test('parses the Soll (target yield) scalars', () => {
+  const plant = parseBaseVars(FIXTURE);
+  assert.equal(plant.sollYearKwp, 900);
+  assert.deepEqual(plant.sollMonth, [2, 6, 9, 11, 12, 13, 13, 12, 10, 7, 3, 2]);
+});
+
+test('defaults sollMonth to 12 zeros when the variable is absent', () => {
+  const plant = parseBaseVars('var HPTitel="No Soll Data"');
+  assert.deepEqual(plant.sollMonth, new Array(12).fill(0));
+  assert.equal(plant.sollYearKwp, 0);
 });
 
 test('derives inverters dynamically from WRInfo[], never hard-coded', () => {

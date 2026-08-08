@@ -13,7 +13,16 @@
     "prev": "Previous day",
     "next": "Next day",
     "today": "Today",
-    "powerUnavailable": "No power curve was recorded for this day (archived/reconstructed data). Showing the cumulative yield instead."
+    "powerUnavailable": "No power curve was recorded for this day (archived/reconstructed data). Showing the cumulative yield instead.",
+    "stats": {
+      "title": "Statistics",
+      "yieldKwh": "Daily yield",
+      "yieldEuro": "Yield in €",
+      "specificYield": "Specific yield",
+      "maxDaily": "Peak day",
+      "soll": "Target (cumulative)",
+      "ist": "Actual"
+    }
   },
   "month": {
     "noData": "No data available for this month.",
@@ -27,19 +36,42 @@
     "long": {
       "01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June",
       "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "December"
+    },
+    "stats": {
+      "title": "Statistics",
+      "yieldKwh": "Monthly yield",
+      "yieldEuro": "Yield in €",
+      "specificYield": "Specific yield",
+      "maxDaily": "Peak day",
+      "sollAuflaufend": "Target (cumulative)",
+      "sollTotal": "Target",
+      "ist": "Actual"
     }
   },
   "year": {
     "noData": "No data available for this year.",
     "prev": "Previous year",
     "next": "Next year",
-    "thisYear": "This year"
+    "thisYear": "This year",
+    "stats": {
+      "title": "Statistics",
+      "yieldKwh": "Yearly yield",
+      "yieldEuro": "Yield in €",
+      "specificYield": "Specific yield",
+      "maxMonth": "Peak month",
+      "sollAuflaufend": "Target (cumulative)",
+      "sollTotal": "Target",
+      "ist": "Actual"
+    }
   },
   "total": {
     "noData": "No data available.",
     "totalYield": "Total yield",
     "co2Saved": "Avoided CO2 emissions",
-    "feedIn": "Feed-in tariff total"
+    "feedIn": "Feed-in tariff total",
+    "stats": {
+      "title": "Statistics"
+    }
   },
   "widget": {
     "notProducing": "0 W — not producing",

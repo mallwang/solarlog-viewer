@@ -78,10 +78,11 @@
   }
 
   .period-nav__link {
-    @apply rounded-md px-sm py-xs text-sm text-text no-underline hover:bg-bg-elevated;
+    @apply rounded-md border border-border bg-bg px-sm py-xs text-sm text-text no-underline
+      hover:bg-bg-elevated;
   }
 
   .period-nav__link--disabled {
-    @apply cursor-not-allowed text-text-muted opacity-50 hover:bg-transparent;
+    @apply cursor-not-allowed text-text-muted opacity-50 hover:bg-bg;
   }
 }

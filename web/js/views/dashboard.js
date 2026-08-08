@@ -1,5 +1,6 @@
 import { formatRoute } from '../router.js';
 import { t } from '../i18n.js';
+import { formatKwh } from '../format.js';
 import { fetchText } from '../data/fetch-text.js';
 import {
   parseDailyTotalsFile,
@@ -120,15 +121,15 @@ export async function render(container) {
 
   if (daysResult.ok) {
     const [today] = parseDailyTotalsFile(daysResult.text);
-    if (today) values[1].textContent = `${(sumWh(today.perInverter) / 1000).toFixed(1)} kWh`;
+    if (today) values[1].textContent = formatKwh(sumWh(today.perInverter) / 1000);
   }
   const thisMonth = months.find((m) => m.month === monthKey);
-  if (thisMonth) values[2].textContent = `${(sumWh(thisMonth.perInverter) / 1000).toFixed(1)} kWh`;
+  if (thisMonth) values[2].textContent = formatKwh(sumWh(thisMonth.perInverter) / 1000);
 
   const thisYear = years.find((y) => y.year === year);
-  if (thisYear) values[3].textContent = `${(sumWh(thisYear.perInverter) / 1000).toFixed(1)} kWh`;
+  if (thisYear) values[3].textContent = formatKwh(sumWh(thisYear.perInverter) / 1000);
   const totalWh = years.reduce((s, y) => s + sumWh(y.perInverter), 0);
-  values[4].textContent = `${(totalWh / 1000).toFixed(1)} kWh`;
+  values[4].textContent = formatKwh(totalWh / 1000);
 
   return () => clearInterval(intervalId);
 }
