@@ -30,10 +30,6 @@ test('parses the total route', () => {
   assert.deepEqual(parseRoute('#/total'), { view: 'total', params: {} });
 });
 
-test('parses the compare route', () => {
-  assert.deepEqual(parseRoute('#/compare'), { view: 'compare', params: {} });
-});
-
 test('falls back to dashboard for a malformed hash', () => {
   assert.deepEqual(parseRoute('#/day/not-a-date'), { view: 'dashboard', params: {} });
   assert.deepEqual(parseRoute('#/nonsense'), { view: 'dashboard', params: {} });
@@ -54,5 +50,4 @@ test('formatRoute round-trips each view', () => {
   assert.equal(formatRoute({ view: 'month', params: { year: 2019, month: 7 } }), '#/month/2019/07');
   assert.equal(formatRoute({ view: 'year', params: { year: 2019 } }), '#/year/2019');
   assert.equal(formatRoute({ view: 'total', params: {} }), '#/total');
-  assert.equal(formatRoute({ view: 'compare', params: {} }), '#/compare');
 });

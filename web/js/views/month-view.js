@@ -50,7 +50,8 @@ function fillMonthDays(params, dailyBreakdown) {
 export async function render(container, { route }) {
   const { params } = route;
   const key = monthKey(params);
-  const title = `${t('nav.monthView')} - ${key}`;
+  const monthName = t(`month.long.${String(params.month).padStart(2, '0')}`);
+  const title = `${t('nav.monthView')} - ${monthName} ${params.year}`;
   const isCurrentMonth = key === monthKey(todayParams());
 
   const nextParams = addMonths(params, 1);
@@ -111,5 +112,11 @@ export async function render(container, { route }) {
   monthTotal.dailyBreakdown = fillMonthDays(params, dailyBreakdown);
 
   const mount = container.querySelector('.chart-mount');
-  renderChart(mount, 'month', monthTotal, { lang: getLanguage() });
+  renderChart(mount, 'month', monthTotal, {
+    lang: getLanguage(),
+    onDataPointClick: (index) => {
+      const day = Number.parseInt(monthTotal.dailyBreakdown[index].date.slice(8, 10), 10);
+      window.location.hash = formatRoute({ view: 'day', params: { ...params, day } });
+    },
+  });
 }

@@ -169,6 +169,13 @@ a {
   height: 100%;
 }
 
+/* Set by chart-factory.js's renderChart() when the chart was given an onDataPointClick handler
+   (bar-click drill-down into the next-finer view) — ApexCharts has no plotOptions.bar.cursor
+   option, so the pointer/hand affordance is applied here instead. */
+.chart-mount--clickable .apexcharts-bar-area {
+  cursor: pointer;
+}
+
 /* .view-title / .empty-state base styling — migrated to Tailwind utility classes directly in
    each view module's markup (web/js/views/*.js, empty-state.js). */
 

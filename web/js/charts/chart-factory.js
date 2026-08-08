@@ -67,7 +67,7 @@ function buildDayOptions(data, colors) {
     ...baseOptions(colors),
     chart: { ...baseOptions(colors).chart, type: 'area' },
     stroke: { width: 2, curve: 'smooth' },
-    fill: { type: 'gradient', gradient: { opacityFrom: 0.45, opacityTo: 0.05 } },
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.8, opacityTo: 0.25 } },
     markers: { size: 0 },
     series,
     xaxis: {
@@ -106,7 +106,7 @@ function buildDayYieldOptions(data, colors) {
     ...baseOptions(colors),
     chart: { ...baseOptions(colors).chart, type: 'area' },
     stroke: { width: 2, curve: 'stepline' },
-    fill: { type: 'gradient', gradient: { opacityFrom: 0.45, opacityTo: 0.05 } },
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.8, opacityTo: 0.25 } },
     markers: { size: 0 },
     series,
     xaxis: {
@@ -124,22 +124,36 @@ function buildDayYieldOptions(data, colors) {
   };
 }
 
-function buildMonthOptions(data, colors) {
-  const categories = data.dailyBreakdown.map((d) => d.date.slice(8, 10));
-  const series = [
-    {
-      name: t('chart.total'),
-      data: data.dailyBreakdown.map(
-        (d) => Object.values(d.perInverter).reduce((s, i) => s + (i?.yieldWh ?? 0), 0) / 1000,
-      ),
-    },
-  ];
+/**
+ * Shared shape for the month/year/year-months bar charts: same axis/tooltip formatting, differing
+ * only in categories, series values and bar width. Also wires optional click-through navigation to
+ * the next-finer view (FR: click a bar to drill down) — when `onDataPointClick` is given, it's
+ * bound to ApexCharts' `dataPointSelection` event (receiving the clicked bar's data-point index)
+ * and the hover-darken affordance is turned on; left off entirely rather than defaulted to a no-op
+ * so a chart without a drill-down target doesn't pretend to be clickable. The pointer/hand cursor
+ * itself isn't set here — ApexCharts has no `plotOptions.bar.cursor` option, so `renderChart`
+ * toggles a `chart-mount--clickable` class on the container instead (see app.css).
+ * @param {{ categories: string[], seriesData: number[], colors: string[], columnWidth: string,
+ *   onDataPointClick?: (dataPointIndex: number) => void }} opts
+ * @returns {object} Full ApexCharts options.
+ */
+function buildBarOptions({ categories, seriesData, colors, columnWidth, onDataPointClick }) {
+  const clickEvents = onDataPointClick
+    ? {
+        events: {
+          dataPointSelection: (event, chartContext, config) => {
+            onDataPointClick(config.dataPointIndex);
+          },
+        },
+      }
+    : {};
 
   return {
     ...baseOptions(colors),
-    chart: { ...baseOptions(colors).chart, type: 'bar' },
-    plotOptions: { bar: { columnWidth: '70%' } },
-    series,
+    chart: { ...baseOptions(colors).chart, type: 'bar', ...clickEvents },
+    plotOptions: { bar: { columnWidth } },
+    ...(onDataPointClick ? { states: { hover: { filter: { type: 'darken' } } } } : {}),
+    series: [{ name: t('chart.total'), data: seriesData }],
     xaxis: { categories },
     yaxis: {
       title: { text: 'kWh' },
@@ -153,155 +167,89 @@ function buildMonthOptions(data, colors) {
   };
 }
 
-function buildYearOptions(yearlyTotalsList, colors) {
-  const categories = yearlyTotalsList.map((y) => String(y.year));
-  const series = [
-    {
-      name: t('chart.total'),
-      data: yearlyTotalsList.map(
-        (y) => Object.values(y.perInverter).reduce((s, v) => s + (v ?? 0), 0) / 1000,
-      ),
-    },
-  ];
-
-  return {
-    ...baseOptions(colors),
-    chart: { ...baseOptions(colors).chart, type: 'bar' },
-    plotOptions: { bar: { columnWidth: '60%' } },
-    series,
-    xaxis: { categories },
-    yaxis: {
-      title: { text: 'kWh' },
-      min: 0,
-      forceNiceScale: true,
-      labels: { formatter: (value) => Math.round(value) },
-    },
-    tooltip: {
-      y: { formatter: (value) => `${value.toFixed(2)} kWh` },
-    },
-  };
-}
-
-function buildTotalOptions(lifetimeSummary, colors) {
-  const byYearAscending = [...lifetimeSummary.byYear].sort((a, b) => a.year - b.year);
-  const categories = byYearAscending.map((y) => String(y.year));
-  let running = 0;
-  const cumulativeKwh = byYearAscending.map((y) => {
-    running += Object.values(y.perInverter).reduce((s, wh) => s + wh, 0) / 1000;
-    return running;
+function buildMonthOptions(data, colors, { onDataPointClick } = {}) {
+  return buildBarOptions({
+    categories: data.dailyBreakdown.map((d) => d.date.slice(8, 10)),
+    seriesData: data.dailyBreakdown.map(
+      (d) => Object.values(d.perInverter).reduce((s, i) => s + (i?.yieldWh ?? 0), 0) / 1000,
+    ),
+    colors,
+    columnWidth: '70%',
+    onDataPointClick,
   });
-
-  return {
-    ...baseOptions(colors),
-    chart: { ...baseOptions(colors).chart, type: 'bar' },
-    plotOptions: { bar: { columnWidth: '50%' } },
-    series: [{ name: t('chart.cumulativeYield'), data: cumulativeKwh }],
-    xaxis: { categories },
-    yaxis: {
-      title: { text: 'kWh' },
-      min: 0,
-      forceNiceScale: true,
-      labels: { formatter: (value) => Math.round(value) },
-    },
-    tooltip: {
-      y: { formatter: (value) => `${value.toFixed(2)} kWh` },
-    },
-  };
 }
 
-function buildCompareOptions(yearComparisonSeries, colors) {
-  const maxDay = yearComparisonSeries.reduce(
-    (max, s) => Math.max(max, ...s.points.map((p) => p.dayOfYear)),
-    0,
-  );
-  const categories = Array.from({ length: maxDay }, (_, i) => i + 1);
-  const series = yearComparisonSeries.map((s) => {
-    const byDay = new Map(s.points.map((p) => [p.dayOfYear, p.totalWh / 1000]));
-    return {
-      name: String(s.year),
-      data: categories.map((day) => byDay.get(day) ?? null),
-    };
+function buildYearOptions(yearlyTotalsList, colors, { onDataPointClick } = {}) {
+  return buildBarOptions({
+    categories: yearlyTotalsList.map((y) => String(y.year)),
+    seriesData: yearlyTotalsList.map(
+      (y) => Object.values(y.perInverter).reduce((s, v) => s + (v ?? 0), 0) / 1000,
+    ),
+    colors,
+    columnWidth: '60%',
+    onDataPointClick,
   });
-
-  return {
-    ...baseOptions(colors),
-    // Kept as a plain (unfilled) line: this chart overlays one series per year, and filled
-    // areas stacked on top of each other just turn into visual noise once several years are shown.
-    chart: { ...baseOptions(colors).chart, type: 'line' },
-    stroke: { width: 2, curve: 'straight' },
-    markers: { size: 0 },
-    series,
-    xaxis: {
-      categories,
-      title: { text: t('chart.dayOfYearAxis') },
-      tickAmount: 12,
-    },
-    yaxis: {
-      title: { text: 'kWh' },
-      min: 0,
-      forceNiceScale: true,
-      labels: { formatter: (value) => Math.round(value) },
-    },
-    tooltip: {
-      y: {
-        formatter: (value) =>
-          value === null || value === undefined ? '—' : `${value.toFixed(2)} kWh`,
-      },
-    },
-  };
 }
 
-function buildOptions(mode, data, colors) {
+/**
+ * Bars for each calendar month of a single year (Mode 2 "Jahreserträge" detail view) — same
+ * shape/rendering as buildMonthOptions' daily bars, one level up: `data.monthlyBreakdown` always
+ * has 12 entries (Jan-Dec, missing months zero-filled by the caller) so the x-axis spans the
+ * whole year regardless of how much of it has data yet.
+ */
+function buildYearMonthsOptions(data, colors, { onDataPointClick } = {}) {
+  return buildBarOptions({
+    categories: data.monthlyBreakdown.map((m) => t(`month.short.${m.month.slice(5, 7)}`)),
+    seriesData: data.monthlyBreakdown.map(
+      (m) => Object.values(m.perInverter).reduce((s, wh) => s + (wh ?? 0), 0) / 1000,
+    ),
+    colors,
+    columnWidth: '60%',
+    onDataPointClick,
+  });
+}
+
+function buildOptions(mode, data, colors, config) {
   switch (mode) {
     case 'day':
       return buildDayOptions(data, colors);
     case 'day-yield':
       return buildDayYieldOptions(data, colors);
     case 'month':
-      return buildMonthOptions(data, colors);
+      return buildMonthOptions(data, colors, config);
+    case 'year-months':
+      return buildYearMonthsOptions(data, colors, config);
     case 'year':
-      return buildYearOptions(data, colors);
-    case 'total':
-      return buildTotalOptions(data, colors);
-    case 'compare':
-      return buildCompareOptions(data, colors);
+      return buildYearOptions(data, colors, config);
     default:
       throw new Error(`chart-factory: unsupported mode "${mode}"`);
   }
 }
 
-const COMPARE_ACTIVE_YEAR_COUNT = 2;
-
 /**
  * Creates (or updates, if `container` already hosts a chart) an ApexCharts chart for one of the
- * 5 visualization modes. Calling again on the same container with new data destroys the previous
+ * visualization modes. Calling again on the same container with new data destroys the previous
  * chart instance before mounting a fresh one — no stacked/duplicate charts.
  * @param {HTMLElement} container - A plain `<div>` (was `<canvas>` under Chart.js); ApexCharts
  *   renders an inline SVG into it.
- * @param {'day' | 'day-yield' | 'month' | 'year' | 'total' | 'compare'} mode
+ * @param {'day' | 'day-yield' | 'month' | 'year-months' | 'year'} mode
  * @param {object} data - Same shape per mode as before (readings/dailyBreakdown/
- *   yearlyTotalsList/lifetimeSummary/yearComparisonSeries).
+ *   monthlyBreakdown/yearlyTotalsList).
+ * @param {{ onDataPointClick?: (dataPointIndex: number) => void }} [config] - `onDataPointClick`
+ *   wires bar-click drill-down (month/year/year-months only; ignored for the day line/area
+ *   charts, which have no finer view to drill into).
  * @returns {import('apexcharts')} The ApexCharts instance (for tests/cleanup).
  */
-export function renderChart(container, mode, data) {
+export function renderChart(container, mode, data, config) {
   const existing = charts.get(container);
   if (existing) {
     existing.destroy();
     charts.delete(container);
   }
-  const options = buildOptions(mode, data, getChartColors());
+  container.classList.toggle('chart-mount--clickable', Boolean(config?.onDataPointClick));
+  const options = buildOptions(mode, data, getChartColors(), config);
   const chart = new ApexCharts(container, options);
   chart.render();
-  if (mode === 'compare') {
-    // `data` (yearComparisonSeries) is sorted ascending by year (see groupByYear); only the
-    // most recent COMPARE_ACTIVE_YEAR_COUNT years start visible so overlaying a decade+ of
-    // history doesn't render as illegible noise. Older years stay in the legend — click to add
-    // them back in.
-    const namesToHide = data
-      .slice(0, Math.max(0, data.length - COMPARE_ACTIVE_YEAR_COUNT))
-      .map((s) => String(s.year));
-    for (const name of namesToHide) chart.hideSeries(name);
-  }
   charts.set(container, chart);
   return chart;
 }

@@ -39,6 +39,20 @@ export function isFutureMonth({ year, month }) {
 }
 
 /**
+ * @param {{ year: number }} params
+ * @param {number} delta - Whole years to add (negative to go back).
+ * @returns {{ year: number }}
+ */
+export function addYears({ year }, delta) {
+  return { year: year + delta };
+}
+
+/** @param {{ year: number }} params @returns {boolean} True if params names a year after the current one. */
+export function isFutureYear({ year }) {
+  return year > new Date().getFullYear();
+}
+
+/**
  * Renders the prev/next stepper row. `next` is omitted (rendered disabled) when `nextHref`
  * is null, so callers can't link into dates with no data yet (e.g. tomorrow). When `todayLabel`
  * is given, an extra "jump to current period" link (e.g. "Heute" / "Dieser Monat") is appended,

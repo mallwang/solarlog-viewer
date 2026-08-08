@@ -2,6 +2,7 @@ import { parseYearsFile, mergeYearlyTotals, deriveLifetimeSummary } from '../dat
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { fetchFromBothSources } from '../data/data-source.js';
+import { formatRoute } from '../router.js';
 import { emptyStateMarkup } from './empty-state.js';
 
 function formatKwh(wh) {
@@ -9,8 +10,8 @@ function formatKwh(wh) {
 }
 
 /**
- * Mounts the Mode 3 lifetime detail view: cumulative bar chart plus CO2-saved and
- * feed-in-tariff summary (FR-012, SC-008).
+ * Mounts the Mode 3 lifetime detail view: one bar per year of production (all years, ascending)
+ * plus a CO2-saved and feed-in-tariff summary (FR-012, SC-008).
  * @param {HTMLElement} container
  * @param {{ plant: object | null }} ctx
  */
@@ -33,7 +34,12 @@ export async function render(container, { plant }) {
   const summary = deriveLifetimeSummary(years, plant?.tariffRatePerKwh ?? 0);
 
   const mount = container.querySelector('.chart-mount');
-  renderChart(mount, 'total', summary, { lang: getLanguage() });
+  renderChart(mount, 'year', years, {
+    lang: getLanguage(),
+    onDataPointClick: (index) => {
+      window.location.hash = formatRoute({ view: 'year', params: { year: years[index].year } });
+    },
+  });
 
   const summaryBody = container.querySelector('#total-summary');
   summaryBody.innerHTML = `

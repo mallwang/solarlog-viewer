@@ -29,7 +29,6 @@ const NAV_ITEMS = [
     },
   },
   { view: 'total', labelKey: 'nav.totalView', params: {} },
-  { view: 'compare', labelKey: 'nav.compareView', params: {} },
 ];
 
 let plant = null;
@@ -130,7 +129,6 @@ const viewModules = {
   month: () => import('./views/month-view.js'),
   year: () => import('./views/year-view.js'),
   total: () => import('./views/total-view.js'),
-  compare: () => import('./views/compare-view.js'),
 };
 
 let currentViewCleanup = null;
