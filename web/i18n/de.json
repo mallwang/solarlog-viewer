@@ -1,19 +1,24 @@
 {
   "nav": {
     "dashboard": "Übersicht",
-    "dayView": "Tageswerte",
-    "monthView": "Monatswerte",
-    "yearView": "Jahreswerte",
-    "totalView": "Gesamtübersicht",
+    "dayView": "Tagesertrag",
+    "monthView": "Monatserträge",
+    "yearView": "Jahreserträge",
+    "totalView": "Gesamterträge",
     "compareView": "Jahresvergleich",
     "ariaLabel": "Hauptnavigation",
     "toggleLabel": "Navigation ein-/ausblenden"
   },
   "day": {
-    "noData": "Für diesen Tag liegen keine Daten vor."
+    "noData": "Für diesen Tag liegen keine Daten vor.",
+    "prev": "Vorheriger Tag",
+    "next": "Nächster Tag",
+    "powerUnavailable": "Für diesen Tag ist kein Leistungsverlauf gespeichert (archivierte/rekonstruierte Daten). Es wird stattdessen der kumulierte Ertrag angezeigt."
   },
   "month": {
-    "noData": "Für diesen Monat liegen keine Daten vor."
+    "noData": "Für diesen Monat liegen keine Daten vor.",
+    "prev": "Vorheriger Monat",
+    "next": "Nächster Monat"
   },
   "year": {
     "noData": "Für dieses Jahr liegen keine Daten vor."
@@ -40,6 +45,7 @@
     "dayOfYearAxis": "Tag im Jahr",
     "cumulativeYield": "Kumulierter Ertrag",
     "powerAxis": "Leistung",
-    "energyAxis": "Energie"
+    "energyAxis": "Energie",
+    "total": "Gesamt"
   }
 }

@@ -6,6 +6,7 @@
     --font-sans: var(--font-family);
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
+    --color-white: #fff;
     --text-sm: var(--font-size-sm);
     --text-sm--line-height: calc(1.25 / 0.875);
     --text-lg: var(--font-size-lg);
@@ -231,6 +232,9 @@
   .mb-md {
     margin-bottom: var(--spacing-md);
   }
+  .mb-sm {
+    margin-bottom: var(--spacing-sm);
+  }
   .mb-xs {
     margin-bottom: var(--spacing-xs);
   }
@@ -276,8 +280,17 @@
   .flex-wrap {
     flex-wrap: wrap;
   }
+  .items-center {
+    align-items: center;
+  }
+  .justify-between {
+    justify-content: space-between;
+  }
   .gap-md {
     gap: var(--spacing-md);
+  }
+  .gap-sm {
+    gap: var(--spacing-sm);
   }
   .truncate {
     overflow: hidden;
@@ -480,8 +493,38 @@
     color: var(--color-text);
     text-decoration-line: none;
   }
-  .app-nav__list a:hover, .app-nav__list a[aria-current='page'] {
+  .app-nav__list a:hover {
     background-color: var(--color-bg-elevated);
+  }
+  .app-nav__list a[aria-current='page'] {
+    background-color: var(--color-primary);
+    --tw-font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-white);
+  }
+  .period-nav__link {
+    border-radius: var(--radius-md);
+    padding-inline: var(--spacing-sm);
+    padding-block: var(--spacing-xs);
+    font-size: var(--text-sm);
+    line-height: var(--tw-leading, var(--text-sm--line-height));
+    color: var(--color-text);
+    text-decoration-line: none;
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-bg-elevated);
+      }
+    }
+  }
+  .period-nav__link--disabled {
+    cursor: not-allowed;
+    color: var(--color-text-muted);
+    opacity: 50%;
+    &:hover {
+      @media (hover: hover) {
+        background-color: transparent;
+      }
+    }
   }
 }
 @property --tw-rotate-x {

@@ -7,7 +7,9 @@ import {
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { fetchFromBothSources } from '../data/data-source.js';
-import { emptyStateMarkup } from './empty-state.js';
+import { formatRoute } from '../router.js';
+import { addMonths, isFutureMonth, periodNavMarkup } from './period-nav.js';
+import { emptyStateBody } from './empty-state.js';
 
 function monthKey({ year, month }) {
   return `${year}-${String(month).padStart(2, '0')}`;
@@ -19,10 +21,26 @@ function monthKey({ year, month }) {
  * @param {{ route: { params: { year: number, month: number } } }} ctx
  */
 export async function render(container, { route }) {
-  const key = monthKey(route.params);
+  const { params } = route;
+  const key = monthKey(params);
   const title = `${t('nav.monthView')} — ${key}`;
-  container.innerHTML = `<h2 class="view-title text-lg mb-md">${title}</h2>
+
+  const nextParams = addMonths(params, 1);
+  const nav = periodNavMarkup({
+    prevHref: formatRoute({ view: 'month', params: addMonths(params, -1) }),
+    prevLabel: t('month.prev'),
+    nextHref: isFutureMonth(nextParams)
+      ? null
+      : formatRoute({ view: 'month', params: nextParams }),
+    nextLabel: t('month.next'),
+  });
+
+  container.innerHTML = `<div class="view-header flex items-center justify-between gap-sm flex-wrap mb-md">
+      <h2 class="view-title text-lg m-0">${title}</h2>
+      ${nav}
+    </div>
     <div class="chart-container"><div class="chart-mount"></div></div>`;
+  const chartContainer = container.querySelector('.chart-container');
 
   const [monthsSources, daysSources] = await Promise.all([
     fetchFromBothSources('months.js'),
@@ -35,7 +53,7 @@ export async function render(container, { route }) {
     !daysSources.hist.ok &&
     !daysSources.data.ok
   ) {
-    container.innerHTML = emptyStateMarkup(title, 'month.noData');
+    chartContainer.innerHTML = emptyStateBody('month.noData');
     return;
   }
 
@@ -57,7 +75,7 @@ export async function render(container, { route }) {
   monthTotal.dailyBreakdown = dailyBreakdown;
 
   if (dailyBreakdown.length === 0) {
-    container.innerHTML = emptyStateMarkup(title, 'month.noData');
+    chartContainer.innerHTML = emptyStateBody('month.noData');
     return;
   }
 

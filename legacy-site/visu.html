@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<!--SolarLog500 - Anlagenvisualisierung über externen Web-Server, © Solare Datensysteme GmbH, www.solare-datensysteme.de -->
+<!--SolarLog500 - Anlagenvisualisierung ï¿½ber externen Web-Server, ï¿½ Solare Datensysteme GmbH, www.solare-datensysteme.de -->
 <!--V1.3.3 Homepage-Version -->
 
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"><title>SolarLog - Client</title>
@@ -63,14 +63,14 @@
 
 </script>
 <script type="text/Javascript">document.write("<script type='text/JavaScript' src='functions.js'><\/script>")</script>
-<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='/base_vars.js?nocache'><\/script>")</script>
+<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='base_vars.js?nocache'><\/script>")</script>
 <script type="text/Javascript">document.write("<script type='text/JavaScript' src='lang_"+Lang+".js'><\/script>")</script>
-<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='/min_cur.js?nocache'><\/script>")</script>
-<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='/min_day.js?nocache'><\/script>")</script>
-<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='/days.js?nocache'><\/script>")</script>
-<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='/days_hist.js?nocache'><\/script>")</script>
-<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='/months.js?nocache'><\/script>")</script>
-<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='/years.js?nocache'><\/script>")</script>
+<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='min_cur.js?nocache'><\/script>")</script>
+<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='min_day.js?nocache'><\/script>")</script>
+<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='days.js?nocache'><\/script>")</script>
+<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='days_hist.js?nocache'><\/script>")</script>
+<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='months.js?nocache'><\/script>")</script>
+<script type="text/JavaScript">document.write("<script type='text/JavaScript' src='years.js?nocache'><\/script>")</script>
 <script type="text/JavaScript">document.write("<script type='text/JavaScript' src='daysall.js?nocache'><\/script>")</script>
 <script type="text/JavaScript">
 var yy_diff=0
@@ -651,11 +651,11 @@ function tag() {
             MessZeit -= Intervall/2/3600;
             MessZeit = Math.round(MessZeit*3600/Intervall)*Intervall/3600;
             // Uhrzeitbilden Ende
-            new Line( aXC[i], D.ScreenY( aYC[i]/CMax*TagMax ), aXC[i+1], D.ScreenY( aYC[i+1]/CMax*TagMax ), aFlagCol[3], 2, Math.floor(aYC[i+1])+"°C - "+formatUhrzeit(MessZeit*3600) )
+            new Line( aXC[i], D.ScreenY( aYC[i]/CMax*TagMax ), aXC[i+1], D.ScreenY( aYC[i+1]/CMax*TagMax ), aFlagCol[3], 2, Math.floor(aYC[i+1])+"ï¿½C - "+formatUhrzeit(MessZeit*3600) )
         }
         for( i=D.YGrid[0]; i<=D.YGrid[2]; i+=D.YGrid[1]) {
           y = (i/D.YGrid[2])*CMax*D.YGrid[2]/TagMax
-          new Bar( x+12, D.ScreenY(i)-8, x+12, D.ScreenY(i)+8, "", "<nobr>"+(Math.floor(y))+" °C<\/nobr>", aFlagCol[3])
+          new Bar( x+12, D.ScreenY(i)-8, x+12, D.ScreenY(i)+8, "", "<nobr>"+(Math.floor(y))+" ï¿½C<\/nobr>", aFlagCol[3])
         }
         x += 60
     }
@@ -1573,7 +1573,7 @@ if (flag&flag_werte && modus != 0) {
           else
             writeTD("<b>"+wpmsoll+"%<\/b>");
           break;
-         case 3: // Gesamtübersicht: Übersicht alle Jahre: Flag Werte gesetzt, rechts unten: Jahreswerte anzeigen
+         case 3: // Gesamtï¿½bersicht: ï¿½bersicht alle Jahre: Flag Werte gesetzt, rechts unten: Jahreswerte anzeigen
 		 case 4:
           esum=0
 		  esoll=0

@@ -1,19 +1,24 @@
 {
   "nav": {
     "dashboard": "Dashboard",
-    "dayView": "Daily Values",
-    "monthView": "Monthly Values",
-    "yearView": "Yearly Values",
-    "totalView": "Lifetime Overview",
+    "dayView": "Daily Yield",
+    "monthView": "Monthly Yields",
+    "yearView": "Yearly Yields",
+    "totalView": "Total Yields",
     "compareView": "Year Comparison",
     "ariaLabel": "Main navigation",
     "toggleLabel": "Toggle navigation"
   },
   "day": {
-    "noData": "Data not available for today."
+    "noData": "Data not available for today.",
+    "prev": "Previous day",
+    "next": "Next day",
+    "powerUnavailable": "No power curve was recorded for this day (archived/reconstructed data). Showing the cumulative yield instead."
   },
   "month": {
-    "noData": "No data available for this month."
+    "noData": "No data available for this month.",
+    "prev": "Previous month",
+    "next": "Next month"
   },
   "year": {
     "noData": "No data available for this year."
@@ -40,6 +45,7 @@
     "dayOfYearAxis": "Day of year",
     "cumulativeYield": "Cumulative yield",
     "powerAxis": "Power",
-    "energyAxis": "Energy"
+    "energyAxis": "Energy",
+    "total": "Total"
   }
 }

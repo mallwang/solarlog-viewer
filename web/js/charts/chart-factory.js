@@ -46,20 +46,28 @@ function baseOptions(colors) {
   };
 }
 
+/** Sums each reading/day's per-inverter values into a single total, keeping `null` (no data) as `null` rather than 0. */
+function sumPerInverter(values) {
+  const present = values.filter((v) => v !== null && v !== undefined);
+  return present.length ? present.reduce((s, v) => s + v, 0) : null;
+}
+
 function buildDayOptions(data, colors) {
-  const inverterIndices = data.readings.length
-    ? Object.keys(data.readings[0].perInverter).map(Number)
-    : [];
   const categories = data.readings.map((r) => formatTimeLabel(r.timestamp));
-  const series = inverterIndices.map((idx) => ({
-    name: `WR${idx}`,
-    data: data.readings.map((r) => r.perInverter[idx]?.pacW ?? null),
-  }));
+  const series = [
+    {
+      name: t('chart.total'),
+      data: data.readings.map((r) =>
+        sumPerInverter(Object.values(r.perInverter).map((i) => i?.pacW)),
+      ),
+    },
+  ];
 
   return {
     ...baseOptions(colors),
-    chart: { ...baseOptions(colors).chart, type: 'line' },
+    chart: { ...baseOptions(colors).chart, type: 'area' },
     stroke: { width: 2, curve: 'smooth' },
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.45, opacityTo: 0.05 } },
     markers: { size: 0 },
     series,
     xaxis: {
@@ -77,19 +85,59 @@ function buildDayOptions(data, colors) {
   };
 }
 
-function buildMonthOptions(data, colors) {
-  const inverterIndices = data.dailyBreakdown.length
-    ? Object.keys(data.dailyBreakdown[0].perInverter).map(Number)
-    : [];
-  const categories = data.dailyBreakdown.map((d) => d.date.slice(8, 10));
-  const series = inverterIndices.map((idx) => ({
-    name: `WR${idx}`,
-    data: data.dailyBreakdown.map((d) => (d.perInverter[idx]?.yieldWh ?? 0) / 1000),
-  }));
+/**
+ * Fallback for days where only the cumulative daily yield survived (backfilled/archived
+ * min files — see .claude/skills/backfill-min-day: PDC/PAC/Volt are zeroed, only Wh is
+ * reconstructed). Plots each inverter's running Wh total instead of a flat 0 W line, so the
+ * day still shows something meaningful rather than looking like "no data".
+ */
+function buildDayYieldOptions(data, colors) {
+  const categories = data.readings.map((r) => formatTimeLabel(r.timestamp));
+  const series = [
+    {
+      name: t('chart.total'),
+      data: data.readings.map((r) =>
+        sumPerInverter(Object.values(r.perInverter).map((i) => i?.dailyYieldWh)),
+      ),
+    },
+  ];
 
   return {
     ...baseOptions(colors),
-    chart: { ...baseOptions(colors).chart, type: 'bar', stacked: true },
+    chart: { ...baseOptions(colors).chart, type: 'area' },
+    stroke: { width: 2, curve: 'stepline' },
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.45, opacityTo: 0.05 } },
+    markers: { size: 0 },
+    series,
+    xaxis: {
+      categories,
+      title: { text: t('chart.timeAxis') },
+      tickAmount: 12,
+    },
+    yaxis: {
+      title: { text: 'Wh' },
+      min: 0,
+    },
+    tooltip: {
+      y: { formatter: (value) => (value === null || value === undefined ? '—' : `${value} Wh`) },
+    },
+  };
+}
+
+function buildMonthOptions(data, colors) {
+  const categories = data.dailyBreakdown.map((d) => d.date.slice(8, 10));
+  const series = [
+    {
+      name: t('chart.total'),
+      data: data.dailyBreakdown.map(
+        (d) => Object.values(d.perInverter).reduce((s, i) => s + (i?.yieldWh ?? 0), 0) / 1000,
+      ),
+    },
+  ];
+
+  return {
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'bar' },
     plotOptions: { bar: { columnWidth: '70%' } },
     series,
     xaxis: { categories },
@@ -101,18 +149,19 @@ function buildMonthOptions(data, colors) {
 }
 
 function buildYearOptions(yearlyTotalsList, colors) {
-  const inverterIndices = yearlyTotalsList.length
-    ? Object.keys(yearlyTotalsList[0].perInverter).map(Number)
-    : [];
   const categories = yearlyTotalsList.map((y) => String(y.year));
-  const series = inverterIndices.map((idx) => ({
-    name: `WR${idx}`,
-    data: yearlyTotalsList.map((y) => (y.perInverter[idx] ?? 0) / 1000),
-  }));
+  const series = [
+    {
+      name: t('chart.total'),
+      data: yearlyTotalsList.map(
+        (y) => Object.values(y.perInverter).reduce((s, v) => s + (v ?? 0), 0) / 1000,
+      ),
+    },
+  ];
 
   return {
     ...baseOptions(colors),
-    chart: { ...baseOptions(colors).chart, type: 'bar', stacked: true },
+    chart: { ...baseOptions(colors).chart, type: 'bar' },
     plotOptions: { bar: { columnWidth: '60%' } },
     series,
     xaxis: { categories },
@@ -161,6 +210,8 @@ function buildCompareOptions(yearComparisonSeries, colors) {
 
   return {
     ...baseOptions(colors),
+    // Kept as a plain (unfilled) line: this chart overlays one series per year, and filled
+    // areas stacked on top of each other just turn into visual noise once several years are shown.
     chart: { ...baseOptions(colors).chart, type: 'line' },
     stroke: { width: 2, curve: 'straight' },
     markers: { size: 0 },
@@ -184,6 +235,8 @@ function buildOptions(mode, data, colors) {
   switch (mode) {
     case 'day':
       return buildDayOptions(data, colors);
+    case 'day-yield':
+      return buildDayYieldOptions(data, colors);
     case 'month':
       return buildMonthOptions(data, colors);
     case 'year':
@@ -197,13 +250,15 @@ function buildOptions(mode, data, colors) {
   }
 }
 
+const COMPARE_ACTIVE_YEAR_COUNT = 2;
+
 /**
  * Creates (or updates, if `container` already hosts a chart) an ApexCharts chart for one of the
  * 5 visualization modes. Calling again on the same container with new data destroys the previous
  * chart instance before mounting a fresh one — no stacked/duplicate charts.
  * @param {HTMLElement} container - A plain `<div>` (was `<canvas>` under Chart.js); ApexCharts
  *   renders an inline SVG into it.
- * @param {'day' | 'month' | 'year' | 'total' | 'compare'} mode
+ * @param {'day' | 'day-yield' | 'month' | 'year' | 'total' | 'compare'} mode
  * @param {object} data - Same shape per mode as before (readings/dailyBreakdown/
  *   yearlyTotalsList/lifetimeSummary/yearComparisonSeries).
  * @returns {import('apexcharts')} The ApexCharts instance (for tests/cleanup).
@@ -217,6 +272,16 @@ export function renderChart(container, mode, data) {
   const options = buildOptions(mode, data, getChartColors());
   const chart = new ApexCharts(container, options);
   chart.render();
+  if (mode === 'compare') {
+    // `data` (yearComparisonSeries) is sorted ascending by year (see groupByYear); only the
+    // most recent COMPARE_ACTIVE_YEAR_COUNT years start visible so overlaying a decade+ of
+    // history doesn't render as illegible noise. Older years stay in the legend — click to add
+    // them back in.
+    const namesToHide = data
+      .slice(0, Math.max(0, data.length - COMPARE_ACTIVE_YEAR_COUNT))
+      .map((s) => String(s.year));
+    for (const name of namesToHide) chart.hideSeries(name);
+  }
   charts.set(container, chart);
   return chart;
 }

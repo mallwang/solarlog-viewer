@@ -64,8 +64,19 @@
     @apply block rounded-md px-sm py-xs text-text no-underline;
   }
 
-  .app-nav__list a:hover,
-  .app-nav__list a[aria-current='page'] {
+  .app-nav__list a:hover {
     @apply bg-bg-elevated;
+  }
+
+  .app-nav__list a[aria-current='page'] {
+    @apply bg-primary text-white font-semibold;
+  }
+
+  .period-nav__link {
+    @apply rounded-md px-sm py-xs text-sm text-text no-underline hover:bg-bg-elevated;
+  }
+
+  .period-nav__link--disabled {
+    @apply cursor-not-allowed text-text-muted opacity-50 hover:bg-transparent;
   }
 }
