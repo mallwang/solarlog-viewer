@@ -20,7 +20,7 @@
       "yieldEuro": "Tagesertrag in €",
       "specificYield": "Ertrag spezifisch",
       "maxDaily": "Maximalwert",
-      "soll": "Soll (auflaufend)",
+      "soll": "Soll",
       "ist": "Ist"
     }
   },
@@ -66,11 +66,14 @@
   },
   "total": {
     "noData": "Keine Daten verfügbar.",
-    "totalYield": "Gesamtertrag",
-    "co2Saved": "Vermiedene CO2-Emission",
-    "feedIn": "Einspeisevergütung",
     "stats": {
-      "title": "Statistik"
+      "title": "Statistik",
+      "yieldKwh": "Gesamtertrag",
+      "yieldEuro": "Gesamtertrag in €",
+      "specificYield": "Ertrag spezifisch",
+      "maxYear": "Maximalwert",
+      "sollTotal": "Soll",
+      "ist": "Ist"
     }
   },
   "widget": {

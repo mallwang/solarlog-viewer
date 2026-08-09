@@ -20,7 +20,7 @@
       "yieldEuro": "Yield in €",
       "specificYield": "Specific yield",
       "maxDaily": "Peak day",
-      "soll": "Target (cumulative)",
+      "soll": "Target",
       "ist": "Actual"
     }
   },
@@ -66,11 +66,14 @@
   },
   "total": {
     "noData": "No data available.",
-    "totalYield": "Total yield",
-    "co2Saved": "Avoided CO2 emissions",
-    "feedIn": "Feed-in tariff total",
     "stats": {
-      "title": "Statistics"
+      "title": "Statistics",
+      "yieldKwh": "Total yield",
+      "yieldEuro": "Yield in €",
+      "specificYield": "Specific yield",
+      "maxYear": "Peak year",
+      "sollTotal": "Target",
+      "ist": "Actual"
     }
   },
   "widget": {

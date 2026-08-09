@@ -2,14 +2,19 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   dailyYieldWh,
+  maxDailyPowerW,
   maxDailyYieldKwh,
   maxMonthlyYieldKwh,
+  maxYearlyYield,
   specificYieldKwhPerKwp,
   monthlySollKwh,
   dailySollKwh,
   elapsedDaysInMonth,
   monthSollAuflaufendKwh,
   yearlySollKwh,
+  daysInYear,
+  firstYearSollKwh,
+  lifetimeSollKwh,
   elapsedDaysInYear,
   yearSollAuflaufendKwh,
   istPercent,
@@ -49,28 +54,65 @@ test('dailyYieldWh returns 0 for an empty trace', () => {
   assert.equal(dailyYieldWh({ readings: [] }), 0);
 });
 
-test('maxDailyYieldKwh finds the best single day (summed per day across inverters)', () => {
+test('maxDailyPowerW finds the peak instantaneous power (summed per reading across inverters) and when it happened', () => {
+  const trace = {
+    readings: [
+      { timestamp: '2026-08-09T08:00:00', perInverter: { 1: { pacW: 1200 }, 2: { pacW: 800 } } }, // 2000 W
+      { timestamp: '2026-08-09T14:35:00', perInverter: { 1: { pacW: 3175 }, 2: { pacW: 2000 } } }, // 5175 W
+      { timestamp: '2026-08-09T18:00:00', perInverter: { 1: { pacW: 500 }, 2: { pacW: 300 } } }, // 800 W
+    ],
+  };
+  assert.deepEqual(maxDailyPowerW(trace), { w: 5175, timestamp: '2026-08-09T14:35:00' });
+});
+
+test('maxDailyPowerW treats null/missing pacW (backfilled days) as 0', () => {
+  const trace = { readings: [{ timestamp: '2026-08-09T08:00:00', perInverter: { 1: { pacW: null } } }] };
+  assert.deepEqual(maxDailyPowerW(trace), { w: 0, timestamp: null });
+});
+
+test('maxDailyPowerW returns w 0 and timestamp null for an empty trace', () => {
+  assert.deepEqual(maxDailyPowerW({ readings: [] }), { w: 0, timestamp: null });
+});
+
+test('maxDailyYieldKwh finds the best single day (summed per day across inverters) and its date', () => {
   const dailyTotals = [
-    { perInverter: { 1: { yieldWh: 20000 }, 2: { yieldWh: 10000 } } }, // 30 kWh
-    { perInverter: { 1: { yieldWh: 25000 }, 2: { yieldWh: 11600 } } }, // 36.6 kWh
+    { date: '2026-08-14', perInverter: { 1: { yieldWh: 20000 }, 2: { yieldWh: 10000 } } }, // 30 kWh
+    { date: '2026-08-15', perInverter: { 1: { yieldWh: 25000 }, 2: { yieldWh: 11600 } } }, // 36.6 kWh
   ];
-  assert.equal(maxDailyYieldKwh(dailyTotals), 36.6);
+  assert.deepEqual(maxDailyYieldKwh(dailyTotals), { kwh: 36.6, date: '2026-08-15' });
 });
 
-test('maxDailyYieldKwh returns 0 for an empty list', () => {
-  assert.equal(maxDailyYieldKwh([]), 0);
+test('maxDailyYieldKwh returns kwh 0 and date null for an empty list', () => {
+  assert.deepEqual(maxDailyYieldKwh([]), { kwh: 0, date: null });
 });
 
-test('maxMonthlyYieldKwh finds the best single month (summed per month across inverters)', () => {
+test('maxMonthlyYieldKwh finds the best single month (summed per month across inverters) and which month', () => {
   const monthlyTotals = [
-    { perInverter: { 1: 200000, 2: 90000 } }, // 290 kWh
-    { perInverter: { 1: 350000, 2: 160000 } }, // 510 kWh
+    { month: '2026-07', perInverter: { 1: 200000, 2: 90000 } }, // 290 kWh
+    { month: '2026-08', perInverter: { 1: 350000, 2: 160000 } }, // 510 kWh
   ];
-  assert.equal(maxMonthlyYieldKwh(monthlyTotals), 510);
+  assert.deepEqual(maxMonthlyYieldKwh(monthlyTotals), { kwh: 510, month: '2026-08' });
 });
 
-test('maxMonthlyYieldKwh returns 0 for an empty list', () => {
-  assert.equal(maxMonthlyYieldKwh([]), 0);
+test('maxMonthlyYieldKwh returns kwh 0 and month null for an empty list', () => {
+  assert.deepEqual(maxMonthlyYieldKwh([]), { kwh: 0, month: null });
+});
+
+test('maxYearlyYield finds the best single year (summed per year across inverters)', () => {
+  const yearlyTotals = [
+    { year: 2019, perInverter: { 1: 3200000, 2: 1500000 } }, // 4700 kWh
+    { year: 2020, perInverter: { 1: 3600000, 2: 1700000 } }, // 5300 kWh
+  ];
+  assert.deepEqual(maxYearlyYield(yearlyTotals), { kwh: 5300, year: 2020 });
+});
+
+test('maxYearlyYield returns kwh 0 and year null for an empty list', () => {
+  assert.deepEqual(maxYearlyYield([]), { kwh: 0, year: null });
+});
+
+test('daysInYear returns 365 for a non-leap year and 366 for a leap year', () => {
+  assert.equal(daysInYear(2026), 365);
+  assert.equal(daysInYear(2024), 366);
 });
 
 test('specificYieldKwhPerKwp divides yield by installed kWp', () => {
@@ -141,9 +183,9 @@ test('elapsedDaysInYear returns 0 for a future year', () => {
   assert.equal(elapsedDaysInYear(2027, today), 0);
 });
 
-test('yearSollAuflaufendKwh matches the day-220-of-365 example (5580 / 365 * 220 = 3363.3)', () => {
-  const today = new Date(2026, 7, 8);
-  assert.equal(Number(yearSollAuflaufendKwh(PLANT, 2026, today).toFixed(1)), 3363.3);
+test('yearSollAuflaufendKwh sums full months plus the elapsed days of the current month (Aug 9th: 3877.2)', () => {
+  const today = new Date(2026, 7, 9);
+  assert.equal(Number(yearSollAuflaufendKwh(PLANT, 2026, today).toFixed(1)), 3877.2);
 });
 
 test('yearSollAuflaufendKwh equals the full yearly Soll once the year has fully elapsed', () => {
@@ -160,6 +202,50 @@ test('yearlySollKwh multiplies the annual specific-yield target by installed kWp
 
 test('yearlySollKwh returns 0 when Soll data is unavailable', () => {
   assert.equal(yearlySollKwh({}), 0);
+});
+
+test('firstYearSollKwh prorates the commissioning year from the commissioning date to year-end (15 Mar 2006: 292/365 days)', () => {
+  const today = new Date(2026, 7, 9); // well past 2006, so 2006 is a fully-elapsed past year
+  assert.equal(
+    Number(firstYearSollKwh(PLANT, '2006-03-15', today).toFixed(1)),
+    Number(((yearlySollKwh(PLANT) * 292) / 365).toFixed(1)),
+  );
+});
+
+test('firstYearSollKwh prorates only up to today when commissioned this same year', () => {
+  const today = new Date(2026, 7, 9); // 9 August 2026 = day 221 of 2026
+  assert.equal(
+    Number(firstYearSollKwh(PLANT, '2026-01-01', today).toFixed(1)),
+    Number(((yearlySollKwh(PLANT) * 221) / 365).toFixed(1)),
+  );
+});
+
+test('firstYearSollKwh returns 0 when commissioning date is unavailable', () => {
+  assert.equal(firstYearSollKwh(PLANT, ''), 0);
+});
+
+test('lifetimeSollKwh sums the partial commissioning year, every full year since, and the current year auflaufend', () => {
+  const today = new Date(2026, 7, 9);
+  const expected =
+    firstYearSollKwh(PLANT, '2006-03-15', today) +
+    yearlySollKwh(PLANT) * (2026 - 2006 - 1) + // full years 2007..2025
+    yearSollAuflaufendKwh(PLANT, 2026, today);
+  assert.equal(
+    Number(lifetimeSollKwh(PLANT, '2006-03-15', today).toFixed(1)),
+    Number(expected.toFixed(1)),
+  );
+});
+
+test('lifetimeSollKwh equals just the partial year when commissioned this same year', () => {
+  const today = new Date(2026, 7, 9);
+  assert.equal(
+    lifetimeSollKwh(PLANT, '2026-01-01', today),
+    firstYearSollKwh(PLANT, '2026-01-01', today),
+  );
+});
+
+test('lifetimeSollKwh returns 0 when commissioning date is unavailable', () => {
+  assert.equal(lifetimeSollKwh(PLANT, ''), 0);
 });
 
 test('istPercent matches the worked example (36.4 / 21.6 = 169%)', () => {

@@ -11,6 +11,7 @@ import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
 import { formatKwh, formatCurrency, formatDate } from '../format.js';
 import {
   dailyYieldWh,
+  maxDailyPowerW,
   specificYieldKwhPerKwp,
   dailySollKwh,
   istPercent,
@@ -55,12 +56,17 @@ function dayStatsRows(trace, plant, params) {
   const specificYield = specificYieldKwhPerKwp(yieldKwh, plant?.capacityKwp ?? 0);
   const sollKwh = dailySollKwh(plant ?? {}, params.year, params.month);
   const ist = istPercent(yieldKwh, sollKwh);
+  const maxPower = maxDailyPowerW(trace);
+  const maxPowerTime = maxPower.timestamp ? maxPower.timestamp.slice(11, 16) : null;
 
   return [
     ['day.stats.yieldKwh', formatKwh(yieldKwh)],
     ['day.stats.yieldEuro', formatCurrency(feedInEuro)],
     ['day.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
-    ['day.stats.maxDaily', formatKwh(yieldKwh)],
+    [
+      'day.stats.maxDaily',
+      maxPowerTime ? `${maxPower.w} W (${maxPowerTime} Uhr)` : `${maxPower.w} W`,
+    ],
     ['day.stats.soll', formatKwh(sollKwh)],
     ['day.stats.ist', `${ist}%`],
   ];

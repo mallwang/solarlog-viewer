@@ -12,36 +12,57 @@ export function dailyYieldWh(trace) {
 }
 
 /**
+ * The highest instantaneous total plant power (W, summed across inverters) seen across a day's
+ * readings — "Maximalwert" for the day view: the peak power output reached that day, alongside
+ * when it happened (so the caller can render it in parentheses, e.g. "5175 W (14:35)").
+ * @param {{ readings: { timestamp: string, perInverter: { [key: string]: { pacW: number | null } } }[] }} trace
+ * @returns {{ w: number, timestamp: string | null }} timestamp is an ISO string
+ *   ("YYYY-MM-DDTHH:MM:SS"), or null when there are no readings.
+ */
+export function maxDailyPowerW(trace) {
+  let best = { w: 0, timestamp: null };
+  for (const reading of trace.readings) {
+    const totalW = Object.values(reading.perInverter).reduce((sum, inv) => sum + (inv?.pacW ?? 0), 0);
+    if (totalW > best.w) best = { w: totalW, timestamp: reading.timestamp };
+  }
+  return best;
+}
+
+/**
  * The highest single day's total plant energy (kWh, summed across inverters) seen across a set
  * of DailyTotal entries (see aggregates.js's parseDailyTotalsFile) — "Maximalwert" for the
- * month/year views: the best single day of production within the period.
- * @param {{ perInverter: { [key: string]: { yieldWh: number | null } } }[]} dailyTotals
- * @returns {number} kWh
+ * month/year views: the best single day of production within the period, alongside which date
+ * it was (so the caller can render it in parentheses, e.g. "36,4 kWh (15.)").
+ * @param {{ date: string, perInverter: { [key: string]: { yieldWh: number | null } } }[]} dailyTotals
+ * @returns {{ kwh: number, date: string | null }} date is an ISO date ("YYYY-MM-DD"), or null
+ *   when the list is empty.
  */
 export function maxDailyYieldKwh(dailyTotals) {
-  let max = 0;
+  let best = { kwh: 0, date: null };
   for (const day of dailyTotals) {
     const totalKwh =
       Object.values(day.perInverter).reduce((sum, inv) => sum + (inv?.yieldWh ?? 0), 0) / 1000;
-    if (totalKwh > max) max = totalKwh;
+    if (totalKwh > best.kwh) best = { kwh: totalKwh, date: day.date };
   }
-  return max;
+  return best;
 }
 
 /**
  * The highest single month's total plant energy (kWh, summed across inverters) seen across a
  * set of MonthlyTotal entries (see aggregates.js's parseMonthsFile) — "Maximalwert" for the
- * year view: the best single month of production within the year.
- * @param {{ perInverter: { [key: string]: number } }[]} monthlyTotals
- * @returns {number} kWh
+ * year view: the best single month of production within the year, alongside which month it was
+ * (so the caller can render it in parentheses, e.g. "669,6 kWh (Aug)").
+ * @param {{ month: string, perInverter: { [key: string]: number } }[]} monthlyTotals
+ * @returns {{ kwh: number, month: string | null }} month is "YYYY-MM", or null when the list is
+ *   empty.
  */
 export function maxMonthlyYieldKwh(monthlyTotals) {
-  let max = 0;
+  let best = { kwh: 0, month: null };
   for (const month of monthlyTotals) {
     const totalKwh = Object.values(month.perInverter).reduce((sum, wh) => sum + (wh ?? 0), 0) / 1000;
-    if (totalKwh > max) max = totalKwh;
+    if (totalKwh > best.kwh) best = { kwh: totalKwh, month: month.month };
   }
-  return max;
+  return best;
 }
 
 /**
@@ -125,9 +146,84 @@ export function yearlySollKwh(plant) {
   return ((plant?.sollYearKwp ?? 0) * (plant?.capacityKwp ?? 0)) / 1000;
 }
 
-function daysInYear(year) {
+/**
+ * @param {number} year
+ * @returns {number} 365, or 366 for a leap year.
+ */
+export function daysInYear(year) {
   const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   return isLeap ? 366 : 365;
+}
+
+/**
+ * The highest single calendar year of total plant energy (kWh, summed across inverters) seen
+ * across a set of YearlyTotal entries (see aggregates.js's parseYearsFile) — "Maximalwert" for
+ * the total view: the best year of production across the plant's lifetime, alongside which year
+ * it was (so the caller can render it in parentheses, e.g. "6234 kWh (2019)").
+ * @param {{ year: number, perInverter: { [key: string]: number } }[]} yearlyTotals
+ * @returns {{ kwh: number, year: number | null }} year is null when the list is empty.
+ */
+export function maxYearlyYield(yearlyTotals) {
+  let best = { kwh: 0, year: null };
+  for (const y of yearlyTotals) {
+    const kwh = Object.values(y.perInverter).reduce((sum, wh) => sum + (wh ?? 0), 0) / 1000;
+    if (kwh > best.kwh) best = { kwh, year: y.year };
+  }
+  return best;
+}
+
+function daysBetweenInclusiveUtc(fromIso, toIso) {
+  const [fy, fm, fd] = fromIso.split('-').map(Number);
+  const [ty, tm, td] = toIso.split('-').map(Number);
+  return Math.floor((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86400000) + 1;
+}
+
+/**
+ * The theoretical target yield (kWh) for the plant's partial first calendar year, prorated by
+ * the fraction of that year covered from the commissioning date onward (e.g. commissioned 15
+ * March 2006: 292 of 365 days -> 900 * 6.2 * 292/365 = 4468.8 kWh). If the plant was commissioned
+ * in the still-current year, this prorates only up to today instead (mirroring
+ * yearSollAuflaufendKwh's "auflaufend" treatment of the current year), since the rest of the
+ * year hasn't happened yet.
+ * @param {{ sollYearKwp: number, capacityKwp: number }} plant
+ * @param {string} commissionedDate - ISO date (YYYY-MM-DD), PlantMetadata.commissionedDate.
+ * @param {Date} [today] - Injectable for testing; defaults to the real current date.
+ * @returns {number} kWh, or 0 if Soll/commissioning data is unavailable.
+ */
+export function firstYearSollKwh(plant, commissionedDate, today = new Date()) {
+  if (!commissionedDate) return 0;
+  const year = Number.parseInt(commissionedDate.slice(0, 4), 10);
+  const isCurrentYear = year === today.getFullYear();
+  const toIso = isCurrentYear
+    ? `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    : `${year}-12-31`;
+  const days = daysBetweenInclusiveUtc(commissionedDate, toIso);
+  return (yearlySollKwh(plant) * days) / daysInYear(year);
+}
+
+/**
+ * The lifetime "Soll" target (kWh) from plant commissioning through today: the partial
+ * commissioning year (see firstYearSollKwh) plus every full year since, plus the current year's
+ * running "auflaufend" target (see yearSollAuflaufendKwh) — or, when the plant was commissioned
+ * this same year, just that one partial year up to today.
+ * @param {{ sollYearKwp: number, capacityKwp: number, sollMonth: number[] }} plant
+ * @param {string} commissionedDate - ISO date (YYYY-MM-DD), PlantMetadata.commissionedDate.
+ * @param {Date} [today] - Injectable for testing; defaults to the real current date.
+ * @returns {number} kWh, or 0 if Soll/commissioning data is unavailable.
+ */
+export function lifetimeSollKwh(plant, commissionedDate, today = new Date()) {
+  if (!commissionedDate) return 0;
+  const firstYear = Number.parseInt(commissionedDate.slice(0, 4), 10);
+  const currentYear = today.getFullYear();
+
+  const total = firstYearSollKwh(plant, commissionedDate, today);
+  if (firstYear === currentYear) return total; // still within the first (partial) year
+
+  let fullYearsTotal = 0;
+  for (let year = firstYear + 1; year < currentYear; year += 1) {
+    fullYearsTotal += yearlySollKwh(plant);
+  }
+  return total + fullYearsTotal + yearSollAuflaufendKwh(plant, currentYear, today);
 }
 
 /**
@@ -153,17 +249,23 @@ export function elapsedDaysInYear(year, today = new Date()) {
 }
 
 /**
- * The "Soll (auflaufend)" figure shown for the year view: the year's Soll (see yearlySollKwh)
- * spread evenly across its days, times the days elapsed so far (e.g. day 220 of 365: 5580 kWh /
- * 365 * 220 = 3363.3 kWh). For a year that has already fully elapsed this equals the whole
- * year's Soll.
- * @param {{ sollYearKwp: number, capacityKwp: number }} plant
+ * The "Soll (auflaufend)" figure shown for the year view: the sum of each month's Soll (see
+ * monthSollAuflaufendKwh) — fully counted for months already elapsed, prorated by day-of-month
+ * for the current month, and 0 for months still in the future — using the same sollMonth-weighted
+ * logic as the month view rather than spreading the yearly Soll evenly across all 365 days (e.g.
+ * Aug 9th: full Jan-Jul Soll + 9 days of August's daily Soll = 3877.2 kWh). For a year that has
+ * already fully elapsed this equals the whole year's Soll.
+ * @param {{ sollYearKwp: number, capacityKwp: number, sollMonth: number[] }} plant
  * @param {number} year
  * @param {Date} [today] - Injectable for testing; defaults to the real current date.
  * @returns {number} kWh, or 0 if Soll data is unavailable.
  */
 export function yearSollAuflaufendKwh(plant, year, today = new Date()) {
-  return (yearlySollKwh(plant) / daysInYear(year)) * elapsedDaysInYear(year, today);
+  let total = 0;
+  for (let month = 1; month <= 12; month += 1) {
+    total += monthSollAuflaufendKwh(plant, year, month, today);
+  }
+  return total;
 }
 
 /**

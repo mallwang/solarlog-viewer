@@ -3,10 +3,13 @@ import {
   parseDailyTotalsFile,
   mergeMonthlyTotals,
   mergeDailyTotals,
+  addTodayYield,
 } from '../data/aggregates.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { fetchFromBothSources } from '../data/data-source.js';
+import { fetchText } from '../data/fetch-text.js';
+import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
 import { addMonths, isFutureMonth, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
@@ -27,6 +30,11 @@ function monthKey({ year, month }) {
 function todayParams() {
   const now = new Date();
   return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+
+function todayIso() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 /** @param {{ year: number, month: number }} params @returns {number} Number of days in that month. */
@@ -75,12 +83,22 @@ function monthStatsRows(monthTotal, plant, params, isCurrentMonth) {
     ? monthSollAuflaufendKwh(plant ?? {}, params.year, params.month)
     : monthlySollKwh(plant ?? {}, params.month);
   const ist = istPercent(yieldKwh, sollKwh);
+  const maxDaily = maxDailyYieldKwh(monthTotal.dailyBreakdown);
+  const maxDailyDay = maxDaily.date ? Number.parseInt(maxDaily.date.slice(8, 10), 10) : null;
+  const maxDailyMonthName = maxDaily.date
+    ? t(`month.long.${maxDaily.date.slice(5, 7)}`)
+    : null;
 
   return [
     ['month.stats.yieldKwh', formatKwh(yieldKwh)],
     ['month.stats.yieldEuro', formatCurrency(feedInEuro)],
     ['month.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
-    ['month.stats.maxDaily', formatKwh(maxDailyYieldKwh(monthTotal.dailyBreakdown))],
+    [
+      'month.stats.maxDaily',
+      maxDailyDay
+        ? `${formatKwh(maxDaily.kwh)} (${maxDailyDay}. ${maxDailyMonthName})`
+        : formatKwh(maxDaily.kwh),
+    ],
     [
       isCurrentMonth ? 'month.stats.sollAuflaufend' : 'month.stats.sollTotal',
       formatKwh(sollKwh),
@@ -121,9 +139,10 @@ export async function render(container, { route, plant }) {
   const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');
 
-  const [monthsSources, daysSources] = await Promise.all([
+  const [monthsSources, daysSources, todaySource] = await Promise.all([
     fetchFromBothSources('months.js'),
     fetchFromBothSources('days_hist.js'),
+    isCurrentMonth ? fetchText(`${DATA_DIR}/days.js`) : Promise.resolve({ ok: false }),
   ]);
 
   if (
@@ -140,17 +159,26 @@ export async function render(container, { route, plant }) {
     monthsSources.hist.ok ? parseMonthsFile(monthsSources.hist.text) : [],
     monthsSources.data.ok ? parseMonthsFile(monthsSources.data.text) : [],
   );
+  // days_hist.js is a rolling archive that never includes today (see day-view.js's min_day.js
+  // comment); days.js is the SolarLog's live "today so far" file, so fold it in separately.
+  const todayEntry = todaySource.ok
+    ? parseDailyTotalsFile(todaySource.text).find((d) => d.date === todayIso())
+    : undefined;
   const dailyTotals = mergeDailyTotals(
     daysSources.hist.ok ? parseDailyTotalsFile(daysSources.hist.text) : [],
-    daysSources.data.ok ? parseDailyTotalsFile(daysSources.data.text) : [],
+    [
+      ...(daysSources.data.ok ? parseDailyTotalsFile(daysSources.data.text) : []),
+      ...(todayEntry ? [todayEntry] : []),
+    ],
   );
   const dailyBreakdown = dailyTotals.filter((d) => d.date.startsWith(key));
 
-  const monthTotal = months.find((m) => m.month === key) ?? {
-    month: key,
-    perInverter: {},
-    dailyBreakdown: [],
-  };
+  // months.js is only written at day rollover, so the current month's total never yet includes
+  // today's yield - fold today's live entry in on top (see addTodayYield).
+  const monthTotal = addTodayYield(
+    months.find((m) => m.month === key) ?? { month: key, perInverter: {}, dailyBreakdown: [] },
+    todayEntry,
+  );
   monthTotal.dailyBreakdown = dailyBreakdown;
 
   if (dailyBreakdown.length === 0) {

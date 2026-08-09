@@ -1,7 +1,14 @@
-import { parseMonthsFile, mergeMonthlyTotals } from '../data/aggregates.js';
+import {
+  parseMonthsFile,
+  parseDailyTotalsFile,
+  mergeMonthlyTotals,
+  addTodayYield,
+} from '../data/aggregates.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { fetchFromBothSources } from '../data/data-source.js';
+import { fetchText } from '../data/fetch-text.js';
+import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
 import { addYears, isFutureYear, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
@@ -17,6 +24,16 @@ import {
 
 function currentYear() {
   return new Date().getFullYear();
+}
+
+function todayIso() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function currentMonthKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function sumWh(perInverter) {
@@ -43,12 +60,17 @@ function yearStatsRows(monthlyBreakdown, plant, year, isCurrentYear) {
     ? yearSollAuflaufendKwh(plant ?? {}, year)
     : yearlySollKwh(plant ?? {});
   const ist = istPercent(yieldKwh, sollKwh);
+  const maxMonth = maxMonthlyYieldKwh(monthlyBreakdown);
+  const maxMonthName = maxMonth.month ? t(`month.long.${maxMonth.month.slice(5, 7)}`) : null;
 
   return [
     ['year.stats.yieldKwh', formatKwh(yieldKwh)],
     ['year.stats.yieldEuro', formatCurrency(feedInEuro)],
     ['year.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
-    ['year.stats.maxMonth', formatKwh(maxMonthlyYieldKwh(monthlyBreakdown))],
+    [
+      'year.stats.maxMonth',
+      maxMonthName ? `${formatKwh(maxMonth.kwh)} (${maxMonthName})` : formatKwh(maxMonth.kwh),
+    ],
     [
       isCurrentYear ? 'year.stats.sollAuflaufend' : 'year.stats.sollTotal',
       formatKwh(sollKwh),
@@ -104,7 +126,10 @@ export async function render(container, { route, plant }) {
   const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');
 
-  const { hist, data } = await fetchFromBothSources('months.js');
+  const [{ hist, data }, todaySource] = await Promise.all([
+    fetchFromBothSources('months.js'),
+    isCurrentYear ? fetchText(`${DATA_DIR}/days.js`) : Promise.resolve({ ok: false }),
+  ]);
   if (!hist.ok && !data.ok) {
     chartContainer.innerHTML = emptyStateBody('year.noData');
     return;
@@ -115,7 +140,20 @@ export async function render(container, { route, plant }) {
     data.ok ? parseMonthsFile(data.text) : [],
   );
   const key = String(year);
-  const monthlyBreakdown = months.filter((m) => m.month.startsWith(key));
+  // months.js is only written at day rollover, so the current month never yet includes today's
+  // yield; fold today's live entry (days.js) into that month before summing the year (mirrors
+  // month-view.js's addTodayYield use).
+  const todayEntry = todaySource.ok
+    ? parseDailyTotalsFile(todaySource.text).find((d) => d.date === todayIso())
+    : undefined;
+  const monthsInYear = months.filter((m) => m.month.startsWith(key));
+  if (todayEntry && !monthsInYear.some((m) => m.month === currentMonthKey())) {
+    // First day of the month: months.js has no entry yet for it at all.
+    monthsInYear.push({ month: currentMonthKey(), perInverter: {}, dailyBreakdown: [] });
+  }
+  const monthlyBreakdown = monthsInYear.map((m) =>
+    m.month === currentMonthKey() ? addTodayYield(m, todayEntry) : m,
+  );
 
   if (monthlyBreakdown.length === 0) {
     chartContainer.innerHTML = emptyStateBody('year.noData');
