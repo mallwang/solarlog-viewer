@@ -1,7 +1,7 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/005-tailwind-css-dashboard-ui/plan.md
+at specs/006-co2-emission-stats/plan.md
 <!-- SPECKIT END -->
 
 ## Local Development Server
