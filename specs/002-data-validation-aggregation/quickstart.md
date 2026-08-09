@@ -21,11 +21,13 @@ node scripts/gap-detect.js
 Expected: human-readable gap report listing missing date ranges, or "No gaps detected."
 
 Limit to recent history:
+
 ```bash
 node scripts/gap-detect.js --since 2020-01-01
 ```
 
 Machine-readable output:
+
 ```bash
 node scripts/gap-detect.js --output json --out-file gap-report.json
 cat gap-report.json
@@ -42,6 +44,7 @@ node scripts/validate-plausibility.js
 Expected: table of mismatching days (or empty if all within ±1 Wh tolerance).
 
 Override tolerance to flag anything off by more than 10 Wh:
+
 ```bash
 node scripts/validate-plausibility.js --tolerance 10 --output json
 ```
@@ -51,11 +54,13 @@ node scripts/validate-plausibility.js --tolerance 10 --output json
 ## Scenario 3 — Fill gaps in days_hist.js for a specific month
 
 Preview without writing:
+
 ```bash
 node scripts/fill-days-hist.js 2026-06 --dry-run
 ```
 
 Apply:
+
 ```bash
 node scripts/fill-days-hist.js 2026-06
 # → prompts for confirmation if days_hist.js already has entries for this month

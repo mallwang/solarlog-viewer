@@ -1,29 +1,80 @@
 {
   "nav": {
     "dashboard": "Übersicht",
-    "dayView": "Tageswerte",
-    "monthView": "Monatswerte",
-    "yearView": "Jahreswerte",
-    "totalView": "Gesamtübersicht",
-    "compareView": "Jahresvergleich"
+    "dayView": "Tagesertrag",
+    "monthView": "Monatserträge",
+    "yearView": "Jahreserträge",
+    "totalView": "Gesamterträge",
+    "ariaLabel": "Hauptnavigation",
+    "toggleLabel": "Navigation ein-/ausblenden"
   },
   "day": {
-    "noData": "Für diesen Tag liegen keine Daten vor."
+    "noData": "Für diesen Tag liegen keine Daten vor.",
+    "prev": "Vorheriger Tag",
+    "next": "Nächster Tag",
+    "today": "Heute",
+    "powerUnavailable": "Für diesen Tag ist kein Leistungsverlauf gespeichert (archivierte/rekonstruierte Daten). Es wird stattdessen der kumulierte Ertrag angezeigt.",
+    "stats": {
+      "title": "Statistik",
+      "yieldKwh": "Tagesertrag",
+      "yieldEuro": "Tagesertrag in €",
+      "specificYield": "Ertrag spezifisch",
+      "maxDaily": "Maximalwert",
+      "soll": "Soll",
+      "ist": "Ist"
+    }
   },
   "month": {
-    "noData": "Für diesen Monat liegen keine Daten vor."
+    "noData": "Für diesen Monat liegen keine Daten vor.",
+    "prev": "Vorheriger Monat",
+    "next": "Nächster Monat",
+    "thisMonth": "Dieser Monat",
+    "short": {
+      "01": "Jan", "02": "Feb", "03": "Mär", "04": "Apr", "05": "Mai", "06": "Jun",
+      "07": "Jul", "08": "Aug", "09": "Sep", "10": "Okt", "11": "Nov", "12": "Dez"
+    },
+    "long": {
+      "01": "Januar", "02": "Februar", "03": "März", "04": "April", "05": "Mai", "06": "Juni",
+      "07": "Juli", "08": "August", "09": "September", "10": "Oktober", "11": "November", "12": "Dezember"
+    },
+    "stats": {
+      "title": "Statistik",
+      "yieldKwh": "Monatsertrag",
+      "yieldEuro": "Monatsertrag in €",
+      "specificYield": "Ertrag spezifisch",
+      "maxDaily": "Maximalwert",
+      "sollAuflaufend": "Soll (auflaufend)",
+      "sollTotal": "Soll",
+      "ist": "Ist"
+    }
   },
   "year": {
-    "noData": "Für dieses Jahr liegen keine Daten vor."
-  },
-  "compare": {
-    "noData": "Keine Vergleichsdaten verfügbar."
+    "noData": "Für dieses Jahr liegen keine Daten vor.",
+    "prev": "Vorheriges Jahr",
+    "next": "Nächstes Jahr",
+    "thisYear": "Dieses Jahr",
+    "stats": {
+      "title": "Statistik",
+      "yieldKwh": "Jahresertrag",
+      "yieldEuro": "Jahresertrag in €",
+      "specificYield": "Ertrag spezifisch",
+      "maxMonth": "Maximalwert",
+      "sollAuflaufend": "Soll (auflaufend)",
+      "sollTotal": "Soll",
+      "ist": "Ist"
+    }
   },
   "total": {
     "noData": "Keine Daten verfügbar.",
-    "totalYield": "Gesamtertrag",
-    "co2Saved": "Vermiedene CO2-Emission",
-    "feedIn": "Einspeisevergütung"
+    "stats": {
+      "title": "Statistik",
+      "yieldKwh": "Gesamtertrag",
+      "yieldEuro": "Gesamtertrag in €",
+      "specificYield": "Ertrag spezifisch",
+      "maxYear": "Maximalwert",
+      "sollTotal": "Soll",
+      "ist": "Ist"
+    }
   },
   "widget": {
     "notProducing": "0 W — keine Einspeisung",
@@ -35,9 +86,8 @@
   },
   "chart": {
     "timeAxis": "Uhrzeit",
-    "dayOfYearAxis": "Tag im Jahr",
-    "cumulativeYield": "Kumulierter Ertrag",
     "powerAxis": "Leistung",
-    "energyAxis": "Energie"
+    "energyAxis": "Energie",
+    "total": "Gesamt"
   }
 }

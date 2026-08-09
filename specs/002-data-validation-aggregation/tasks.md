@@ -19,7 +19,7 @@
 
 **Purpose**: Confirm ESLint config covers `scripts/` for the new files before any TDD work begins.
 
-- [X] T001 Verify `eslint.config.js` includes `scripts/` glob and exports `eslint:recommended`; adjust if needed so `npx eslint scripts/` exits 0 on an empty file
+- [x] T001 Verify `eslint.config.js` includes `scripts/` glob and exports `eslint:recommended`; adjust if needed so `npx eslint scripts/` exits 0 on an empty file
 
 **Checkpoint**: ESLint works on scripts — TDD can begin.
 
@@ -33,9 +33,9 @@
 
 > **TDD rule**: Write T002 first, confirm tests fail, then implement T003. Wire CLI entry point last (after all exported function tests pass).
 
-- [X] T002 [US1] Write `scripts/gap-detect.test.js` with inline fixture filename lists covering: no gaps → exit 0; single isolated gap → 1 range; multi-day consecutive gap → collapsed range; `--since` filter trims output; empty archive → "no files found" error
-- [X] T003 [US1] Implement `scripts/gap-detect.js` — exported: `parseArchiveFilenames(filenames)`, `detectGaps(dates, since?)`, `formatRanges(gaps)`, `buildJsonReport(meta, gaps)`; then wire CLI entry point (`if (process.argv[1] === …)`) with `--since`, `--output json`, `--out-file` flags per `contracts/cli.md`; JSDoc on every export and file-level JSDoc block
-- [X] T004 [US1] Lint `scripts/gap-detect.js` and `scripts/gap-detect.test.js` with `npx eslint`; fix all errors to zero
+- [x] T002 [US1] Write `scripts/gap-detect.test.js` with inline fixture filename lists covering: no gaps → exit 0; single isolated gap → 1 range; multi-day consecutive gap → collapsed range; `--since` filter trims output; empty archive → "no files found" error
+- [x] T003 [US1] Implement `scripts/gap-detect.js` — exported: `parseArchiveFilenames(filenames)`, `detectGaps(dates, since?)`, `formatRanges(gaps)`, `buildJsonReport(meta, gaps)`; then wire CLI entry point (`if (process.argv[1] === …)`) with `--since`, `--output json`, `--out-file` flags per `contracts/cli.md`; JSDoc on every export and file-level JSDoc block
+- [x] T004 [US1] Lint `scripts/gap-detect.js` and `scripts/gap-detect.test.js` with `npx eslint`; fix all errors to zero
 
 **Checkpoint**: `node scripts/gap-detect.js` works against live archive and `node --test scripts/gap-detect.test.js` is fully green.
 
@@ -49,9 +49,9 @@
 
 > **TDD rule**: Write T005 first, confirm tests fail, then implement T006.
 
-- [X] T005 [US2] Write `scripts/validate-plausibility.test.js` with inline fixture strings covering: day within tolerance (not flagged); day exceeding tolerance (flagged with correct delta values); day with no `minYYMMDD.js` (skipped, not an error); JSON output mode produces correct structure per `data-model.md` `ValidationReport` JSON schema
-- [X] T006 [US2] Implement `scripts/validate-plausibility.js` — exported: `parseMinFile(content)` → `{ wr1Wh, wr2Wh }` using field index 2 per `research.md` Decision 2; `parseDaysHist(content)` → `Map<dateKey, {wr1Wh, wr2Wh}>`; `compareDay(minTotal, histTotal, tolerance)` → mismatch record or null; then wire CLI entry with `--since`, `--tolerance`, `--output json`, `--out-file` per `contracts/cli.md`; JSDoc on every export and file-level JSDoc block
-- [X] T007 [US2] Lint `scripts/validate-plausibility.js` and `scripts/validate-plausibility.test.js` with `npx eslint`; fix all errors to zero
+- [x] T005 [US2] Write `scripts/validate-plausibility.test.js` with inline fixture strings covering: day within tolerance (not flagged); day exceeding tolerance (flagged with correct delta values); day with no `minYYMMDD.js` (skipped, not an error); JSON output mode produces correct structure per `data-model.md` `ValidationReport` JSON schema
+- [x] T006 [US2] Implement `scripts/validate-plausibility.js` — exported: `parseMinFile(content)` → `{ wr1Wh, wr2Wh }` using field index 2 per `research.md` Decision 2; `parseDaysHist(content)` → `Map<dateKey, {wr1Wh, wr2Wh}>`; `compareDay(minTotal, histTotal, tolerance)` → mismatch record or null; then wire CLI entry with `--since`, `--tolerance`, `--output json`, `--out-file` per `contracts/cli.md`; JSDoc on every export and file-level JSDoc block
+- [x] T007 [US2] Lint `scripts/validate-plausibility.js` and `scripts/validate-plausibility.test.js` with `npx eslint`; fix all errors to zero
 
 **Checkpoint**: `node scripts/validate-plausibility.js` runs against live data and all unit tests pass.
 
@@ -65,13 +65,13 @@
 
 > **TDD rule**: Write T008–T010 first (in parallel), confirm all tests fail, then implement T011–T013.
 
-- [X] T008 [P] [US3] Write `scripts/fill-days-hist.test.js` with inline fixture content covering: pass-1 hit from `days.js` entry copies verbatim Wh and feed values; pass-2 fallback from `minYYMMDD.js` sets feed to 0; already-present entry (skip without `--force`); `--dry-run` returns computed value without writing; `--force` overwrites without prompt; unfillable date (no source) flagged; output line is byte-for-byte format-compatible (`da[dx++]="DD.MM.YY|WR1_Wh;WR1_feed|WR2_Wh;WR2_feed"`)
-- [X] T009 [P] [US3] Write `scripts/fill-months.test.js` with inline fixture content covering: aggregation from two `minYYMMDD.js` fixtures sums WR1/WR2 correctly; `--dry-run` prints `mo[mx++]=` line without writing; no min files for month → exit 1; output format is `mo[mx++]="01.MM.YY|WR1_Wh|WR2_Wh"`
-- [X] T010 [P] [US3] Write `scripts/fill-years.test.js` with inline fixture content covering: aggregation across two monthly fixtures sums correctly; `--dry-run` prints `ye[yx++]=` line without writing; no min files for year → exit 1; output format is `ye[yx++]="01.01.YY|WR1_Wh|WR2_Wh"`
-- [X] T011 [US3] Implement `scripts/fill-days-hist.js` — exported: `parseDaysHistFiles(contents[])` → `Map<dateKey, record>`; `findInDaysFiles(date, daysContents[])` → `record | null` (pass 1); `aggregateFromMin(minContent)` → `{ wr1Wh, wr2Wh }` (pass 2); `formatDaysHistEntry(date, record)` → correctly formatted line; `insertEntryInOrder(existingLines, newLine)` (newest-first sort); then wire CLI entry with positional `YYYY-MM`, `--dry-run`, `--force`, `--tolerance` per `contracts/cli.md`; implement confirmation prompt via `node:readline` when not `--force` and not `--dry-run`; JSDoc on every export and file-level JSDoc block
-- [X] T012 [P] [US3] Implement `scripts/fill-months.js` — exported: `collectMonthMinFiles(allFilenames, yyyymm)` → matching filenames; `aggregateMonth(minContents[])` → `{ wr1Wh, wr2Wh }`; `formatMonthEntry(yyyymm, totals)` → `mo[mx++]=` line; `upsertInMonths(existingContent, newLine)` → updated content; wire CLI entry with positional `YYYY-MM`, `--dry-run`, `--force`; JSDoc on every export and file-level JSDoc block
-- [X] T013 [P] [US3] Implement `scripts/fill-years.js` — exported: `collectYearMinFiles(allFilenames, yyyy)` → matching filenames; `aggregateYear(minContents[])` → `{ wr1Wh, wr2Wh }`; `formatYearEntry(yyyy, totals)` → `ye[yx++]=` line; `upsertInYears(existingContent, newLine)` → updated content; wire CLI entry with positional `YYYY`, `--dry-run`, `--force`; JSDoc on every export and file-level JSDoc block
-- [X] T014 [US3] Lint all fill scripts and test files with `npx eslint scripts/fill-days-hist.js scripts/fill-days-hist.test.js scripts/fill-months.js scripts/fill-months.test.js scripts/fill-years.js scripts/fill-years.test.js`; fix all errors to zero
+- [x] T008 [P] [US3] Write `scripts/fill-days-hist.test.js` with inline fixture content covering: pass-1 hit from `days.js` entry copies verbatim Wh and feed values; pass-2 fallback from `minYYMMDD.js` sets feed to 0; already-present entry (skip without `--force`); `--dry-run` returns computed value without writing; `--force` overwrites without prompt; unfillable date (no source) flagged; output line is byte-for-byte format-compatible (`da[dx++]="DD.MM.YY|WR1_Wh;WR1_feed|WR2_Wh;WR2_feed"`)
+- [x] T009 [P] [US3] Write `scripts/fill-months.test.js` with inline fixture content covering: aggregation from two `minYYMMDD.js` fixtures sums WR1/WR2 correctly; `--dry-run` prints `mo[mx++]=` line without writing; no min files for month → exit 1; output format is `mo[mx++]="01.MM.YY|WR1_Wh|WR2_Wh"`
+- [x] T010 [P] [US3] Write `scripts/fill-years.test.js` with inline fixture content covering: aggregation across two monthly fixtures sums correctly; `--dry-run` prints `ye[yx++]=` line without writing; no min files for year → exit 1; output format is `ye[yx++]="01.01.YY|WR1_Wh|WR2_Wh"`
+- [x] T011 [US3] Implement `scripts/fill-days-hist.js` — exported: `parseDaysHistFiles(contents[])` → `Map<dateKey, record>`; `findInDaysFiles(date, daysContents[])` → `record | null` (pass 1); `aggregateFromMin(minContent)` → `{ wr1Wh, wr2Wh }` (pass 2); `formatDaysHistEntry(date, record)` → correctly formatted line; `insertEntryInOrder(existingLines, newLine)` (newest-first sort); then wire CLI entry with positional `YYYY-MM`, `--dry-run`, `--force`, `--tolerance` per `contracts/cli.md`; implement confirmation prompt via `node:readline` when not `--force` and not `--dry-run`; JSDoc on every export and file-level JSDoc block
+- [x] T012 [P] [US3] Implement `scripts/fill-months.js` — exported: `collectMonthMinFiles(allFilenames, yyyymm)` → matching filenames; `aggregateMonth(minContents[])` → `{ wr1Wh, wr2Wh }`; `formatMonthEntry(yyyymm, totals)` → `mo[mx++]=` line; `upsertInMonths(existingContent, newLine)` → updated content; wire CLI entry with positional `YYYY-MM`, `--dry-run`, `--force`; JSDoc on every export and file-level JSDoc block
+- [x] T013 [P] [US3] Implement `scripts/fill-years.js` — exported: `collectYearMinFiles(allFilenames, yyyy)` → matching filenames; `aggregateYear(minContents[])` → `{ wr1Wh, wr2Wh }`; `formatYearEntry(yyyy, totals)` → `ye[yx++]=` line; `upsertInYears(existingContent, newLine)` → updated content; wire CLI entry with positional `YYYY`, `--dry-run`, `--force`; JSDoc on every export and file-level JSDoc block
+- [x] T014 [US3] Lint all fill scripts and test files with `npx eslint scripts/fill-days-hist.js scripts/fill-days-hist.test.js scripts/fill-months.js scripts/fill-months.test.js scripts/fill-years.js scripts/fill-years.test.js`; fix all errors to zero
 
 **Checkpoint**: All three fill scripts run against live data with `--dry-run`; all unit tests pass.
 
@@ -83,9 +83,9 @@
 
 **Independent Test**: Invoke `/backfill-days-hist 2026-06`; skill reports gaps found, sources used (pass 1 vs pass 2), and entries written.
 
-- [X] T015 [US4] Write `.claude/skills/backfill-days-hist/SKILL.md` following the existing `backfill-min-day` skill pattern: accept single `YYYY-MM` argument, invoke `fill-days-hist.js YYYY-MM --dry-run` first to detect gaps, prompt user to confirm, then run without `--dry-run`; present structured summary (gaps found, pass-1 count, pass-2 count, unfillable count, entries written)
-- [X] T016 [P] [US4] Write `.claude/skills/backfill-months/SKILL.md`: accept single `YYYY-MM` argument, invoke `fill-months.js YYYY-MM --dry-run` to preview, confirm with user, then write; present summary (min files read, WR1 total, WR2 total, entry written or already present)
-- [X] T017 [P] [US4] Write `.claude/skills/backfill-years/SKILL.md`: accept single `YYYY` argument, invoke `fill-years.js YYYY --dry-run` to preview, confirm with user, then write; present summary (min files read, WR1 total, WR2 total, entry written or already present)
+- [x] T015 [US4] Write `.claude/skills/backfill-days-hist/SKILL.md` following the existing `backfill-min-day` skill pattern: accept single `YYYY-MM` argument, invoke `fill-days-hist.js YYYY-MM --dry-run` first to detect gaps, prompt user to confirm, then run without `--dry-run`; present structured summary (gaps found, pass-1 count, pass-2 count, unfillable count, entries written)
+- [x] T016 [P] [US4] Write `.claude/skills/backfill-months/SKILL.md`: accept single `YYYY-MM` argument, invoke `fill-months.js YYYY-MM --dry-run` to preview, confirm with user, then write; present summary (min files read, WR1 total, WR2 total, entry written or already present)
+- [x] T017 [P] [US4] Write `.claude/skills/backfill-years/SKILL.md`: accept single `YYYY` argument, invoke `fill-years.js YYYY --dry-run` to preview, confirm with user, then write; present summary (min files read, WR1 total, WR2 total, entry written or already present)
 
 **Checkpoint**: All three skills can be invoked from a Claude Code session for a specific period and complete without requiring the user to look up script flags.
 
@@ -93,10 +93,10 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [X] T018 Run all quickstart.md scenarios (1–6) against live archive data to validate end-to-end correctness; fix any discrepancies before marking done
-- [X] T019 [P] Update `README.md` with a "Validation & Aggregation Scripts" section describing `gap-detect.js`, `validate-plausibility.js`, and the three fill scripts with example commands
-- [X] T020 [P] Update `README.de.md` with the German equivalent of the README section added in T019; keep both files consistent
-- [X] T021 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md` with user-facing descriptions of the validation workflow (detect gaps → validate plausibility → fill → verify), following the quickstart.md scenarios
+- [x] T018 Run all quickstart.md scenarios (1–6) against live archive data to validate end-to-end correctness; fix any discrepancies before marking done
+- [x] T019 [P] Update `README.md` with a "Validation & Aggregation Scripts" section describing `gap-detect.js`, `validate-plausibility.js`, and the three fill scripts with example commands
+- [x] T020 [P] Update `README.de.md` with the German equivalent of the README section added in T019; keep both files consistent
+- [x] T021 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md` with user-facing descriptions of the validation workflow (detect gaps → validate plausibility → fill → verify), following the quickstart.md scenarios
 
 ---
 

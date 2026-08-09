@@ -1,20 +1,20 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.1.0 → 2.0.0
-Modified principles:
-  - I. Static-File Data Model is Sacred — added narrow exception permitting an
-    offline, idempotent sync script to copy `.js` file contents into a local
-    SQLite cache; source `.js` files remain untouched and authoritative.
-  - III. No Backend Introduction — removed blanket "no database" prohibition;
-    added narrow exception permitting a local SQLite cache database for
-    developer/CLI tooling, explicitly not an application server and not a
-    runtime dependency of the static site or browser viewer.
-Rationale for MAJOR bump: Principle III previously stated "no database" as an
-absolute constraint; this amendment redefines that constraint (fundamental
-redefinition of a principle), triggering a MAJOR version per this document's
-own versioning policy. Driven by feature 004-sqlite-meter-sync, which requires
-a local SQLite cache and sync script.
+Version change: 2.0.0 → 2.1.0
+Modified sections:
+  - Technical Standards → Frontend — added an approved, narrowly-scoped
+    exception permitting Tailwind CSS as the project's CSS framework,
+    compiled via an offline build step into a static CSS file; JavaScript
+    continues to load via native ES modules with no bundler introduced for
+    it; existing CSS custom properties remain the source-of-truth design
+    tokens that Tailwind config must track.
+Rationale for MINOR bump: this is a material expansion of existing Frontend
+guidance (an explicit, scoped exception to the "no framework"/"no bundler"
+defaults), not a removal or fundamental redefinition of a principle — no
+principle heading changed meaning. Driven by feature
+005-tailwind-css-dashboard-ui, which requires Tailwind CSS with a compiled
+build step for the dashboard redesign.
 Added sections: none
 Removed sections: none
 Templates checked:
@@ -181,6 +181,26 @@ The following are explicitly OUT of scope unless amended:
 - CSS custom properties (variables) MUST be used for all theme values (colours, spacing,
   typography) so the design can be reskinned in one place.
 
+**Approved exception — Tailwind CSS compiled build step**: Per feature
+005-tailwind-css-dashboard-ui, **Tailwind CSS** MAY be used as the project's
+CSS framework, compiled via its CLI (or a minimal PostCSS pipeline) into a
+single static, optimized CSS file that is committed to or produced for the
+deployed site. This exception is scoped narrowly:
+
+- The compiled Tailwind build step MUST run offline/at build time (an `npm
+  run build:css`-style script) — never as a runtime/CDN script loaded by the
+  browser at page-view time.
+- The resulting static CSS file is what ships to the browser; no bundler is
+  introduced for JavaScript, which continues to load via native ES modules
+  per the rule above.
+- Existing CSS custom properties (theme tokens for colour, spacing, and
+  typography) MUST remain the single source of design-token truth; Tailwind's
+  configuration MUST read from (or be kept in sync with) those tokens rather
+  than duplicating them, so the design remains reskinnable in one place.
+- This exception does not extend to introducing a JavaScript UI framework
+  (React, Vue, Svelte, etc.) — that still requires a separate, explicit
+  constitution amendment.
+
 ### Backend
 
 Per Principle III, there is no application server. All browser-viewer logic
@@ -289,4 +309,4 @@ Versioning policy:
 All feature specifications and implementation plans MUST include a Constitution
 Check section confirming which principles apply and how they are satisfied.
 
-**Version**: 2.0.0 | **Ratified**: 2026-07-29 | **Last Amended**: 2026-07-31
+**Version**: 2.1.0 | **Ratified**: 2026-07-29 | **Last Amended**: 2026-08-06

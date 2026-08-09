@@ -36,6 +36,7 @@
 **One intentional exception**: The Assumptions section names Node.js 22+ and ESM — these are project-wide constraints from the constitution and CLAUDE.md, not feature-specific implementation choices, so their inclusion is appropriate.
 
 **2026-07-30 update**: Spec revised to incorporate user clarifications:
+
 - `days_hist.js` is the sole write target for daily per-inverter totals; `daysall.js` is read-only.
 - Two-pass gap-fill strategy for `days_hist.js` (days file → minute file) is now a spec invariant (FR-010).
 - `months.js`/`years.js` source exclusively from `minYYMMDD.js` (FR-011).

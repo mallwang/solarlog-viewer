@@ -25,7 +25,6 @@ export function parseRoute(hash) {
   const [kind, ...rest] = segments;
 
   if (kind === 'total' && rest.length === 0) return { view: 'total', params: {} };
-  if (kind === 'compare' && rest.length === 0) return { view: 'compare', params: {} };
 
   if (kind === 'year' && rest.length === 1) {
     const year = Number.parseInt(rest[0], 10);
@@ -81,8 +80,6 @@ export function formatRoute(route) {
       return `#/year/${params.year}`;
     case 'total':
       return '#/total';
-    case 'compare':
-      return '#/compare';
     default:
       return '#/';
   }

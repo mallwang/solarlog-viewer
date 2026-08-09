@@ -6,14 +6,38 @@
     <title>SolarLog Viewer</title>
     <link rel="stylesheet" href="css/tokens.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/tailwind.generated.css" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
   </head>
   <body>
+    <div class="sky-clouds" aria-hidden="true">
+      <div class="cloud" style="--top: 8%; --scale: 1.4; --duration: 75s; --delay: 0s; --rest-x: 5vw"></div>
+      <div class="cloud" style="--top: 18%; --scale: 0.8; --duration: 50s; --delay: -20s; --rest-x: 30vw"></div>
+      <div class="cloud" style="--top: 4%; --scale: 1; --duration: 65s; --delay: -45s; --rest-x: 60vw"></div>
+      <div class="cloud" style="--top: 24%; --scale: 1.6; --duration: 90s; --delay: -10s; --rest-x: 80vw"></div>
+      <div class="cloud" style="--top: 14%; --scale: 0.6; --duration: 40s; --delay: -30s; --rest-x: 45vw"></div>
+      <div class="cloud" style="--top: 30%; --scale: 1.1; --duration: 80s; --delay: -60s; --rest-x: 10vw"></div>
+    </div>
     <noscript>This site requires JavaScript to display your SolarLog production data.</noscript>
     <header class="app-header">
-      <h1 class="app-header__title" id="app-title">SolarLog Viewer</h1>
+      <div class="app-header__brand">
+        <img class="app-header__logo" src="favicon.ico" alt="" />
+        <h1 class="app-header__title" id="app-title">SolarLog Viewer</h1>
+      </div>
       <div class="lang-switcher" id="lang-switcher"></div>
     </header>
-    <nav class="app-nav" id="app-nav"></nav>
+    <nav class="app-nav" id="app-nav">
+      <button
+        type="button"
+        class="app-nav__toggle"
+        id="app-nav-toggle"
+        aria-expanded="false"
+        aria-controls="app-nav-list"
+      >
+        ☰
+      </button>
+      <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
+    </nav>
     <main class="app-main" id="app-main"></main>
     <script type="module" src="js/main.js"></script>
   </body>

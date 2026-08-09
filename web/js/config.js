@@ -5,3 +5,7 @@
 export const INSTALLATION_DATE = '2026-07-29';
 export const DATA_DIR = 'data';
 export const HIST_DIR = 'hist';
+
+// Only German is maintained for this plant right now; flip to `true` to bring back the
+// DE/EN language switcher in the header without deleting its implementation.
+export const SHOW_LANGUAGE_SWITCHER = false;

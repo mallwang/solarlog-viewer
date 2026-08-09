@@ -147,6 +147,27 @@ export function mergeYearlyTotals(histEntries, dataEntries) {
   return [...byYear.values()].sort((a, b) => a.year - b.year);
 }
 
+/**
+ * Adds today's live yield (from days.js, which the SolarLog updates continuously) into a
+ * MonthlyTotal's/YearlyTotal's perInverter Wh totals. months.js/years.js are only written at
+ * day rollover, so the current month's/year's running total is always missing today's
+ * production until the next day's sync (mirroring min_day.js's role for the day view - see
+ * day-view.js).
+ * @param {{ perInverter: { [inverterIndex: number]: number } }} total - a MonthlyTotal or
+ *   YearlyTotal (see parseMonthsFile/parseYearsFile).
+ * @param {ReturnType<typeof parseDailyTotalsFile>[number] | undefined} todayEntry - today's
+ *   DailyTotal (see parseDailyTotalsFile), or undefined if unavailable.
+ * @returns {{ perInverter: object }} a new object; `total` is not mutated.
+ */
+export function addTodayYield(total, todayEntry) {
+  if (!todayEntry) return total;
+  const perInverter = { ...total.perInverter };
+  for (const [idx, { yieldWh }] of Object.entries(todayEntry.perInverter)) {
+    perInverter[idx] = (perInverter[idx] ?? 0) + yieldWh;
+  }
+  return { ...total, perInverter };
+}
+
 export function deriveLifetimeSummary(yearlyTotals, tariffRatePerKwh) {
   const totalYieldWh = yearlyTotals.reduce(
     (sum, y) => sum + Object.values(y.perInverter).reduce((s, wh) => s + wh, 0),

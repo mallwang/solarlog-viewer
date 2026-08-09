@@ -2,10 +2,14 @@
 
 Statischer Viewer für SolarLog-Datenexporte (HTML/JS/CSS). `web/` ist das einzige Verzeichnis, das
 per FTP auf die Synology DiskStation übertragen wird — `web/index.html` ist ein Single-Page-
-Dashboard (vanilla ES-Module, Chart.js, kein Build-Schritt) mit aktueller Leistung und den vier
-Ertragssummen (Tag/Monat/Jahr/Gesamt) sowie Detailansichten über Hash-Routing (`#/day/JJJJ/MM/TT`,
-`#/month/JJJJ/MM`, `#/year/JJJJ`, `#/total`, `#/compare`). Die Sprachauswahl (DE/EN) bleibt über
-Neuladen hinweg erhalten. Die frühere Frameset-Website liegt schreibgeschützt unter `legacy-site/`.
+Dashboard (vanilla ES-Module, Tailwind CSS als statische Build-Datei, ApexCharts) mit aktueller
+Leistung und den vier Ertragssummen (Tag/Monat/Jahr/Gesamt) sowie Detailansichten über Hash-Routing
+(`#/day/JJJJ/MM/TT`, `#/month/JJJJ/MM`, `#/year/JJJJ`, `#/total`, `#/compare`). Alle sechs Ansichten
+teilen sich ein einheitliches Tailwind-Design in Hell- und Dunkelmodus. Ein responsives
+Navigationsmenü listet alle sechs Ansichten und hebt die aktive hervor — auf Desktop-Breiten
+dauerhaft sichtbar, unterhalb von ~768px als Hamburger-Menü, nutzbar von 320px bis 2560px Breite
+ohne horizontales Scrollen. Die Sprachauswahl (DE/EN) bleibt über Neuladen hinweg erhalten. Die
+frühere Frameset-Website liegt schreibgeschützt unter `legacy-site/`.
 
 Die SolarLog-Daten sind aufgeteilt auf `web/hist/` (eingefrorene historische Daten bis
 einschließlich 28.07.2026 vom alten Gerät) und `web/data/` (laufend überschriebene Live-Daten des
@@ -20,8 +24,12 @@ npm run start
 npm run open
 ```
 
-Startet den Dev-Server unter http://localhost:3000 — Einstiegspunkt ist `web/index.html`.
-Mit `npm run open` wird der Viewer im Standardbrowser geöffnet.
+Startet den Dev-Server unter http://localhost:3000 — Einstiegspunkt ist `web/index.html`. `npm start`
+startet die Tailwind-CLI im `--watch`-Modus parallel zu `browser-sync`, sodass auch CSS-Änderungen
+per Hot-Reload übernommen werden. Mit `npm run open` wird der Viewer im Standardbrowser geöffnet.
+
+`npm run build:css` kompiliert `web/css/tailwind.css` zur eingecheckten statischen Datei
+`web/css/tailwind.generated.css`, die produktiv genutzt wird — kein CDN-/Runtime-Skript.
 
 ## Frontend-Tests
 

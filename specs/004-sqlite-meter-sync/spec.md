@@ -8,7 +8,7 @@
 
 **Input**: User description: "I would like to store all daily meter data from all min*.js files inside a local sqlite database. A migration script should exist to sync the min*.js files to the database. As every day a new minYYMMDD.js gets added, the sync script must be able to sync the delta on its run (idempotency must be possible), already available days should not be synched again. The database must allow all available data fields like described in the docs/data-format-daily.md ."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Initial full sync of historical data (Priority: P1)
 
@@ -67,7 +67,7 @@ The existing viewer shows four zoom levels of charts — daily, monthly, yearly,
 - What happens when the sync script is interrupted mid-run (e.g., process killed)? On the next run, it must resume without leaving the database in a state with partial/incomplete data for a given day.
 - What happens when two inverters' fields differ in count between blocks (4 vs 6 fields) within the same record? The database schema must accommodate both without requiring null-padding assumptions that lose meaning.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -97,7 +97,7 @@ The existing viewer shows four zoom levels of charts — daily, monthly, yearly,
 - **Monthly Yield Summary**: Per calendar month, the combined total yield across both inverters — the figure the year diagram view plots per month.
 - **Yearly Yield Summary**: Per calendar year, the combined total yield across both inverters — the figure the total diagram view plots per year.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

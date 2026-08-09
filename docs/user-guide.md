@@ -2,6 +2,18 @@
 
 This guide describes how to detect data gaps, validate totals, and repair aggregated files using the scripts in `scripts/`.
 
+## Dashboard navigation & charts
+
+`web/index.html` lists all six views (dashboard, day, month, year, total, compare) in the nav bar
+at the top of the page. At desktop widths (768px and above) the nav is always visible; below that
+it collapses behind a hamburger button — tap it to open the list, tap a link (or click outside, or
+press Escape) to close it again. The current view is always highlighted in the list.
+
+Charts on the day/month/year/total/compare views are rendered with ApexCharts: hover any bar or
+line to see a tooltip with the exact value and its unit (W for the day view, kWh elsewhere).
+Charts resize with the browser window, and the whole layout — nav included — stays usable from
+320px-wide phones up to 2560px-wide monitors with no horizontal scrolling.
+
 ## Prerequisites
 
 - Node.js 22+
@@ -14,6 +26,7 @@ This guide describes how to detect data gaps, validate totals, and repair aggreg
 `gap-detect.js` can check two data sources:
 
 **Min files** (default) — scans `min*.js` filenames for missing calendar days:
+
 ```bash
 node scripts/gap-detect.js
 node scripts/gap-detect.js --since 2020-01-01
@@ -21,6 +34,7 @@ node scripts/gap-detect.js --output json --out-file gap-report.json
 ```
 
 **`days_hist.js`** — checks for missing entries in the aggregated history file:
+
 ```bash
 node scripts/gap-detect.js --source days_hist
 node scripts/gap-detect.js --source days_hist --since 2020-01-01
@@ -39,11 +53,13 @@ node scripts/validate-plausibility.js
 Compares each `minYYMMDD.js` first-line Wh total against the matching entry in `days_hist.js`. Days that differ by more than ±1 Wh (default tolerance) are flagged with per-inverter deltas.
 
 Override the tolerance:
+
 ```bash
 node scripts/validate-plausibility.js --tolerance 10
 ```
 
 JSON output:
+
 ```bash
 node scripts/validate-plausibility.js --output json --out-file validation.json
 ```
@@ -55,21 +71,25 @@ node scripts/validate-plausibility.js --output json --out-file validation.json
 For a month where entries are missing in `days_hist.js`:
 
 Preview without writing:
+
 ```bash
 node scripts/fill-days-hist.js 2026-06 --dry-run
 ```
 
 Apply (confirms before writing):
+
 ```bash
 node scripts/fill-days-hist.js 2026-06
 ```
 
 Apply without prompt:
+
 ```bash
 node scripts/fill-days-hist.js 2026-06 --force
 ```
 
 The script uses a two-pass strategy per missing day:
+
 - **Pass 1**: looks for the date in any `days*.js` file and copies Wh and feed values verbatim
 - **Pass 2**: if not found in days files, reads the first line of `minYYMMDD.js` for Wh totals (feed set to 0)
 

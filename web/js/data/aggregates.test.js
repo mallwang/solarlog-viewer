@@ -8,6 +8,7 @@ import {
   mergeDailyTotals,
   mergeMonthlyTotals,
   mergeYearlyTotals,
+  addTodayYield,
 } from './aggregates.js';
 
 test('parseDailyTotalsFile extracts date, yield, and peak per inverter', () => {
@@ -129,4 +130,27 @@ test('mergeYearlyTotals keeps years present in only one side untouched, sorted a
     merged.map((e) => e.year),
     [2006, 2026],
   );
+});
+
+test('addTodayYield adds today per-inverter Wh onto a month/year total', () => {
+  const total = { month: '2026-08', perInverter: { 1: 169583, 2: 88219 } };
+  const today = {
+    date: '2026-08-09',
+    perInverter: { 1: { yieldWh: 19268, peakW: 3421 }, 2: { yieldWh: 9738, peakW: 1754 } },
+  };
+  const result = addTodayYield(total, today);
+  assert.deepEqual(result.perInverter, { 1: 188851, 2: 97957 });
+});
+
+test('addTodayYield returns the total unchanged when today has no entry', () => {
+  const total = { month: '2026-08', perInverter: { 1: 169583 } };
+  const result = addTodayYield(total, undefined);
+  assert.equal(result, total);
+});
+
+test('addTodayYield does not mutate the input total', () => {
+  const total = { month: '2026-08', perInverter: { 1: 169583 } };
+  const today = { date: '2026-08-09', perInverter: { 1: { yieldWh: 19268, peakW: 3421 } } };
+  addTodayYield(total, today);
+  assert.deepEqual(total.perInverter, { 1: 169583 });
 });

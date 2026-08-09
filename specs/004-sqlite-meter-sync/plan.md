@@ -57,19 +57,19 @@ in roughly 2M total 5-minute records; 3 known epochs with 2 transition dates (20
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 Constitution version in effect: **2.0.0** (amended 2026-07-31 specifically to accommodate this
 feature — see Sync Impact Report in `.specify/memory/constitution.md`).
 
-| Principle | Applies? | How satisfied |
-|---|---|---|
-| I. Static-File Data Model is Sacred | Yes | Sync script only reads `min*.js` files; never writes/moves/deletes them. Uses the Principle I narrow exception (offline sync script → local SQLite cache) explicitly added for this feature. |
-| II. Zero Historical Data Loss | Yes | Full-archive sync (US1) covers all files 2006–present across all 3 epochs; SC-001 requires record count parity with source files; malformed records are logged/skipped, not silently dropped, and the source files remain the durable record regardless of sync outcome. |
-| III. No Backend Introduction | Yes | Uses the Principle III narrow exception: SQLite file with no long-running process, not a deploy dependency of the static site, not consumed by the browser viewer. The CLI script is standalone, matching FR-011. |
-| IV. Responsive-First Layout | No | No UI change in this feature. |
-| V. Modern Charting — No Custom Pixel Math | No | No chart-rendering change in this feature; US3 only prepares queries a future chart-consuming change could use. |
-| VI. Preserve All Five Visualization Modes | No | No viewer change in this feature; existing modes keep reading `.js` files unchanged. |
+| Principle                                 | Applies? | How satisfied                                                                                                                                                                                                                                                            |
+| ----------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| I. Static-File Data Model is Sacred       | Yes      | Sync script only reads `min*.js` files; never writes/moves/deletes them. Uses the Principle I narrow exception (offline sync script → local SQLite cache) explicitly added for this feature.                                                                             |
+| II. Zero Historical Data Loss             | Yes      | Full-archive sync (US1) covers all files 2006–present across all 3 epochs; SC-001 requires record count parity with source files; malformed records are logged/skipped, not silently dropped, and the source files remain the durable record regardless of sync outcome. |
+| III. No Backend Introduction              | Yes      | Uses the Principle III narrow exception: SQLite file with no long-running process, not a deploy dependency of the static site, not consumed by the browser viewer. The CLI script is standalone, matching FR-011.                                                        |
+| IV. Responsive-First Layout               | No       | No UI change in this feature.                                                                                                                                                                                                                                            |
+| V. Modern Charting — No Custom Pixel Math | No       | No chart-rendering change in this feature; US3 only prepares queries a future chart-consuming change could use.                                                                                                                                                          |
+| VI. Preserve All Five Visualization Modes | No       | No viewer change in this feature; existing modes keep reading `.js` files unchanged.                                                                                                                                                                                     |
 
 No violations requiring Complexity Tracking. Gate: **PASS**.
 
@@ -111,4 +111,4 @@ split is needed — the browser viewer under `src/`/root HTML is untouched by th
 
 ## Complexity Tracking
 
-*No violations — table intentionally omitted.*
+_No violations — table intentionally omitted._

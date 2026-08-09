@@ -2,11 +2,14 @@
 
 Static viewer for SolarLog data exports (HTML/JS/CSS). `web/` is the single directory FTP'd to
 the Synology DiskStation — `web/index.html` is a single-page dashboard (vanilla ES modules,
-Chart.js, no build step) showing current production plus the four summary totals
-(today/month/year/lifetime), with hash-routed detail views for daily, monthly, yearly, lifetime,
-and year-over-year comparison charts (`#/day/YYYY/MM/DD`, `#/month/YYYY/MM`, `#/year/YYYY`,
-`#/total`, `#/compare`). DE/EN language selection persists across reloads. The previous
-frameset-based site is preserved read-only under `legacy-site/`.
+Tailwind CSS compiled to a static file, ApexCharts) showing current production plus the four
+summary totals (today/month/year/lifetime), with hash-routed detail views for daily, monthly,
+yearly, lifetime, and year-over-year comparison charts (`#/day/YYYY/MM/DD`, `#/month/YYYY/MM`,
+`#/year/YYYY`, `#/total`, `#/compare`). All six views share one Tailwind-based visual design in
+both light and dark mode. A responsive navigation menu lists all six views and highlights the
+active one — persistent at desktop widths, a hamburger-triggered menu below ~768px, usable from
+320px to 2560px wide with no horizontal scrolling. DE/EN language selection persists across
+reloads. The previous frameset-based site is preserved read-only under `legacy-site/`.
 
 SolarLog data is split across `web/hist/` (frozen historical data through 2026-07-28, from the
 original device) and `web/data/` (the current device's live, continuously-overwritten output
@@ -21,8 +24,12 @@ npm run start
 npm run open
 ```
 
-Starts the dev server at http://localhost:3000 — entry point is `web/index.html`.
+Starts the dev server at http://localhost:3000 — entry point is `web/index.html`. `npm start` runs
+the Tailwind CLI in `--watch` mode alongside `browser-sync`, so CSS changes hot-reload too.
 Run `npm run open` to open the viewer in your default browser.
+
+`npm run build:css` compiles `web/css/tailwind.css` into the committed `web/css/tailwind.generated.css`
+static file used in production — no CDN/runtime script.
 
 ## Frontend tests
 

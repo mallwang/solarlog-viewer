@@ -11,11 +11,13 @@ One file per calendar day. The source of truth for all calculations.
 **Filename**: `minYYMMDD.js` (e.g., `min260728.js` = 2026-07-28)
 
 **Format**: One record per 5-minute interval, newest first:
+
 ```
 m[mi++]="DD.MM.YY HH:MM:SS|<inv1_fields>|<inv2_fields>"
 ```
 
 **Inverter field layout** (`;`-separated within each `|`-delimited block):
+
 - Field index 2 (0-based) = cumulative Wh counter for that inverter
 - WR1 may have 4 or 6 fields depending on firmware version
 - WR2 may have 4 or 6 fields depending on firmware version
@@ -23,6 +25,7 @@ m[mi++]="DD.MM.YY HH:MM:SS|<inv1_fields>|<inv2_fields>"
 **Daily total extraction**: Read the **first line** of the file (newest record = end-of-day). Split on `|`, skip field 0 (timestamp block), read `fields[i].split(';')[2]` for each inverter block `i`.
 
 **Validation rules**:
+
 - File must be non-empty
 - At least one record must parse successfully
 - Date in filename must match dates inside records
@@ -37,11 +40,13 @@ Per-inverter daily energy totals. Write target for gap-fill scripts.
 **Files**: `days_hist.js` (main, 2010–present), `days_hist_06.js`, `days_hist_07.js`, `days_hist_08.js`, `days_hist_09.js` (year splits, read-only sources).
 
 **Format**:
+
 ```
 da[dx++]="DD.MM.YY|WR1_Wh;WR1_feed|WR2_Wh;WR2_feed"
 ```
 
 **Field meanings**:
+
 - `WR1_Wh`: WR1 daily energy total (Wh, integer)
 - `WR1_feed`: WR1 feed-in value (Wh or tariff unit — read-only when sourced from existing files; set to `0` when derived from min files)
 - Same for WR2
@@ -49,6 +54,7 @@ da[dx++]="DD.MM.YY|WR1_Wh;WR1_feed|WR2_Wh;WR2_feed"
 **Record ordering**: newest date first (descending).
 
 **State transitions**:
+
 - `PRESENT`: date exists in the file with non-zero Wh values
 - `GAP`: date is within the archive range but absent from all `days_hist*.js` files
 - `SOURCE_FROM_DAYS`: gap filled from another `days*.js` file (pass 1)
@@ -64,6 +70,7 @@ Device-generated flat daily total list. **Never modified by these scripts.** Use
 **File**: `daysall.js`
 
 **Format**:
+
 ```
 dal[dxl++]="DD.MM.YY|TotalWh"
 ```
@@ -77,6 +84,7 @@ Monthly energy totals per inverter. Regenerated exclusively from `minYYMMDD.js` 
 **File**: `months.js`
 
 **Format**:
+
 ```
 mo[mx++]="01.MM.YY|WR1_Wh|WR2_Wh"
 ```
@@ -94,6 +102,7 @@ Annual energy totals per inverter. Regenerated exclusively from `minYYMMDD.js` f
 **File**: `years.js`
 
 **Format**:
+
 ```
 ye[yx++]="01.01.YY|WR1_Wh|WR2_Wh"
 ```
@@ -109,6 +118,7 @@ ye[yx++]="01.01.YY|WR1_Wh|WR2_Wh"
 Output of gap-detection and plausibility scripts. Not persisted as a `.js` data file.
 
 **Human-readable fields**:
+
 - Date range scanned
 - Total files found
 - Gap list: date ranges of consecutive missing files (e.g., `2015-08-10 – 2015-08-14: 5 days`)
@@ -116,13 +126,12 @@ Output of gap-detection and plausibility scripts. Not persisted as a `.js` data 
 - Summary statistics: gap count, gap days, mismatch count
 
 **JSON fields** (emitted with `--output json`):
+
 ```json
 {
   "scannedRange": { "from": "YYYY-MM-DD", "to": "YYYY-MM-DD" },
   "filesFound": 7152,
-  "gaps": [
-    { "from": "YYYY-MM-DD", "to": "YYYY-MM-DD", "days": 5 }
-  ],
+  "gaps": [{ "from": "YYYY-MM-DD", "to": "YYYY-MM-DD", "days": 5 }],
   "mismatches": [
     {
       "date": "YYYY-MM-DD",
@@ -155,12 +164,12 @@ daysall.js, days*.js (read-only pass-1 sources; never written)
 
 ## Date Encoding Conventions
 
-| Context | Format | Example |
-|---------|--------|---------|
-| Filename | `YYMMDD` | `min260728.js` = 2026-07-28 |
-| Record timestamp | `DD.MM.YY` | `28.07.26` |
-| CLI argument (gap-detect) | `YYYY-MM-DD` | `--since 2015-01-01` |
-| CLI argument (fill scripts) | `YYYY-MM` or `YYYY` | `2026-07` or `2026` |
-| JSON output | `YYYY-MM-DD` (ISO 8601) | `"2026-07-28"` |
+| Context                     | Format                  | Example                     |
+| --------------------------- | ----------------------- | --------------------------- |
+| Filename                    | `YYMMDD`                | `min260728.js` = 2026-07-28 |
+| Record timestamp            | `DD.MM.YY`              | `28.07.26`                  |
+| CLI argument (gap-detect)   | `YYYY-MM-DD`            | `--since 2015-01-01`        |
+| CLI argument (fill scripts) | `YYYY-MM` or `YYYY`     | `2026-07` or `2026`         |
+| JSON output                 | `YYYY-MM-DD` (ISO 8601) | `"2026-07-28"`              |
 
 2-digit year `YY` maps to: `YY ≥ 06` → `20YY` (device started 2006, so no ambiguity until 2106).

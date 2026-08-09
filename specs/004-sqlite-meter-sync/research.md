@@ -14,6 +14,7 @@ CLI-script style (no async ceremony needed, mirrors `fs.readFileSync` usage alre
 `scripts/*.js`).
 
 **Alternatives considered**:
+
 - `better-sqlite3` (npm, native addon) — also synchronous and battle-tested, but adds a
   dependency with native compilation, rejected in favor of the zero-dependency built-in now that
   Node ships one.
@@ -58,9 +59,10 @@ per day (rather than diffing individual records) is simple, correct, and cheap a
 project's own tooling (`scripts/backfill-min-day.js`) already shows is rare.
 
 **Alternatives considered**:
+
 - File mtime instead of content hash — rejected, mtime is not a reliable change signal (file could
   be rewritten with identical mtime by some tooling, or touched without content change) and the
-  spec explicitly calls for detecting *content* changes.
+  spec explicitly calls for detecting _content_ changes.
 - Row-level upsert (`INSERT ... ON CONFLICT UPDATE`) per record instead of delete+re-insert per
   day — rejected as unnecessary complexity; a day's rows are cheap to fully replace and the
   simpler approach is easier to reason about for correctness/idempotency.

@@ -1,0 +1,88 @@
+@import 'tailwindcss';
+
+/*
+ * Maps Tailwind's generated utility classes to the existing CSS custom-property tokens in
+ * tokens.css (source of truth for light/dark theme values — see research.md §2). No raw hex/
+ * value is duplicated here; every entry below points at a `var(--...)` already defined in
+ * tokens.css, so switching themes (prefers-color-scheme) keeps working with zero Tailwind
+ * `dark:` variant usage.
+ */
+@theme {
+  --color-bg: var(--color-bg);
+  --color-bg-elevated: var(--color-bg-elevated);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-border: var(--color-border);
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-accent: var(--color-accent);
+  --color-danger: var(--color-danger);
+
+  --color-chart-1: var(--chart-color-1);
+  --color-chart-2: var(--chart-color-2);
+  --color-chart-3: var(--chart-color-3);
+  --color-chart-4: var(--chart-color-4);
+  --color-chart-5: var(--chart-color-5);
+  --color-chart-6: var(--chart-color-6);
+
+  --spacing-xs: var(--space-xs);
+  --spacing-sm: var(--space-sm);
+  --spacing-md: var(--space-md);
+  --spacing-lg: var(--space-lg);
+  --spacing-xl: var(--space-xl);
+
+  --font-sans: var(--font-family);
+  --text-sm: var(--font-size-sm);
+  --text-base: var(--font-size-base);
+  --text-lg: var(--font-size-lg);
+  --text-xl: var(--font-size-xl);
+
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+}
+
+@layer components {
+  .app-nav {
+    /* Opaque (bg-bg) so the fixed cloud backdrop, offset to start right below the nav,
+       never shows through the nav bar itself. */
+    @apply flex items-center gap-xs border-b border-border bg-bg px-md py-sm;
+  }
+
+  .app-nav__toggle {
+    @apply md:hidden inline-flex items-center justify-center rounded-md border border-border
+      bg-bg px-sm py-xs text-text;
+  }
+
+  .app-nav__list {
+    @apply hidden flex-col gap-xs md:flex md:flex-row md:flex-wrap;
+  }
+
+  .app-nav__list[data-open='true'] {
+    @apply flex flex-col absolute left-0 right-0 top-full z-10 bg-bg border-b border-border
+      px-md py-sm;
+  }
+
+  .app-nav__list a {
+    @apply block rounded-md px-sm py-xs text-text no-underline;
+  }
+
+  .app-nav__list a:hover {
+    @apply bg-bg-elevated;
+  }
+
+  /* text color for the active link is set in app.css, not here: app.css's plain (unlayered)
+     `a { color: ... }` rule always wins over anything in this @layer block regardless of
+     selector specificity, so overriding it here would silently have no effect. */
+  .app-nav__list a[aria-current='page'] {
+    @apply bg-primary font-semibold;
+  }
+
+  .period-nav__link {
+    @apply rounded-md border border-border bg-bg px-sm py-xs text-sm text-text no-underline
+      hover:bg-bg-elevated;
+  }
+
+  .period-nav__link--disabled {
+    @apply cursor-not-allowed text-text-muted opacity-50 hover:bg-bg;
+  }
+}

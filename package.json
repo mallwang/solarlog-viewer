@@ -4,7 +4,8 @@
   "description": "Static viewer for SolarLog data exports",
   "type": "module",
   "scripts": {
-    "start": "browser-sync start --config bs-config.cjs",
+    "start": "tailwindcss -i web/css/tailwind.css -o web/css/tailwind.generated.css --watch & browser-sync start --config bs-config.cjs",
+    "build:css": "tailwindcss -i web/css/tailwind.css -o web/css/tailwind.generated.css --minify",
     "open": "explorer.exe http://localhost:3000",
     "test": "playwright test",
     "test:scripts": "node --test scripts/*.test.js \"web/js/**/*.test.js\"",
@@ -24,8 +25,9 @@
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.0",
     "browser-sync": "^3.0.4",
-    "chart.js": "^4.5.1",
     "eslint": "^10.8.0",
-    "prettier": "^3.9.6"
+    "prettier": "^3.9.6",
+    "tailwindcss": "^4.1.0",
+    "@tailwindcss/cli": "^4.1.0"
   }
 }
