@@ -98,3 +98,19 @@ node scripts/fill-years.js 2026 --force
 /backfill-months 2026-06
 /backfill-years 2026
 ```
+
+## Pflege der CO2-Emissionsfaktor-Referenztabelle
+
+Die Ansichten Tag/Monat/Jahr/Gesamt zeigen jeweils einen Wert für vermiedenes CO2, berechnet durch
+Multiplikation des Ertrags mit dem CO2-Emissionsfaktor des deutschen Strommixes für das
+Kalenderjahr, in dem der Ertrag erzielt wurde. Die jährlichen Faktoren liegen in
+`web/js/data/co2-factors.js` als einfaches Objekt (`CO2_FACTOR_KG_PER_KWH_BY_YEAR`), auf Basis der
+jährlichen Umweltbundesamt-Veröffentlichung "Entwicklung der spezifischen Treibhausgas-Emissionen
+des deutschen Strommix". Jedes Kalenderjahr, das noch nicht in der Tabelle steht (das laufende Jahr
+und jedes zukünftige Jahr), verwendet stattdessen die Konstante
+`CO2_FALLBACK_FACTOR_KG_PER_KWH` (0,363 kg/kWh).
+
+Um den nächsten vom UBA veröffentlichten Jahreswert einzutragen: den veröffentlichten g CO2/kWh-Wert
+in kg/kWh umrechnen (durch 1000 teilen) und als einzelnen neuen Eintrag `jahr: faktor` in
+`CO2_FACTOR_KG_PER_KWH_BY_YEAR` hinzufügen — es muss keine andere Datei geändert werden; jede
+Ansicht übernimmt den neuen Wert beim nächsten Laden.

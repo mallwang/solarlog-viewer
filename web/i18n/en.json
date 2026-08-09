@@ -21,7 +21,8 @@
       "specificYield": "Specific yield",
       "maxDaily": "Peak day",
       "soll": "Target",
-      "ist": "Actual"
+      "ist": "Actual",
+      "co2": "CO2 avoided"
     }
   },
   "month": {
@@ -45,7 +46,8 @@
       "maxDaily": "Peak day",
       "sollAuflaufend": "Target (cumulative)",
       "sollTotal": "Target",
-      "ist": "Actual"
+      "ist": "Actual",
+      "co2": "CO2 avoided"
     }
   },
   "year": {
@@ -61,7 +63,8 @@
       "maxMonth": "Peak month",
       "sollAuflaufend": "Target (cumulative)",
       "sollTotal": "Target",
-      "ist": "Actual"
+      "ist": "Actual",
+      "co2": "CO2 avoided"
     }
   },
   "total": {
@@ -73,7 +76,8 @@
       "specificYield": "Specific yield",
       "maxYear": "Peak year",
       "sollTotal": "Target",
-      "ist": "Actual"
+      "ist": "Actual",
+      "co2": "CO2 avoided"
     }
   },
   "widget": {

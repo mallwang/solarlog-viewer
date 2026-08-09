@@ -1,6 +1,5 @@
 import { extractAssignedStrings } from './parse-lines.js';
-
-const CO2_KG_PER_KWH = 0.7;
+import { co2FactorForYear } from './co2-factors.js';
 
 function isoDateFromDdMmYy(ddmmyy) {
   const [dd, mm, yy] = ddmmyy.split('.');
@@ -68,8 +67,10 @@ export function parseYearsFile(fileText) {
 }
 
 /**
- * Derives the lifetime summary by summing all YearlyTotals, porting the CO2 factor (0.7 kg/kWh,
- * legacy-site/visu.html's `sum*0.7`) and feed-in tariff calculation as-is (SC-008).
+ * Derives the lifetime summary by summing all YearlyTotals. `co2SavedKg` is computed per year -
+ * each year's yield multiplied by that year's own UBA emission factor (see co2-factors.js), then
+ * summed - never a single flat factor applied to the combined total (FR-002/FR-008); the feed-in
+ * tariff calculation is ported as-is (SC-008).
  * @param {{ year: number, perInverter: { [inverterIndex: number]: number } }[]} yearlyTotals
  * @param {number} tariffRatePerKwh - PlantMetadata.tariffRatePerKwh (Euro/kWh).
  * @returns {{ totalYieldWh: number, co2SavedKg: number, feedInTotal: number, byYear: object[] }}
@@ -174,9 +175,13 @@ export function deriveLifetimeSummary(yearlyTotals, tariffRatePerKwh) {
     0,
   );
   const totalKwh = totalYieldWh / 1000;
+  const co2SavedKg = yearlyTotals.reduce((sum, y) => {
+    const yearKwh = Object.values(y.perInverter).reduce((s, wh) => s + wh, 0) / 1000;
+    return sum + yearKwh * co2FactorForYear(y.year);
+  }, 0);
   return {
     totalYieldWh,
-    co2SavedKg: totalKwh * CO2_KG_PER_KWH,
+    co2SavedKg,
     feedInTotal: totalKwh * tariffRatePerKwh,
     byYear: yearlyTotals,
   };

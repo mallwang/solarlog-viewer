@@ -13,7 +13,7 @@ import { formatRoute } from '../router.js';
 import { addYears, isFutureYear, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
-import { formatKwh, formatCurrency } from '../format.js';
+import { formatKwh, formatCurrency, formatCo2 } from '../format.js';
 import {
   maxMonthlyYieldKwh,
   specificYieldKwhPerKwp,
@@ -21,6 +21,7 @@ import {
   yearSollAuflaufendKwh,
   istPercent,
 } from '../data/yield-stats.js';
+import { co2FactorForYear } from '../data/co2-factors.js';
 
 function currentYear() {
   return new Date().getFullYear();
@@ -62,6 +63,7 @@ function yearStatsRows(monthlyBreakdown, plant, year, isCurrentYear) {
   const ist = istPercent(yieldKwh, sollKwh);
   const maxMonth = maxMonthlyYieldKwh(monthlyBreakdown);
   const maxMonthName = maxMonth.month ? t(`month.long.${maxMonth.month.slice(5, 7)}`) : null;
+  const co2SavedKg = yieldKwh * co2FactorForYear(year);
 
   return [
     ['year.stats.yieldKwh', formatKwh(yieldKwh)],
@@ -76,6 +78,7 @@ function yearStatsRows(monthlyBreakdown, plant, year, isCurrentYear) {
       formatKwh(sollKwh),
     ],
     ['year.stats.ist', `${ist}%`],
+    ['year.stats.co2', formatCo2(co2SavedKg)],
   ];
 }
 

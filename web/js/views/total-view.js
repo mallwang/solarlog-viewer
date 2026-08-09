@@ -13,7 +13,7 @@ import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
 import { emptyStateMarkup } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
-import { formatKwh, formatCurrency } from '../format.js';
+import { formatKwh, formatCurrency, formatCo2 } from '../format.js';
 import {
   maxYearlyYield,
   specificYieldKwhPerKwp,
@@ -51,6 +51,7 @@ function totalStatsRows(summary, plant) {
     ['total.stats.maxYear', best.year ? `${formatKwh(best.kwh)} (${best.year})` : formatKwh(best.kwh)],
     ['total.stats.sollTotal', formatKwh(sollKwh)],
     ['total.stats.ist', `${ist}%`],
+    ['total.stats.co2', formatCo2(summary.co2SavedKg)],
   ];
 }
 

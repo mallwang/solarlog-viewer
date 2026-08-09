@@ -21,7 +21,8 @@
       "specificYield": "Ertrag spezifisch",
       "maxDaily": "Maximalwert",
       "soll": "Soll",
-      "ist": "Ist"
+      "ist": "Ist",
+      "co2": "Vermiedenes CO2"
     }
   },
   "month": {
@@ -45,7 +46,8 @@
       "maxDaily": "Maximalwert",
       "sollAuflaufend": "Soll (auflaufend)",
       "sollTotal": "Soll",
-      "ist": "Ist"
+      "ist": "Ist",
+      "co2": "Vermiedenes CO2"
     }
   },
   "year": {
@@ -61,7 +63,8 @@
       "maxMonth": "Maximalwert",
       "sollAuflaufend": "Soll (auflaufend)",
       "sollTotal": "Soll",
-      "ist": "Ist"
+      "ist": "Ist",
+      "co2": "Vermiedenes CO2"
     }
   },
   "total": {
@@ -73,7 +76,8 @@
       "specificYield": "Ertrag spezifisch",
       "maxYear": "Maximalwert",
       "sollTotal": "Soll",
-      "ist": "Ist"
+      "ist": "Ist",
+      "co2": "Vermiedenes CO2"
     }
   },
   "widget": {

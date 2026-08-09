@@ -7,6 +7,22 @@ test.describe('Month detail view (US2)', () => {
     await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
     await expect(page.locator('.empty-state')).toHaveCount(0);
   });
+
+  test('a historical month (2020-06) shows a CO2 avoidance row', async ({ page }) => {
+    await page.goto('/#/month/2020/06');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.summary-table')).toContainText('Vermiedenes CO2');
+    await expect(page.locator('.summary-table')).toContainText(/kg|t/);
+  });
+});
+
+test.describe('Day detail view (US2)', () => {
+  test('a historical day (2020-06-15) shows a CO2 avoidance row', async ({ page }) => {
+    await page.goto('/#/day/2020/06/15');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.summary-table')).toContainText('Vermiedenes CO2');
+    await expect(page.locator('.summary-table')).toContainText(/kg|t/);
+  });
 });
 
 test.describe('Year detail view (US2)', () => {
@@ -23,6 +39,22 @@ test.describe('Year detail view (US2)', () => {
     expect(uniqueLabels.some((label) => label.includes('2006'))).toBe(true);
     expect(uniqueLabels.length).toBeGreaterThanOrEqual(19);
   });
+
+  test('a historical year (2020) shows a CO2 avoidance row consistent with that year factor', async ({
+    page,
+  }) => {
+    await page.goto('/#/year/2020');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.summary-table')).toContainText('Vermiedenes CO2');
+    await expect(page.locator('.summary-table')).toContainText(/kg|t/);
+  });
+
+  test('the current year shows a CO2 avoidance row (fallback factor)', async ({ page }) => {
+    const currentYear = new Date().getFullYear();
+    await page.goto(`/#/year/${currentYear}`);
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.summary-table')).toContainText('Vermiedenes CO2');
+  });
 });
 
 test.describe('Lifetime (total) view (US2)', () => {
@@ -31,8 +63,11 @@ test.describe('Lifetime (total) view (US2)', () => {
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
     const summaryText = await page.locator('.summary-table').innerText();
-    expect(summaryText).toMatch(/kg/);
+    // The lifetime total's CO2 figure crosses the 10,000 kg/tonne threshold (FR-007), so it
+    // renders in tonnes ("t") here rather than kg - assert either unit, not kg specifically.
+    expect(summaryText).toMatch(/kg|t\b/);
     expect(summaryText).toMatch(/€/);
+    await expect(page.locator('.summary-table')).toContainText('Vermiedenes CO2');
   });
 });
 

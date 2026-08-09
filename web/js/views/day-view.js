@@ -8,7 +8,7 @@ import { formatRoute } from '../router.js';
 import { addDays, isFutureDay, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
-import { formatKwh, formatCurrency, formatDate } from '../format.js';
+import { formatKwh, formatCurrency, formatDate, formatCo2 } from '../format.js';
 import {
   dailyYieldWh,
   maxDailyPowerW,
@@ -16,6 +16,7 @@ import {
   dailySollKwh,
   istPercent,
 } from '../data/yield-stats.js';
+import { co2FactorForYear } from '../data/co2-factors.js';
 
 function ddmmyyFromParams({ year, month, day }) {
   const yy = String(year).slice(-2);
@@ -58,6 +59,7 @@ function dayStatsRows(trace, plant, params) {
   const ist = istPercent(yieldKwh, sollKwh);
   const maxPower = maxDailyPowerW(trace);
   const maxPowerTime = maxPower.timestamp ? maxPower.timestamp.slice(11, 16) : null;
+  const co2SavedKg = yieldKwh * co2FactorForYear(params.year);
 
   return [
     ['day.stats.yieldKwh', formatKwh(yieldKwh)],
@@ -69,6 +71,7 @@ function dayStatsRows(trace, plant, params) {
     ],
     ['day.stats.soll', formatKwh(sollKwh)],
     ['day.stats.ist', `${ist}%`],
+    ['day.stats.co2', formatCo2(co2SavedKg)],
   ];
 }
 
