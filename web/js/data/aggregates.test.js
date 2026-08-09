@@ -66,14 +66,18 @@ test('parseYearsFile renders a partial year (2006) with its actual total, not pa
   assert.deepEqual(partial.perInverter, { 1: 4123877, 2: 2118265 });
 });
 
-test('deriveLifetimeSummary sums all years and applies the CO2 factor and tariff', () => {
+test('deriveLifetimeSummary sums all years and applies each year its own CO2 factor', () => {
+  // 2007 -> 0.626 kg/kWh, 2006 -> 0.608 kg/kWh (see co2-factors.js); per SC-005 this must be the
+  // per-year sum, not totalKwh * a single flat factor.
   const yearlyTotals = [
     { year: 2007, perInverter: { 1: 4000000, 2: 2000000 } },
     { year: 2006, perInverter: { 1: 1000000, 2: 500000 } },
   ];
   const summary = deriveLifetimeSummary(yearlyTotals, 0.518);
   assert.equal(summary.totalYieldWh, 7500000);
-  assert.equal(summary.co2SavedKg, 5250);
+  const expectedCo2 = 6000 * 0.626 + 1500 * 0.608;
+  assert.ok(Math.abs(summary.co2SavedKg - expectedCo2) < 0.001);
+  assert.notEqual(summary.co2SavedKg, (7500000 / 1000) * 0.626);
   assert.ok(Math.abs(summary.feedInTotal - 3885) < 0.01);
   assert.equal(summary.byYear, yearlyTotals);
 });

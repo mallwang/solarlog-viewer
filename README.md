@@ -98,3 +98,18 @@ node scripts/fill-years.js 2026 --force
 /backfill-months 2026-06
 /backfill-years 2026
 ```
+
+## Maintaining the CO2 emission-factor reference table
+
+The day/month/year/total views each show a CO2 avoidance figure, computed by multiplying yield by
+the German electricity grid's CO2 emission factor for the calendar year it was produced in. The
+per-year factors live in `web/js/data/co2-factors.js` as a plain object
+(`CO2_FACTOR_KG_PER_KWH_BY_YEAR`), sourced from the Umweltbundesamt's yearly "Entwicklung der
+spezifischen Treibhausgas-Emissionen des deutschen Strommix" publication. Any calendar year not
+yet in the table (the current, in-progress year, and any future year) falls back to the constant
+`CO2_FALLBACK_FACTOR_KG_PER_KWH` (0.363 kg/kWh).
+
+To add the next published year's factor once UBA releases it: convert the published g CO2/kWh
+figure to kg/kWh (divide by 1000) and add it as a single new `year: factor` key to
+`CO2_FACTOR_KG_PER_KWH_BY_YEAR` — no other file needs to change; every view picks it up on next
+load.

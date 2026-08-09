@@ -16,6 +16,21 @@ Einheit (W für die Tagesansicht, kWh in den übrigen). Diagramme passen sich de
 und das gesamte Layout — inklusive Navigation — bleibt von 320px breiten Smartphones bis zu
 2560px breiten Monitoren nutzbar, ohne horizontales Scrollen.
 
+## Vermiedenes CO2
+
+Die Ansichten Tag, Monat, Jahr und Gesamt (Lebenszeit) zeigen im Statistikbereich neben dem
+Diagramm jeweils einen Wert "Vermiedenes CO2" an. Er schätzt, wie viel CO2-Ausstoß durch die
+Solarstromerzeugung vermieden wurde, verglichen mit dem Bezug der gleichen Strommenge aus dem
+deutschen Netz — anhand des vom Umweltbundesamt veröffentlichten jährlichen Emissionsfaktors des
+deutschen Strommixes (kg CO2 pro kWh) für das Kalenderjahr, in dem der Ertrag erzielt wurde. Bei
+einem Zeitraum über mehrere Jahre (die Gesamt-Ansicht) wird der Beitrag jedes Jahres einzeln
+berechnet und aufsummiert, statt einen einzigen Faktor auf die Gesamtsumme anzuwenden. Werte unter
+10.000 kg werden in kg angezeigt, ab diesem Wert in Tonnen ("t"). Für das laufende Jahr (und jedes
+zukünftige Jahr) liegt noch kein veröffentlichter Faktor vor; bis das Umweltbundesamt den Wert für
+dieses Jahr veröffentlicht, wird stattdessen ein fester Ersatzwert (0,363 kg/kWh) verwendet. Dieser
+Wert wird vollständig aus bereits geladenen Daten berechnet — es wird keine zusätzliche
+Netzwerkanfrage dafür ausgelöst.
+
 ## Voraussetzungen
 
 - Node.js 22+

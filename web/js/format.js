@@ -46,6 +46,21 @@ export function formatCurrency(value, { lang } = {}) {
 }
 
 /**
+ * Formats a CO2-avoidance quantity (kg), porting the legacy site's kg/tonne threshold exactly:
+ * below 10,000 kg renders in kg with 0 decimals, at/above it renders in tonnes ("t") with 2
+ * decimals - both using the active/given language's decimal convention (FR-007/research.md R3).
+ * @param {number} valueKg
+ * @param {{ lang?: 'de' | 'en' }} [opts]
+ * @returns {string}
+ */
+export function formatCo2(valueKg, { lang } = {}) {
+  if (valueKg < 10000) {
+    return `${formatNumber(Math.floor(valueKg), { decimals: 0, lang })} kg`;
+  }
+  return `${formatNumber(Math.floor((valueKg / 1000) * 100) / 100, { decimals: 2, lang })} t`;
+}
+
+/**
  * Formats a calendar date using the active/given language's date convention
  * (DD.MM.YYYY for de, MM/DD/YYYY for en).
  * @param {Date} date

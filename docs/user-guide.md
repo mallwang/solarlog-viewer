@@ -14,6 +14,19 @@ line to see a tooltip with the exact value and its unit (W for the day view, kWh
 Charts resize with the browser window, and the whole layout — nav included — stays usable from
 320px-wide phones up to 2560px-wide monitors with no horizontal scrolling.
 
+## CO2 avoidance figures
+
+The day, month, year, and total (lifetime) views each show a "CO2 avoided" figure in the stats
+panel next to the chart. It estimates the CO2 emissions avoided by generating solar power instead
+of drawing that same amount of electricity from the German grid, using the Umweltbundesamt's
+published yearly emission factor for the German electricity grid mix (kg CO2 per kWh) for the
+calendar year the yield was produced in — a multi-year total (the lifetime view) sums each year's
+own contribution rather than applying one flat factor to the whole total. Values below 10,000 kg
+are shown in kg; at or above that they switch to tonnes ("t"). For the current, still-in-progress
+year (and any future year), no published factor exists yet, so a fixed fallback factor
+(0.363 kg/kWh) is used instead until UBA publishes that year's figure. This figure is computed
+entirely from data already on the page — no additional network request is made for it.
+
 ## Prerequisites
 
 - Node.js 22+
