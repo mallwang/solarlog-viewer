@@ -20,7 +20,11 @@ import {
   istPercent,
 } from './yield-stats.js';
 
-const PLANT = { sollYearKwp: 900, capacityKwp: 6200, sollMonth: [2, 6, 9, 11, 12, 13, 13, 12, 10, 7, 3, 2] };
+const PLANT = {
+  sollYearKwp: 900,
+  capacityKwp: 6200,
+  sollMonth: [2, 6, 9, 11, 12, 13, 13, 12, 10, 7, 3, 2],
+};
 
 function reading(entries) {
   const perInverter = {};
@@ -66,7 +70,9 @@ test('maxDailyPowerW finds the peak instantaneous power (summed per reading acro
 });
 
 test('maxDailyPowerW treats null/missing pacW (backfilled days) as 0', () => {
-  const trace = { readings: [{ timestamp: '2026-08-09T08:00:00', perInverter: { 1: { pacW: null } } }] };
+  const trace = {
+    readings: [{ timestamp: '2026-08-09T08:00:00', perInverter: { 1: { pacW: null } } }],
+  };
   assert.deepEqual(maxDailyPowerW(trace), { w: 0, timestamp: null });
 });
 
@@ -127,7 +133,7 @@ test('monthlySollKwh matches the worked August example (900*6200*12/100000)', ()
   assert.equal(monthlySollKwh(PLANT, 8), 669.6);
 });
 
-test('dailySollKwh spreads the monthly Soll across the month\'s days', () => {
+test("dailySollKwh spreads the monthly Soll across the month's days", () => {
   assert.equal(Number(dailySollKwh(PLANT, 2026, 8).toFixed(1)), 21.6);
 });
 
@@ -135,7 +141,7 @@ test('dailySollKwh returns 0 when Soll data is unavailable', () => {
   assert.equal(dailySollKwh({}, 2026, 8), 0);
 });
 
-test('elapsedDaysInMonth returns today\'s day-of-month for the current month', () => {
+test("elapsedDaysInMonth returns today's day-of-month for the current month", () => {
   const today = new Date(2026, 7, 8); // 8 August 2026 (month is 0-indexed here)
   assert.equal(elapsedDaysInMonth(2026, 8, today), 8);
 });
@@ -163,7 +169,7 @@ test('monthSollAuflaufendKwh equals the full monthly Soll once the month has ful
   );
 });
 
-test('elapsedDaysInYear returns today\'s day-of-year for the current year', () => {
+test("elapsedDaysInYear returns today's day-of-year for the current year", () => {
   const today = new Date(2026, 7, 8); // 8 August 2026 is day 220 of the year
   assert.equal(elapsedDaysInYear(2026, today), 220);
 });

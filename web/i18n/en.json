@@ -92,7 +92,6 @@
   },
   "widget": {
     "notProducing": "0 W — not producing",
-    "currentProduction": "Current Production",
     "todayYield": "Today's Yield",
     "monthYield": "Month's Yield",
     "yearYield": "Year's Yield",
@@ -103,5 +102,19 @@
     "powerAxis": "Power",
     "energyAxis": "Energy",
     "total": "Total"
+  },
+  "infoPanel": {
+    "unavailable": "Unavailable",
+    "currentLabel": "Current",
+    "todayLabel": "Today",
+    "weatherCode": {
+      "clear": "Clear",
+      "cloudy": "Cloudy",
+      "fog": "Fog",
+      "rain": "Rain",
+      "snow": "Snow",
+      "storm": "Storm",
+      "unknown": "Unknown"
+    }
   }
 }

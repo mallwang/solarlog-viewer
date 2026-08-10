@@ -253,13 +253,33 @@ a {
 
 .app-header {
   /* Opaque so the fixed cloud layer behind it (`.sky-clouds`, offset to start below the nav)
-     never shows through the header. */
+     never shows through the header. A single combined header+nav row (at the user's request):
+     `.app-header__start` (brand + nav links) and `.app-header__actions` (info panel,
+     transparency toggle, burger) are the row's only two direct children, pushed to opposite
+     ends by `justify-content: space-between`. The border only appears from `md:` up — below
+     that, `.app-nav__list`'s collapsed dropdown (an absolutely-positioned overlay, see
+     tailwind.css) draws its own border when open, so a permanent one here would double up. */
   background: var(--color-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .app-header {
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+.app-header__start {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  /* Lets `.app-nav__list`'s flex-wrapped links actually wrap within the row instead of forcing
+     `.app-header` itself wider than the viewport on narrower desktop widths. */
+  min-width: 0;
 }
 
 /* Overrides the `a { color: ... }` rule above for the active nav link. Must live here, not in
@@ -285,9 +305,10 @@ a {
   text-decoration: underline;
 }
 
-/* Groups the language switcher and the mobile nav toggle on the header's right side, so the
-   burger icon sits inline with the title instead of in its own bar below it (see .app-nav /
-   .app-nav__toggle in tailwind.css). */
+/* Groups the info panel (desktop-only, hidden below `md:`), language switcher, transparency
+   toggle, and nav toggle on the header's right side. Below `md:` the info panel and
+   lang-switcher (usually) collapse to nothing, leaving just the transparency toggle and burger
+   icon inline with the title — see .app-nav / .app-nav__toggle in tailwind.css. */
 .app-header__actions {
   display: flex;
   flex-direction: row;
@@ -303,6 +324,185 @@ a {
 .app-header__logo {
   width: 28px;
   height: 28px;
+}
+
+/* Global info panel (010-global-info-panel): production + weather/forecast. Two variants of
+   the same markup exist (see index.html) — `.info-panel--desktop` inside the single combined
+   header+nav row's `.app-header__actions` (visible from `md:` up, sharing that row with the
+   nav links and transparency toggle); `.info-panel--mobile` as its own full-width
+   "sub-navigation bar" directly below the header (visible below `md:`, where the nav links
+   themselves collapse into the burger dropdown instead) — and `info-panel-controller.js`
+   updates every matching `[data-role]` element in both at once, so only one is ever visible
+   per viewport width (Tailwind's `hidden md:flex` / `flex md:hidden` utilities on the relevant
+   elements in index.html). This rule holds the styles shared by both. */
+.info-panel {
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--font-size-sm);
+}
+
+/* Extra breathing room after the desktop panel (production/yield/weather), on top of
+   `.app-header__actions`'s own `gap`, so the weather text doesn't crowd the transparency
+   toggle right next to it. The mobile bar doesn't need this — it's the row's only content. */
+.info-panel--desktop {
+  margin-inline-end: var(--space-lg);
+}
+
+/* Mobile sub-navigation bar: a full-width bar directly below `.app-header`, styled like a
+   second nav row (border on both edges) rather than a plain content card. Opaque for the same
+   reason as `.app-header` above — the fixed cloud backdrop must never show through it. */
+.info-panel--mobile {
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* An <a> (links to today's day view, mirroring the dashboard's own current-production widget
+   — see web/js/views/dashboard.js), not a plain <div> — reset the global `a { color: ... }`
+   rule so it reads as ordinary panel text until hovered. `gap` here is deliberately larger
+   than `.info-panel`'s own gap between production/weather — more breathing room between the
+   pulse and the value it belongs to. */
+.info-panel__production {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.info-panel__production:hover {
+  background: var(--color-border);
+}
+
+.info-panel__value {
+  font-weight: 600;
+}
+
+.info-panel__production[data-available='false'] {
+  pointer-events: none;
+}
+
+.info-panel__production[data-available='false'] .info-panel__value {
+  color: var(--color-text-muted);
+}
+
+/* Production-animation pulse (User Story 4, FR-009/FR-010): a plain circular dot whose
+   size/glow/animation-speed scale with `data-intensity` (from
+   `web/js/info-panel/production-animation.js`'s `productionIntensity()`, discrete tiers
+   mirroring the sky feature's `cloud-density.js` → CSS-custom-property precedent, research.md
+   §4) and whose *color* scales continuously with `--pulse-color` (from that module's
+   `productionColor()` — gray for no production, otherwise a red→orange→yellow→green
+   interpolation of how close current output is to the plant's capacity). The `transition`
+   here (not just the `@keyframes` below) is what makes both a tier *and* a color change
+   between polls smooth rather than an abrupt jump (FR-010) — only the pulsing itself is
+   keyframe-driven. */
+.info-panel__pulse {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--pulse-color, var(--color-text-muted));
+  transition:
+    width 0.6s ease,
+    height 0.6s ease,
+    box-shadow 0.6s ease,
+    background-color 0.6s ease;
+}
+
+.info-panel__pulse[data-intensity='idle'] {
+  width: 8px;
+  height: 8px;
+  animation: none;
+  box-shadow: none;
+}
+
+.info-panel__pulse[data-intensity='low'] {
+  animation: info-panel-pulse 3s ease-in-out infinite;
+  box-shadow: 0 0 4px var(--pulse-color, var(--color-text-muted));
+}
+
+.info-panel__pulse[data-intensity='medium'] {
+  width: 12px;
+  height: 12px;
+  animation: info-panel-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--pulse-color, var(--color-text-muted));
+}
+
+.info-panel__pulse[data-intensity='high'] {
+  width: 14px;
+  height: 14px;
+  animation: info-panel-pulse 1.2s ease-in-out infinite;
+  box-shadow: 0 0 12px var(--pulse-color, var(--color-text-muted));
+}
+
+.info-panel__pulse[data-intensity='peak'] {
+  width: 16px;
+  height: 16px;
+  animation: info-panel-pulse 0.7s ease-in-out infinite;
+  box-shadow: 0 0 16px var(--pulse-color, var(--color-text-muted));
+}
+
+@keyframes info-panel-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info-panel__pulse {
+    animation: none !important;
+  }
+}
+
+/* Temporary stand-in for the disabled dashboard (see js/views/dashboard.js and
+   info-panel-controller.js's pollYield/renderYield): today's/this month's yield-so-far as plain
+   text between production and weather. Deliberately a <div>, not an <a> like its neighbors —
+   there's nothing to link to — so no hover/pointer styling either. */
+.info-panel__yield {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.info-panel__yield-month {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs, 0.8em);
+}
+
+.info-panel__weather {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.info-panel__weather:hover {
+  background: var(--color-border);
+}
+
+.info-panel__weather-forecast {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs, 0.8em);
+}
+
+.info-panel__weather[data-available='false'] {
+  pointer-events: none;
+  color: var(--color-text-muted);
 }
 
 /* .app-nav / .app-nav__toggle / .app-nav__list — see tailwind.css `@layer components`,
@@ -396,33 +596,27 @@ a {
   border-bottom: 1px solid var(--color-border);
 }
 
-/* Transparency mode (settings.js, contracts/transparency-mode.md): overrides the two tokens
-   declared in tokens.css so the sky background shows through the header nav chrome/chart-
-   container/stats-panel. This block is unlayered, so it always beats the same selectors' `bg-bg`/
-   `bg-bg-elevated` declarations compiled into tailwind.generated.css's `@layer components` —
-   see the `a[aria-current='page']` comment above for why that ordering is guaranteed regardless
-   of stylesheet <link> order.
+/* Transparency mode (settings.js, contracts/transparency-mode.md): overrides the token declared
+   in tokens.css so the sky background shows through the chart-container/stats-panel — the
+   header nav chrome is deliberately excluded (user correction: the header/nav stays fully
+   opaque and unaffected by the toggle at all times; transparency is only meaningful over the
+   diagrams/statistics on the detail pages, and fading the nav's own background caused a visible
+   flicker there for no benefit). This block is unlayered, so it always beats the same selectors'
+   `bg-bg-elevated` declaration compiled into tailwind.generated.css's `@layer components` — see
+   the `a[aria-current='page']` comment above for why that ordering is guaranteed regardless of
+   stylesheet <link> order.
    `.period-nav__link` (the prev/next/today/parent buttons) is deliberately NOT included here —
    those stay fully opaque at all times so they remain easy to spot/click over the busy sky
-   backdrop, unlike `.app-nav`, whose links already get the text-shadow treatment below. */
+   backdrop. */
 html[data-transparency='on'] {
-  --transparency-nav-opacity: 0;
   --transparency-panel-opacity: 0.4;
-}
-
-.app-nav {
-  background-color: color-mix(
-    in srgb,
-    var(--color-bg) calc(var(--transparency-nav-opacity) * 100%),
-    transparent
-  );
 }
 
 /* Only the card background fades — text/values/chart lines stay at full opacity, so numbers and
    labels remain crisp instead of washing out along with the backdrop (using the CSS `opacity`
    property here would dim the content too, not just the card fill). `.chart-container`'s own
    `background:` declaration above and `.stats-panel`'s Tailwind `bg-bg-elevated` utility are both
-   overridden by this color-mix, same unlayered-beats-layered reasoning as `.app-nav` above. */
+   overridden by this color-mix, same unlayered-beats-layered reasoning as above. */
 .chart-container,
 .stats-panel {
   background-color: color-mix(
@@ -430,16 +624,4 @@ html[data-transparency='on'] {
     var(--color-bg-elevated) calc(var(--transparency-panel-opacity) * 100%),
     transparent
   );
-}
-
-/* FR-002/FR-008: with the header nav background gone, labels/icons sit directly over the
-   animated sky (which ranges from pale cloud-white to deep blue), so `--color-text`'s usual
-   dark-on-white contrast can no longer be assumed. A soft light halo keeps dark text legible
-   against both ends of that range without needing a second (light-on-dark) text color.
-   `.period-nav__link` doesn't need this — it stays fully opaque (see above), so its usual
-   contrast against `--color-bg` already holds. */
-html[data-transparency='on'] .app-nav__list a {
-  text-shadow:
-    0 0 4px var(--color-bg),
-    0 0 4px var(--color-bg);
 }

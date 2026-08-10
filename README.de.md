@@ -1,5 +1,7 @@
 # SolarLog Viewer
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mallwang/solarlog-viewer)
+
 Statischer Viewer für SolarLog-Datenexporte (HTML/JS/CSS). `web/` ist das einzige Verzeichnis, das
 per FTP auf die Synology DiskStation übertragen wird — `web/index.html` ist ein Single-Page-
 Dashboard (vanilla ES-Module, Tailwind CSS als statische Build-Datei, ApexCharts) mit aktueller
@@ -39,6 +41,21 @@ keine Auswirkung auf die PV-Datenfunktionen des Dashboards. `prefers-reduced-mot
 unterdrückt jegliche Animation und das Spawnen fliegender Objekte, spiegelt die realen
 Bedingungen aber weiterhin über statische Hinweise wider. Siehe
 `specs/007-dynamic-sky-weather/` für die vollständige Spezifikation/Planung.
+
+## Globales Desktop-Infopanel
+
+Ein dauerhaftes Panel im Header (nur ab Desktop-Breiten ab 768px sichtbar) zeigt die aktuelle
+Leistung der Anlage, das aktuelle Wetter und die Restprognose für den heutigen Tag am Standort
+der Anlage — sichtbar in jeder Ansicht, nicht nur im Dashboard. Es fragt `data/min_cur.js` und
+[Open-Meteo](https://open-meteo.com) alle ~10 Minuten ab, passend zum minimalen
+Aktualisierungsintervall des SolarLog-Geräts selbst. Eine kleine pulsierende Anzeige neben dem
+Leistungswert skaliert Größe/Geschwindigkeit mit `currentPacW / capacityKwp` (ruhig nahe null,
+am aktivsten nahe der konfigurierten Spitzenleistung der Anlage). Ein Klick auf den Wetter-/
+Prognosebereich öffnet eine wetteronline.de-Suche für die konfigurierte Adresse der Anlage in
+einem neuen Tab — die übliche Wetterquelle des Anlagenbetreibers. Leistung und Wetter/Prognose
+zeigen jeweils unabhängig einen "nicht verfügbar"-Zustand an, falls die jeweilige Datenquelle
+nicht abgerufen werden kann, ohne den anderen Bereich zu beeinträchtigen. Siehe
+`specs/010-global-info-panel/` für die vollständige Spezifikation/Planung.
 
 ## Entwicklungsserver
 

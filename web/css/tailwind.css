@@ -43,17 +43,13 @@
 
 @layer components {
   .app-nav {
-    /* Opaque (bg-bg) so the fixed cloud backdrop, offset to start right below the nav,
-       never shows through the nav bar itself. `relative` makes this the positioning context for
-       `.app-nav__list[data-open='true']` below, so the collapsed menu opens right under the
-       header/title instead of at the bottom of the document (the default containing block for
-       an absolutely-positioned element with no positioned ancestor).
-       Below md:, the toggle button lives in the header instead of here (see
-       `.app-header__actions`), so this bar carries no border/padding of its own there — otherwise
-       it would show as an empty strip under the title. From md: up it's the persistent,
-       always-visible row of nav links, so it gets its usual border/padding back. */
-    @apply relative flex items-center gap-xs bg-bg md:border-b md:border-border md:px-md
-      md:py-sm;
+    /* Nav is now just a wrapper around `.app-nav__list`, nested inside `.app-header` (a single
+       combined header+nav row, at the user's request) rather than its own bar below it —
+       `.app-header` owns the row's background/border. `relative` remains the positioning
+       context for `.app-nav__list[data-open='true']` below, so the collapsed menu still opens
+       right under the header instead of at the bottom of the document (the default containing
+       block for an absolutely-positioned element with no positioned ancestor). */
+    @apply relative flex items-center;
   }
 
   .app-nav__toggle {
@@ -71,7 +67,7 @@
   }
 
   .app-nav__list a {
-    @apply block rounded-md px-sm py-xs text-text no-underline;
+    @apply inline-flex items-center gap-xs rounded-md px-sm py-xs text-text no-underline;
   }
 
   .app-nav__list a:hover {

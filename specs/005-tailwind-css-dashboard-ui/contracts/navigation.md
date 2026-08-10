@@ -14,7 +14,13 @@ not replace `router.js`'s route parsing/formatting contract, which is unchanged.
   <div class="app-header__brand">…</div>
   <div class="app-header__actions">
     <div class="lang-switcher" id="lang-switcher"></div>
-    <button type="button" class="app-nav__toggle" id="app-nav-toggle" aria-expanded="false" aria-controls="app-nav-list">
+    <button
+      type="button"
+      class="app-nav__toggle"
+      id="app-nav-toggle"
+      aria-expanded="false"
+      aria-controls="app-nav-list"
+    >
       <!-- visible only below the md: breakpoint; hamburger icon + accessible label.
            Lives in the header (inline, right of the title) rather than inside <nav>, so it
            opens right where the user's eye already is on mobile. -->

@@ -1,6 +1,5 @@
 ---
-
-description: "Task list template for feature implementation"
+description: 'Task list template for feature implementation'
 ---
 
 # Tasks: Transparency Mode
@@ -29,8 +28,8 @@ Single static frontend project — all paths under `web/` and `tests/e2e/`, per 
 
 **Purpose**: Add the shared design tokens and module scaffold the rest of the feature builds on.
 
-- [X] T001 [P] Add `--transparency-nav-opacity` and `--transparency-panel-opacity` custom properties (default `1`) to `:root` in `web/css/tokens.css`, per [contracts/transparency-mode.md](./contracts/transparency-mode.md) CSS rules
-- [X] T002 [P] Create `web/js/settings.js` with the exported function signatures `isTransparencyEnabled()`, `setTransparencyEnabled(enabled)`, `initTransparencyMode()` (bodies may throw/stub for now), per [contracts/transparency-mode.md](./contracts/transparency-mode.md) Module contract
+- [x] T001 [P] Add `--transparency-nav-opacity` and `--transparency-panel-opacity` custom properties (default `1`) to `:root` in `web/css/tokens.css`, per [contracts/transparency-mode.md](./contracts/transparency-mode.md) CSS rules
+- [x] T002 [P] Create `web/js/settings.js` with the exported function signatures `isTransparencyEnabled()`, `setTransparencyEnabled(enabled)`, `initTransparencyMode()` (bodies may throw/stub for now), per [contracts/transparency-mode.md](./contracts/transparency-mode.md) Module contract
 
 ---
 
@@ -40,10 +39,10 @@ Single static frontend project — all paths under `web/` and `tests/e2e/`, per 
 
 **⚠️ CRITICAL**: No user story task can be verified until this phase is complete.
 
-- [X] T003 [P] Write unit tests for `web/js/settings.js` in `web/js/settings.test.js` (mirroring `web/js/sky/location.test.js` conventions): default `isTransparencyEnabled()` is `false` when `localStorage` is empty, `setTransparencyEnabled(true)`/`(false)` persists `"true"`/`"false"` under the `solarlog-transparency` key, and `initTransparencyMode()` applies the persisted value on call — write these to FAIL first
-- [X] T004 Implement `web/js/settings.js` logic (`isTransparencyEnabled`, `setTransparencyEnabled`, `initTransparencyMode`) per [data-model.md](./data-model.md) Storage representation and [contracts/transparency-mode.md](./contracts/transparency-mode.md), so `node --test web/js/settings.test.js` passes (depends on T002, T003)
-- [X] T005 Add `html[data-transparency='on']` scoped CSS rules to `web/css/app.css` setting `--transparency-nav-opacity: 0` and `--transparency-panel-opacity: 0.4`, and apply `--transparency-nav-opacity` to `.app-nav`/`.period-nav` backgrounds and `--transparency-panel-opacity` as `opacity` on chart-container cards and `.stats-panel`, per [contracts/transparency-mode.md](./contracts/transparency-mode.md) CSS rules (depends on T001)
-- [X] T006 Call `initTransparencyMode()` during bootstrap in `web/js/main.js` (alongside the existing `initI18n()` call) so the persisted preference is applied to `<html>` before first paint (depends on T004)
+- [x] T003 [P] Write unit tests for `web/js/settings.js` in `web/js/settings.test.js` (mirroring `web/js/sky/location.test.js` conventions): default `isTransparencyEnabled()` is `false` when `localStorage` is empty, `setTransparencyEnabled(true)`/`(false)` persists `"true"`/`"false"` under the `solarlog-transparency` key, and `initTransparencyMode()` applies the persisted value on call — write these to FAIL first
+- [x] T004 Implement `web/js/settings.js` logic (`isTransparencyEnabled`, `setTransparencyEnabled`, `initTransparencyMode`) per [data-model.md](./data-model.md) Storage representation and [contracts/transparency-mode.md](./contracts/transparency-mode.md), so `node --test web/js/settings.test.js` passes (depends on T002, T003)
+- [x] T005 Add `html[data-transparency='on']` scoped CSS rules to `web/css/app.css` setting `--transparency-nav-opacity: 0` and `--transparency-panel-opacity: 0.4`, and apply `--transparency-nav-opacity` to `.app-nav`/`.period-nav` backgrounds and `--transparency-panel-opacity` as `opacity` on chart-container cards and `.stats-panel`, per [contracts/transparency-mode.md](./contracts/transparency-mode.md) CSS rules (depends on T001)
+- [x] T006 Call `initTransparencyMode()` during bootstrap in `web/js/main.js` (alongside the existing `initI18n()` call) so the persisted preference is applied to `<html>` before first paint (depends on T004)
 
 **Checkpoint**: `data-transparency` attribute can be set/read and CSS responds to it; ready for the toggle control itself.
 
@@ -57,16 +56,16 @@ Single static frontend project — all paths under `web/` and `tests/e2e/`, per 
 
 ### Tests for User Story 1
 
-- [X] T007 [P] [US1] Playwright test in `tests/e2e/transparency-mode.spec.js`: enabling the toggle sets `data-transparency="on"` on `<html>`, drives nav background alpha to ≈0 and chart-container/`.stats-panel` computed `opacity` to ≈0.4 — write to FAIL first
-- [X] T008 [P] [US1] Playwright test in `tests/e2e/transparency-mode.spec.js`: with transparency mode enabled, navigating between dashboard/day/month/year views keeps `data-transparency="on"` and the same opacity effects applied on each view (FR-005) — write to FAIL first
-- [X] T009 [P] [US1] Playwright test in `tests/e2e/transparency-mode.spec.js`: after enabling transparency mode and calling `page.reload()`, `data-transparency="on"` and `localStorage.getItem('solarlog-transparency') === 'true'` still hold (FR-006, SC-004) — write to FAIL first
+- [x] T007 [P] [US1] Playwright test in `tests/e2e/transparency-mode.spec.js`: enabling the toggle sets `data-transparency="on"` on `<html>`, drives nav background alpha to ≈0 and chart-container/`.stats-panel` computed `opacity` to ≈0.4 — write to FAIL first
+- [x] T008 [P] [US1] Playwright test in `tests/e2e/transparency-mode.spec.js`: with transparency mode enabled, navigating between dashboard/day/month/year views keeps `data-transparency="on"` and the same opacity effects applied on each view (FR-005) — write to FAIL first
+- [x] T009 [P] [US1] Playwright test in `tests/e2e/transparency-mode.spec.js`: after enabling transparency mode and calling `page.reload()`, `data-transparency="on"` and `localStorage.getItem('solarlog-transparency') === 'true'` still hold (FR-006, SC-004) — write to FAIL first
 
 ### Implementation for User Story 1
 
-- [X] T010 [US1] Add a transparency-mode toggle control to the header in `web/index.html`, next to the existing language-switcher/mobile-nav-toggle area, with an accessible label/`aria-pressed` state (depends on T006)
-- [X] T011 [US1] Wire the toggle control's click handler in `web/js/main.js` to call `setTransparencyEnabled(!isTransparencyEnabled())` and update the control's own `aria-pressed`/visual state to reflect the new value (depends on T004, T010)
-- [X] T012 [US1] Verify/adjust nav-bar text and icon styling in `web/css/app.css` so labels stay legible over the sky background when `data-transparency="on"` (FR-002, FR-008), reusing the existing text-shadow/contrast treatment from the sky-background header title (depends on T005)
-- [X] T013 [US1] Run `npx playwright test tests/e2e/transparency-mode.spec.js --reporter=line` and fix implementation until T007–T009 pass
+- [x] T010 [US1] Add a transparency-mode toggle control to the header in `web/index.html`, next to the existing language-switcher/mobile-nav-toggle area, with an accessible label/`aria-pressed` state (depends on T006)
+- [x] T011 [US1] Wire the toggle control's click handler in `web/js/main.js` to call `setTransparencyEnabled(!isTransparencyEnabled())` and update the control's own `aria-pressed`/visual state to reflect the new value (depends on T004, T010)
+- [x] T012 [US1] Verify/adjust nav-bar text and icon styling in `web/css/app.css` so labels stay legible over the sky background when `data-transparency="on"` (FR-002, FR-008), reusing the existing text-shadow/contrast treatment from the sky-background header title (depends on T005)
+- [x] T013 [US1] Run `npx playwright test tests/e2e/transparency-mode.spec.js --reporter=line` and fix implementation until T007–T009 pass
 
 **Checkpoint**: User Story 1 fully functional and independently testable — transparency mode can be turned on and works everywhere, persistently.
 
@@ -80,13 +79,13 @@ Single static frontend project — all paths under `web/` and `tests/e2e/`, per 
 
 ### Tests for User Story 2
 
-- [X] T014 [P] [US2] Playwright test in `tests/e2e/transparency-mode.spec.js`: starting from transparency mode enabled, disabling the toggle removes `data-transparency="on"` from `<html>` and restores nav background alpha to 1 and chart-container/`.stats-panel` `opacity` to 1 (FR-004) — write to FAIL first
-- [X] T015 [P] [US2] Playwright test in `tests/e2e/transparency-mode.spec.js`: after disabling transparency mode and calling `page.reload()`, the attribute stays absent/`"off"` and `localStorage.getItem('solarlog-transparency') === 'false'` (FR-006) — write to FAIL first
+- [x] T014 [P] [US2] Playwright test in `tests/e2e/transparency-mode.spec.js`: starting from transparency mode enabled, disabling the toggle removes `data-transparency="on"` from `<html>` and restores nav background alpha to 1 and chart-container/`.stats-panel` `opacity` to 1 (FR-004) — write to FAIL first
+- [x] T015 [P] [US2] Playwright test in `tests/e2e/transparency-mode.spec.js`: after disabling transparency mode and calling `page.reload()`, the attribute stays absent/`"off"` and `localStorage.getItem('solarlog-transparency') === 'false'` (FR-006) — write to FAIL first
 
 ### Implementation for User Story 2
 
-- [X] T016 [US2] Confirm the toggle handler from T011 correctly round-trips off→on→off (no residual inline styles or stuck attribute values) in `web/js/main.js`; fix if T014/T015 reveal a gap (depends on T011)
-- [X] T017 [US2] Run `npx playwright test tests/e2e/transparency-mode.spec.js --reporter=line` and fix implementation until T014–T015 pass
+- [x] T016 [US2] Confirm the toggle handler from T011 correctly round-trips off→on→off (no residual inline styles or stuck attribute values) in `web/js/main.js`; fix if T014/T015 reveal a gap (depends on T011)
+- [x] T017 [US2] Run `npx playwright test tests/e2e/transparency-mode.spec.js --reporter=line` and fix implementation until T014–T015 pass
 
 **Checkpoint**: Both User Story 1 and User Story 2 work independently — transparency mode can be turned on and off, everywhere, persistently.
 
@@ -96,10 +95,10 @@ Single static frontend project — all paths under `web/` and `tests/e2e/`, per 
 
 **Purpose**: Regression safety and hygiene across both stories.
 
-- [X] T018 [P] Run `node --test web/js/settings.test.js` and `npx eslint web/js/settings.js web/js/settings.test.js`, fixing any errors (zero errors required per `CLAUDE.md`)
-- [X] T019 [P] Run `npx playwright test tests/e2e/navigation.spec.js --reporter=line` to confirm the new header toggle introduced no regression to existing nav/frameset coverage
-- [X] T020 Run through the manual validation steps in [quickstart.md](./quickstart.md) end-to-end in a real browser via `npm start`
-- [X] T021 [P] Run `npm run format:check` and `npm run lint` across changed files and fix any violations
+- [x] T018 [P] Run `node --test web/js/settings.test.js` and `npx eslint web/js/settings.js web/js/settings.test.js`, fixing any errors (zero errors required per `CLAUDE.md`)
+- [x] T019 [P] Run `npx playwright test tests/e2e/navigation.spec.js --reporter=line` to confirm the new header toggle introduced no regression to existing nav/frameset coverage
+- [x] T020 Run through the manual validation steps in [quickstart.md](./quickstart.md) end-to-end in a real browser via `npm start`
+- [x] T021 [P] Run `npm run format:check` and `npm run lint` across changed files and fix any violations
 
 ---
 

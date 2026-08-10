@@ -11,7 +11,7 @@ No `[NEEDS CLARIFICATION]` markers remained in the spec, and Technical Context a
 
 ## Decision: Parent link is never rendered disabled
 
-- **Rationale**: Unlike `todayHref` (which is `null`/disabled when the routed period *is* already today/this-month/this-year), a parent period always exists and is always distinct from its child for day, month, and year views — there is no "already at parent" state. Per FR-008, the parent link is always actionable. This means the new markup parameter doesn't need the `null`-to-disable branching that `todayHref` uses — it can be `undefined`/absent (omitted, as on `total-view.js`) or a real href (always enabled).
+- **Rationale**: Unlike `todayHref` (which is `null`/disabled when the routed period _is_ already today/this-month/this-year), a parent period always exists and is always distinct from its child for day, month, and year views — there is no "already at parent" state. Per FR-008, the parent link is always actionable. This means the new markup parameter doesn't need the `null`-to-disable branching that `todayHref` uses — it can be `undefined`/absent (omitted, as on `total-view.js`) or a real href (always enabled).
 - **Alternatives considered**: Reusing the exact disable-when-null convention for symmetry — rejected as unnecessary complexity: it would require every call site to pass a never-null href, so there's no real branch to guard against.
 
 ## Decision: Compute parent params inline in each view via existing param objects

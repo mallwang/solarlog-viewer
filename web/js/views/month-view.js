@@ -86,9 +86,7 @@ function monthStatsRows(monthTotal, plant, params, isCurrentMonth) {
   const ist = istPercent(yieldKwh, sollKwh);
   const maxDaily = maxDailyYieldKwh(monthTotal.dailyBreakdown);
   const maxDailyDay = maxDaily.date ? Number.parseInt(maxDaily.date.slice(8, 10), 10) : null;
-  const maxDailyMonthName = maxDaily.date
-    ? t(`month.long.${maxDaily.date.slice(5, 7)}`)
-    : null;
+  const maxDailyMonthName = maxDaily.date ? t(`month.long.${maxDaily.date.slice(5, 7)}`) : null;
   const co2SavedKg = yieldKwh * co2FactorForYear(params.year);
 
   return [
@@ -101,10 +99,7 @@ function monthStatsRows(monthTotal, plant, params, isCurrentMonth) {
         ? `${formatKwh(maxDaily.kwh)} (${maxDailyDay}. ${maxDailyMonthName})`
         : formatKwh(maxDaily.kwh),
     ],
-    [
-      isCurrentMonth ? 'month.stats.sollAuflaufend' : 'month.stats.sollTotal',
-      formatKwh(sollKwh),
-    ],
+    [isCurrentMonth ? 'month.stats.sollAuflaufend' : 'month.stats.sollTotal', formatKwh(sollKwh)],
     ['month.stats.ist', `${ist}%`],
     ['month.stats.co2', formatCo2(co2SavedKg)],
   ];
@@ -127,9 +122,7 @@ export async function render(container, { route, plant }) {
     prevHref: formatRoute({ view: 'month', params: addMonths(params, -1) }),
     prevLabel: t('month.prev'),
     prevShortLabel: t('common.prev'),
-    nextHref: isFutureMonth(nextParams)
-      ? null
-      : formatRoute({ view: 'month', params: nextParams }),
+    nextHref: isFutureMonth(nextParams) ? null : formatRoute({ view: 'month', params: nextParams }),
     nextLabel: t('month.next'),
     nextShortLabel: t('common.next'),
     todayHref: isCurrentMonth ? null : formatRoute({ view: 'month', params: todayParams() }),

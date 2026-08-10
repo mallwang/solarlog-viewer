@@ -22,6 +22,9 @@ async function readStyles(page) {
   await page.locator('.stats-panel').waitFor();
   return page.evaluate(() => ({
     attribute: document.documentElement.getAttribute('data-transparency'),
+    // The header/nav stays fully opaque at all times regardless of the toggle (user correction:
+    // transparency is only meaningful over the diagrams/statistics on the detail pages; fading
+    // the nav's own background caused a visible flicker there for no benefit).
     navBg: getComputedStyle(document.getElementById('app-nav')).backgroundColor,
     // Prev/next/today/parent buttons must stay fully opaque at all times (user correction:
     // these need to stay easy to spot/click, unlike the header nav).
@@ -36,7 +39,7 @@ async function readStyles(page) {
 }
 
 test.describe('Transparency mode — User Story 1 (turn on)', () => {
-  test('enabling the toggle sets data-transparency="on" and drives nav/panel background opacity, without fading panel content or period-nav buttons (FR-002, FR-003)', async ({
+  test('enabling the toggle sets data-transparency="on" and drives panel background opacity, without touching the header/nav or fading panel content or period-nav buttons (FR-002, FR-003)', async ({
     page,
   }) => {
     await page.goto('/#/day/2019/07/15');
@@ -55,7 +58,7 @@ test.describe('Transparency mode — User Story 1 (turn on)', () => {
       statsContentOpacity,
     } = await readStyles(page);
     expect(attribute).toBe('on');
-    expect(parseAlpha(navBg)).toBeCloseTo(0, 2);
+    expect(parseAlpha(navBg)).toBeCloseTo(1, 2);
     expect(parseAlpha(periodNavLinkBg)).toBeCloseTo(1, 2);
     expect(parseAlpha(chartBg)).toBeCloseTo(0.4, 2);
     expect(parseAlpha(statsBg)).toBeCloseTo(0.4, 2);
@@ -63,7 +66,7 @@ test.describe('Transparency mode — User Story 1 (turn on)', () => {
     expect(Number(statsContentOpacity)).toBeCloseTo(1, 2);
   });
 
-  test('transparency effect persists across dashboard/day/month/year navigation (FR-005)', async ({
+  test('transparency effect persists across day/month/year navigation (FR-005)', async ({
     page,
   }) => {
     await page.goto('/');
@@ -97,7 +100,7 @@ test.describe('Transparency mode — User Story 1 (turn on)', () => {
 });
 
 test.describe('Transparency mode — User Story 2 (turn off)', () => {
-  test('disabling the toggle removes data-transparency="on" and restores nav/panel background opacity (FR-004)', async ({
+  test('disabling the toggle removes data-transparency="on" and restores panel background opacity (FR-004)', async ({
     page,
   }) => {
     await page.goto('/#/day/2019/07/15');

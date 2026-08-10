@@ -56,6 +56,7 @@ export default [
         localStorage: 'readonly',
         matchMedia: 'readonly',
         Date: 'readonly',
+        URLSearchParams: 'readonly',
       },
     },
   },

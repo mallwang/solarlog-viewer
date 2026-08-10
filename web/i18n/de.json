@@ -92,7 +92,6 @@
   },
   "widget": {
     "notProducing": "0 W — keine Einspeisung",
-    "currentProduction": "Aktuelle Leistung",
     "todayYield": "Tagesertrag",
     "monthYield": "Monatsertrag",
     "yearYield": "Jahresertrag",
@@ -103,5 +102,19 @@
     "powerAxis": "Leistung",
     "energyAxis": "Energie",
     "total": "Gesamt"
+  },
+  "infoPanel": {
+    "unavailable": "Nicht verfügbar",
+    "currentLabel": "Aktuell",
+    "todayLabel": "Heute",
+    "weatherCode": {
+      "clear": "Klar",
+      "cloudy": "Bewölkt",
+      "fog": "Nebel",
+      "rain": "Regen",
+      "snow": "Schnee",
+      "storm": "Gewitter",
+      "unknown": "Unbekannt"
+    }
   }
 }

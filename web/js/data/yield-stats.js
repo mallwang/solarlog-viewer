@@ -22,7 +22,10 @@ export function dailyYieldWh(trace) {
 export function maxDailyPowerW(trace) {
   let best = { w: 0, timestamp: null };
   for (const reading of trace.readings) {
-    const totalW = Object.values(reading.perInverter).reduce((sum, inv) => sum + (inv?.pacW ?? 0), 0);
+    const totalW = Object.values(reading.perInverter).reduce(
+      (sum, inv) => sum + (inv?.pacW ?? 0),
+      0,
+    );
     if (totalW > best.w) best = { w: totalW, timestamp: reading.timestamp };
   }
   return best;
@@ -59,7 +62,8 @@ export function maxDailyYieldKwh(dailyTotals) {
 export function maxMonthlyYieldKwh(monthlyTotals) {
   let best = { kwh: 0, month: null };
   for (const month of monthlyTotals) {
-    const totalKwh = Object.values(month.perInverter).reduce((sum, wh) => sum + (wh ?? 0), 0) / 1000;
+    const totalKwh =
+      Object.values(month.perInverter).reduce((sum, wh) => sum + (wh ?? 0), 0) / 1000;
     if (totalKwh > best.kwh) best = { kwh: totalKwh, month: month.month };
   }
   return best;

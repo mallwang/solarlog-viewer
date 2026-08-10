@@ -8,15 +8,18 @@ import {
   parseYearsFile,
   mergeMonthlyTotals,
   mergeYearlyTotals,
+  addTodayYield,
 } from '../data/aggregates.js';
-import { parseMinFile } from '../data/min-file.js';
 import { fetchFromBothSources } from '../data/data-source.js';
-
-const LIVE_REFRESH_MS = 5 * 60 * 1000;
 
 function todayParams() {
   const now = new Date();
   return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
+}
+
+function todayIso() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 function sumWh(perInverter) {
@@ -32,51 +35,15 @@ function widget(titleKey, value, href) {
   </div>`;
 }
 
-function todayDdMmYy() {
-  const now = new Date();
-  return `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getFullYear()).slice(-2)}`;
-}
-
 /**
- * Renders a SummaryStat.status (FR-010) as an icon + text label alongside any color coding, so
- * the state is never conveyed by color alone.
- * @param {HTMLElement} valueEl
- * @param {'producing' | 'idle' | 'unavailable'} status
- * @param {string} text
- */
-function renderStatus(valueEl, status, text) {
-  const icon = { producing: '●', idle: '○', unavailable: '—' }[status];
-  valueEl.dataset.status = status;
-  valueEl.innerHTML = `<span class="status-icon" aria-hidden="true">${icon}</span> ${text}`;
-}
-
-async function refreshCurrentProduction(valueEl) {
-  const result = await fetchText('data/min_cur.js');
-  if (!result.ok) {
-    renderStatus(valueEl, 'unavailable', '—');
-    return;
-  }
-  const trace = parseMinFile(result.text, todayDdMmYy());
-  const [reading] = trace.readings;
-  if (!reading) {
-    renderStatus(valueEl, 'unavailable', '—');
-    return;
-  }
-  const totalPacW = Object.values(reading.perInverter).reduce((s, inv) => s + inv.pacW, 0);
-  renderStatus(
-    valueEl,
-    totalPacW === 0 ? 'idle' : 'producing',
-    totalPacW === 0 ? t('widget.notProducing') : `${totalPacW} W`,
-  );
-}
-
-/**
- * Mounts the dashboard: all summary widgets (current production + 4 totals) at once,
- * each linking to its detail view (SC-003: dashboard-to-any-chart in <=2 interactions).
- * Current production auto-refreshes every 5 minutes from min_cur.js (FR-016, SC-005).
+ * Mounts the dashboard: the 4 yield-totals widgets (today/month/year/total), each linking to its
+ * detail view (SC-003: dashboard-to-any-chart in <=2 interactions). Current production moved to
+ * the global nav info panel (see info-panel/info-panel-controller.js), so it is no longer shown
+ * here. Month/year/total figures fold in today's live yield (days.js) on top of
+ * months.js/years.js the same way the month/year/total detail views do (see addTodayYield),
+ * so the dashboard and detail pages always agree.
  * @param {HTMLElement} container
  * @param {{ plant: object | null }} ctx
- * @returns {() => void} Cleanup function that stops the live-refresh interval.
  */
 export async function render(container) {
   const { year, month, day } = todayParams();
@@ -88,7 +55,6 @@ export async function render(container) {
   container.innerHTML = `
     <h2 class="view-title text-lg mb-md">${t('nav.dashboard')}</h2>
     <div class="widget-grid grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3" id="widget-grid">
-      ${widget('widget.currentProduction', '-', dayHref)}
       ${widget('widget.todayYield', '—', dayHref)}
       ${widget('widget.monthYield', '—', monthHref)}
       ${widget('widget.yearYield', '—', yearHref)}
@@ -99,9 +65,6 @@ export async function render(container) {
   const monthKey = `${year}-${String(month).padStart(2, '0')}`;
   const grid = container.querySelector('#widget-grid');
   const values = grid.querySelectorAll('.widget__value');
-
-  refreshCurrentProduction(values[0]);
-  const intervalId = setInterval(() => refreshCurrentProduction(values[0]), LIVE_REFRESH_MS);
 
   const [daysResult, months, years] = await Promise.all([
     fetchText('data/days.js'),
@@ -119,17 +82,38 @@ export async function render(container) {
     ),
   ]);
 
-  if (daysResult.ok) {
-    const [today] = parseDailyTotalsFile(daysResult.text);
-    if (today) values[1].textContent = formatKwh(sumWh(today.perInverter) / 1000);
-  }
-  const thisMonth = months.find((m) => m.month === monthKey);
-  if (thisMonth) values[2].textContent = formatKwh(sumWh(thisMonth.perInverter) / 1000);
+  const todayEntry = daysResult.ok
+    ? parseDailyTotalsFile(daysResult.text).find((d) => d.date === todayIso())
+    : undefined;
 
-  const thisYear = years.find((y) => y.year === year);
-  if (thisYear) values[3].textContent = formatKwh(sumWh(thisYear.perInverter) / 1000);
-  const totalWh = years.reduce((s, y) => s + sumWh(y.perInverter), 0);
-  values[4].textContent = formatKwh(totalWh / 1000);
+  if (todayEntry) values[0].textContent = formatKwh(sumWh(todayEntry.perInverter) / 1000);
 
-  return () => clearInterval(intervalId);
+  // months.js/years.js are only written at day rollover, so fold today's live entry into the
+  // current month before summing, mirroring month-view.js/year-view.js/total-view.js.
+  const thisMonth = addTodayYield(
+    months.find((m) => m.month === monthKey) ?? { month: monthKey, perInverter: {} },
+    todayEntry,
+  );
+  values[1].textContent = formatKwh(sumWh(thisMonth.perInverter) / 1000);
+
+  // year-view.js derives the year's total from months.js (summed across the year's months, with
+  // today folded into the current month) rather than from years.js directly, so mirror that here
+  // instead of years.js's own total, which can drift from the months.js-derived figure.
+  const monthsInYear = months.filter((m) => m.month.startsWith(String(year)));
+  const monthlyBreakdown = monthsInYear.some((m) => m.month === monthKey)
+    ? monthsInYear.map((m) => (m.month === monthKey ? thisMonth : m))
+    : [...monthsInYear, thisMonth];
+  const yearWh = monthlyBreakdown.reduce((s, m) => s + sumWh(m.perInverter), 0);
+  values[2].textContent = formatKwh(yearWh / 1000);
+
+  // total-view.js derives the lifetime total from years.js (with today folded into the current
+  // year), so mirror that here too.
+  const yearsWithToday = years.some((y) => y.year === year)
+    ? years
+    : [...years, { year, perInverter: {} }];
+  const totalWh = yearsWithToday.reduce((s, y) => {
+    const perInverter = y.year === year ? addTodayYield(y, todayEntry).perInverter : y.perInverter;
+    return s + sumWh(perInverter);
+  }, 0);
+  values[3].textContent = formatKwh(totalWh / 1000);
 }

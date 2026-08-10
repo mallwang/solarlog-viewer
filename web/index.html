@@ -45,21 +45,61 @@
          sky-controller.js; empty (and thus invisible) until the first object spawns. -->
     <div class="sky-flying-objects" aria-hidden="true"></div>
     <noscript>This site requires JavaScript to display your SolarLog production data.</noscript>
+    <!-- Single combined header+nav row (010-global-info-panel, at the user's request): brand,
+         nav links, the info panel (production + weather/forecast), and the transparency
+         toggle all live in one `.app-header` row on desktop, where there's room for all of it.
+         Below `md:`, `.app-nav__list` and `.info-panel--desktop` both collapse to nothing
+         (hidden/dropdown-only), leaving just brand + transparency toggle + burger — the
+         mobile-width row this always was. -->
     <header class="app-header">
-      <a class="app-header__brand" href="#/">
-        <img class="app-header__logo" src="favicon.ico" alt="" />
-        <h1 class="app-header__title" id="app-title">SolarLog Viewer</h1>
-      </a>
+      <div class="app-header__start">
+        <a class="app-header__brand" href="#/">
+          <img class="app-header__logo" src="favicon.ico" alt="" />
+          <h1 class="app-header__title" id="app-title">SolarLog Viewer</h1>
+        </a>
+        <nav class="app-nav" id="app-nav">
+          <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
+        </nav>
+      </div>
       <div class="app-header__actions">
+        <!-- Desktop-only info panel: production + weather/forecast, populated by
+             info-panel-controller.js (matches both this and `.info-panel--mobile` below via
+             `[data-role]`, see data-model.md's "Info Panel View State"). -->
+        <div class="info-panel info-panel--desktop hidden md:flex" data-info-panel="desktop">
+          <a class="info-panel__production" data-role="production" data-available="false">
+            <span
+              class="info-panel__pulse"
+              data-role="pulse"
+              data-intensity="idle"
+              aria-hidden="true"
+            ></span>
+            <span class="info-panel__value" data-role="production-value">—</span>
+          </a>
+          <!-- Temporary stand-in for the disabled dashboard (see js/views/dashboard.js): plain
+               text, not a link, populated by info-panel-controller.js's pollYield/renderYield. -->
+          <div class="info-panel__yield" data-role="yield">
+            <span class="info-panel__yield-today" data-role="yield-today">—</span>
+            <span class="info-panel__yield-month" data-role="yield-month">—</span>
+          </div>
+          <a
+            class="info-panel__weather"
+            data-role="weather"
+            data-available="false"
+            rel="noopener"
+            target="_blank"
+            hidden
+          >
+            <span class="info-panel__weather-current" data-role="weather-current">—</span>
+            <span class="info-panel__weather-forecast" data-role="weather-forecast">—</span>
+          </a>
+        </div>
         <div class="lang-switcher" id="lang-switcher"></div>
         <button
           type="button"
           class="transparency-toggle"
           id="transparency-toggle"
           aria-pressed="false"
-        >
-          ◐
-        </button>
+        ></button>
         <button
           type="button"
           class="app-nav__toggle"
@@ -71,9 +111,35 @@
         </button>
       </div>
     </header>
-    <nav class="app-nav" id="app-nav">
-      <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
-    </nav>
+    <!-- Mobile-only sub-navigation bar: production + weather/forecast, directly below the
+         header (the burger-collapsed nav list drops down from the header itself instead).
+         Hidden from `md:` up in favor of `.info-panel--desktop` above. -->
+    <div class="info-panel info-panel--mobile flex md:hidden" data-info-panel="mobile">
+      <a class="info-panel__production" data-role="production" data-available="false">
+        <span
+          class="info-panel__pulse"
+          data-role="pulse"
+          data-intensity="idle"
+          aria-hidden="true"
+        ></span>
+        <span class="info-panel__value" data-role="production-value">—</span>
+      </a>
+      <div class="info-panel__yield" data-role="yield">
+        <span class="info-panel__yield-today" data-role="yield-today">—</span>
+        <span class="info-panel__yield-month" data-role="yield-month">—</span>
+      </div>
+      <a
+        class="info-panel__weather"
+        data-role="weather"
+        data-available="false"
+        rel="noopener"
+        target="_blank"
+        hidden
+      >
+        <span class="info-panel__weather-current" data-role="weather-current">—</span>
+        <span class="info-panel__weather-forecast" data-role="weather-forecast">—</span>
+      </a>
+    </div>
     <main class="app-main" id="app-main"></main>
     <script type="module" src="js/main.js"></script>
   </body>

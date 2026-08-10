@@ -37,7 +37,7 @@ day's `sunrise` (all from Open-Meteo's `daily` block) and the current time `now`
 - If `sunrise <= now < sunset`: daytime. `progress = (now - sunrise) / (sunset - sunrise)`
   (0→1). Horizontal position `xPercent = progress * 100`. Vertical position follows a
   parabolic arc peaking at `progress = 0.5` (solar noon proxy): `yPercent = 100 - 100 *
-  (1 - (2*progress - 1)^2)` (low near both horizon ends, highest at midpoint) — sun.
+(1 - (2*progress - 1)^2)` (low near both horizon ends, highest at midpoint) — sun.
 - Otherwise: nighttime. `progress = (now - sunset) / (nextSunrise - sunset)`, same arc
   shape — moon.
 - A short crossfade window (a few minutes either side of `sunrise`/`sunset`) blends sun and
@@ -71,12 +71,12 @@ arithmetic lines, no trigonometry, no new dependency, and no separate astronomy 
    coordinates in `localStorage` keyed by the address string so the network call happens
    at most once per address per browser.
 
-**Rationale**: FR-001 requires location to be *derived from existing configuration data*,
+**Rationale**: FR-001 requires location to be _derived from existing configuration data_,
 which both tiers satisfy — the override still keys off the same `HPStandort` value
 conceptually (a human resolves it once instead of a geocoder resolving it every session).
 This matters in practice: `HPStandort` values in this codebase are free-text German postal
 addresses including small hamlets (`"Ensdorf-Wolfsbach"`), which general-purpose geocoders
-frequently fail to resolve precisely, while resolving the *postal code* alone is coarse
+frequently fail to resolve precisely, while resolving the _postal code_ alone is coarse
 enough for weather purposes (weather doesn't vary meaningfully across a village). The
 override gives an escape hatch without hand-rolling a geocoding pipeline, while the
 automatic tier keeps the feature generically correct for other installations (FR-014)
@@ -104,7 +104,7 @@ the `clear` tier so fewer are rendered at all.
 
 **Rationale**: The existing six-cloud layer is well-tuned CSS (blur+contrast fusion,
 staggered drift timings) — replacing it would be pure risk for no user-visible gain.
-Driving it from a single data attribute keeps the change additive and keeps the *default*
+Driving it from a single data attribute keeps the change additive and keeps the _default_
 (no-JS, or JS-failed) appearance identical to today's static look, which conveniently
 **is** the correct FR-005 fallback appearance for free — no separate fallback markup to
 build or maintain.
@@ -118,8 +118,8 @@ build or maintain.
 ## 5. Flying objects (birds/planes/balloons/rockets)
 
 **Decision**: A pure scheduling module (`flying-objects.js`) that, given a clock and an RNG
-(both injectable for testing), decides *when* the next object of each rarity tier should
-spawn and *which* kind to pick; a thin DOM-glue layer in `sky-controller.js` creates a
+(both injectable for testing), decides _when_ the next object of each rarity tier should
+spawn and _which_ kind to pick; a thin DOM-glue layer in `sky-controller.js` creates a
 short-lived absolutely-positioned element with a CSS `@keyframes` cross-screen animation
 and removes it on `animationend`. Birds: random delay in a tight band (~3–8 min) so they
 recur "at a light, regular cadence" (FR-009) independent of weather/time. Planes/balloons:
@@ -127,8 +127,8 @@ much wider random delay band (~20–45 min). Rocket: only rolled when the moon i
 visible, wider still (~45–90 min) and lower selection probability, matching the "easter
 egg" framing (FR-011).
 
-**Rationale**: Separating the *decision* (pure, unit-testable, deterministic given a fixed
-RNG seed) from the *DOM effect* (only verifiable end-to-end) matches this codebase's
+**Rationale**: Separating the _decision_ (pure, unit-testable, deterministic given a fixed
+RNG seed) from the _DOM effect_ (only verifiable end-to-end) matches this codebase's
 existing testing split (small pure `data/` modules with `node:test` unit coverage; DOM
 behavior covered by Playwright per the constitution's Testing standard). CSS-driven
 cross-screen animation (rather than a JS animation loop) keeps this cheap, GPU-composited,
@@ -160,7 +160,7 @@ under SC-004's 30-minute budget even if a single poll fails and the next one suc
 `sky-controller.js`, re-evaluated on the media query's `change` event. When reduced:
 skip flying-object scheduling entirely, and add a `data-reduce-motion="true"` attribute
 that CSS uses to zero out `.cloud`'s drift animation and the sun/moon position transition
-duration — the *state* (cloud tier, sun/moon position, day/night) still updates, just
+duration — the _state_ (cloud tier, sun/moon position, day/night) still updates, just
 without animated movement, per FR-013 and the spec's Edge Cases section.
 
 **Rationale**: Matches the standard web platform mechanism already implied by the spec's

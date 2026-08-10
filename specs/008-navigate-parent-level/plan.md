@@ -32,7 +32,7 @@ Add a "zoom out to parent period" link to the day, month, and year views (day→
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **Principle III (No Backend)**: Pass — purely client-side link/routing addition, no new data fetch or server dependency.
 - **Principle IV (Responsive-First Layout)**: Pass — new control reuses the existing `.period-nav` flex row and its responsive CSS; no fixed-pixel layout introduced.
@@ -83,4 +83,4 @@ tests/
 
 ## Complexity Tracking
 
-*No violations — section not applicable.*
+_No violations — section not applicable._

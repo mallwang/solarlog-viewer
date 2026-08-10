@@ -110,7 +110,9 @@ export async function render(container, { route, plant }) {
   // today's readings live exclusively in the rolling min_day.js, so prefer it for today's date.
   const result = isToday
     ? await fetchText(`${DATA_DIR}/min_day.js`)
-    : await fetchText(`${sourceDirForDate(isoFromParams(params))}/min${yymmddFromParams(params)}.js`);
+    : await fetchText(
+        `${sourceDirForDate(isoFromParams(params))}/min${yymmddFromParams(params)}.js`,
+      );
 
   const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');

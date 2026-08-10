@@ -3,11 +3,11 @@
 ## R1: Source and exact values for the yearly emission-factor reference table
 
 **Decision**: Use the "Emissionsfaktor Strommix" column (direct CO2 emissions per kWh of the
-German electricity grid mix, average/territorial method, *not* the trade-balance-adjusted
+German electricity grid mix, average/territorial method, _not_ the trade-balance-adjusted
 "Strominlandsverbrauch" variant) from Umweltbundesamt's Tabelle 2 in:
 
-> Icha, P.; Lauf, T. (2026): *Entwicklung der spezifischen Treibhausgas-Emissionen des
-> deutschen Strommix in den Jahren 1990–2025*. Umweltbundesamt, Climate Change 16/2026,
+> Icha, P.; Lauf, T. (2026): _Entwicklung der spezifischen Treibhausgas-Emissionen des
+> deutschen Strommix in den Jahren 1990–2025_. Umweltbundesamt, Climate Change 16/2026,
 > Dessau-Roßlau, März 2026. DOI: https://doi.org/10.60810/openumwelt-8399
 > PDF: https://www.umweltbundesamt.de/system/files/medien/11850/publikationen/2026-03/16_2026_CC.pdf
 
@@ -17,13 +17,13 @@ is the most recently published UBA edition as of this feature's creation date (2
 
 **Values extracted (g CO2/kWh, "Emissionsfaktor Strommix" column of Tabelle 2), 2006–2025**:
 
-| Year | g/kWh | Year | g/kWh | Year | g/kWh | Year | g/kWh |
-|------|-------|------|-------|------|-------|------|-------|
-| 2006 | 608   | 2011 | 570   | 2016 | 524   | 2021 | 406   |
-| 2007 | 626   | 2012 | 572   | 2017 | 490   | 2022 | 433   |
-| 2008 | 582   | 2013 | 572   | 2018 | 473   | 2023 | 379   |
-| 2009 | 571   | 2014 | 559   | 2019 | 409   | 2024\* | 353 |
-| 2010 | 559   | 2015 | 529   | 2020 | 365   | 2025\*\* | 344 |
+| Year | g/kWh | Year | g/kWh | Year | g/kWh | Year     | g/kWh |
+| ---- | ----- | ---- | ----- | ---- | ----- | -------- | ----- |
+| 2006 | 608   | 2011 | 570   | 2016 | 524   | 2021     | 406   |
+| 2007 | 626   | 2012 | 572   | 2017 | 490   | 2022     | 433   |
+| 2008 | 582   | 2013 | 572   | 2018 | 473   | 2023     | 379   |
+| 2009 | 571   | 2014 | 559   | 2019 | 409   | 2024\*   | 353   |
+| 2010 | 559   | 2015 | 529   | 2020 | 365   | 2025\*\* | 344   |
 
 \* vorläufig (preliminary) · \*\* geschätzt (estimated) — both are still UBA-published figures for
 a completed calendar year, so per FR-006 they are entered as specific factors, not treated as
@@ -37,6 +37,7 @@ FR-003's kg CO2/kWh unit.
 authoritative, current, single source covering the full requested range in one document.
 
 **Alternatives considered**:
+
 - Statista's derived table (secondary source, re-publishes the same UBA numbers with less
   precision/context) — rejected in favor of citing the primary UBA publication directly.
 - The trade-balance-adjusted "Emissionsfaktor Strominlandsverbrauch" column — rejected; it
@@ -67,11 +68,12 @@ an implementation-detail formatting choice not otherwise constrained by the spec
 
 **Alternatives considered**: Reusing legacy's literal `to` suffix — rejected as a likely typo
 for `t`/`to.` with no real-world meaning; not worth preserving verbatim given FR-007 only
-requires the *threshold behavior*, not the exact string.
+requires the _threshold behavior_, not the exact string.
 
 ## R4: Where per-year yield breakdown already exists vs. needs deriving
 
 **Decision**: No new yield-aggregation logic is needed.
+
 - **Total/lifetime view** (`total-view.js`) already computes `summary.byYear` (one entry per
   calendar year, see `deriveLifetimeSummary` in `aggregates.js`) — apply each year's factor to
   that year's yield and sum (FR-002, FR-008).
@@ -91,7 +93,7 @@ special-case handling beyond a plain per-year lookup.
 **Decision**: `web/js/data/aggregates.js` already computes `co2SavedKg` in
 `deriveLifetimeSummary` using a flat `CO2_KG_PER_KWH = 0.7` constant — but this value is never
 actually rendered in any view today (`total-view.js`'s `totalStatsRows` does not include it).
-This feature replaces the flat constant with the new per-year calculation *and* adds the missing
+This feature replaces the flat constant with the new per-year calculation _and_ adds the missing
 display row to all four views' stats panels (FR-001).
 
 **Rationale**: Grep across `web/js/views/*.js` confirms `co2SavedKg` has no consumer; this is a
