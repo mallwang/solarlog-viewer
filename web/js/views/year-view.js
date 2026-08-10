@@ -10,7 +10,7 @@ import { fetchFromBothSources } from '../data/data-source.js';
 import { fetchText } from '../data/fetch-text.js';
 import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
-import { addYears, isFutureYear, periodNavMarkup } from './period-nav.js';
+import { addYears, isFutureYear, parentOfYear, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
 import { formatKwh, formatCurrency, formatCo2 } from '../format.js';
@@ -119,6 +119,8 @@ export async function render(container, { route, plant }) {
     nextLabel: t('year.next'),
     todayHref: isCurrentYear ? null : formatRoute({ view: 'year', params: { year: currentYear() } }),
     todayLabel: t('year.thisYear'),
+    parentHref: formatRoute({ view: 'total', params: parentOfYear({ year }) }),
+    parentLabel: t('year.parentLink'),
   });
 
   container.innerHTML = `<div class="view-header flex items-center justify-between gap-sm flex-wrap mb-md">

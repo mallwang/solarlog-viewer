@@ -13,6 +13,7 @@
     "prev": "Previous day",
     "next": "Next day",
     "today": "Today",
+    "parentLink": "Month",
     "powerUnavailable": "No power curve was recorded for this day (archived/reconstructed data). Showing the cumulative yield instead.",
     "stats": {
       "title": "Statistics",
@@ -30,6 +31,7 @@
     "prev": "Previous month",
     "next": "Next month",
     "thisMonth": "This month",
+    "parentLink": "Year",
     "short": {
       "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
       "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec"
@@ -55,6 +57,7 @@
     "prev": "Previous year",
     "next": "Next year",
     "thisYear": "This year",
+    "parentLink": "Total",
     "stats": {
       "title": "Statistics",
       "yieldKwh": "Yearly yield",
