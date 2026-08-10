@@ -18,7 +18,7 @@ Add a "zoom out to parent period" link to the day, month, and year views (day→
 
 **Storage**: N/A — no data storage involved, purely client-side navigation/routing
 
-**Testing**: `node --test` for unit tests (period-nav.js already has `period-nav.test.js`); Playwright e2e (`tests/e2e/navigation.spec.js`) for behavior + visual verification per constitution
+**Testing**: `node --test` for unit tests (period-nav.js already has `period-nav.test.js`); Playwright e2e (new `tests/e2e/parent-nav.spec.js`, alongside existing `tests/e2e/detail-views.spec.js`/`dashboard-nav.spec.js`) for behavior + visual verification per constitution — note `tests/e2e/navigation.spec.js` covers only the legacy frameset site and is not the right place for this feature
 
 **Target Platform**: Browser (static site), same as rest of project
 
@@ -72,9 +72,10 @@ web/
 ├── i18n/
 │   ├── de.json                       # add parent-link labels (day/month/year sections)
 │   └── en.json                       # add parent-link labels (day/month/year sections)
-└── tests/
-    └── e2e/
-        └── navigation.spec.js         # extend with parent-link assertions per view
+
+tests/
+└── e2e/
+    └── parent-nav.spec.js             # new: parent-link presence/absence + click-through per view
 
 ```
 

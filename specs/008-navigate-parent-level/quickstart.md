@@ -26,7 +26,7 @@
 ## Automated validation
 
 - Unit tests: `node --test web/js/views/period-nav.test.js` — covers the new parent-derivation helpers and `periodNavMarkup`'s parent-link rendering/omission logic.
-- E2E: `npx playwright test --reporter=line` — extend `tests/e2e/navigation.spec.js` with assertions for each of the manual steps above (link presence/absence, correct href, correct destination view after click).
+- E2E: `npx playwright test --reporter=line` — new `tests/e2e/parent-nav.spec.js` covers each of the manual steps above (link presence/absence, correct href, correct destination view after click). `tests/e2e/navigation.spec.js` is unrelated (legacy frameset site only).
 
 ## Reference
 
