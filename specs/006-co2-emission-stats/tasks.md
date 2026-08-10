@@ -1,6 +1,5 @@
 ---
-
-description: "Task list for CO2 Emission Avoidance Statistics"
+description: 'Task list for CO2 Emission Avoidance Statistics'
 ---
 
 # Tasks: CO2 Emission Avoidance Statistics
@@ -29,7 +28,7 @@ Existing single-project `web/` tree (see plan.md's Project Structure) — no new
 
 **Purpose**: Confirm a clean baseline before touching any file — no new dependencies or project scaffolding are needed (plan.md: "No new runtime dependency").
 
-- [X] T001 Run `npm run test:scripts` and `npx eslint web/js tests` to confirm the pre-change baseline is green (verification only, no file changes)
+- [x] T001 Run `npm run test:scripts` and `npx eslint web/js tests` to confirm the pre-change baseline is green (verification only, no file changes)
 
 **Checkpoint**: Baseline confirmed clean; safe to start Foundational work.
 
@@ -41,10 +40,10 @@ Existing single-project `web/` tree (see plan.md's Project Structure) — no new
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [X] T002 [P] Create `web/js/data/co2-factors.js` exporting `CO2_FACTOR_KG_PER_KWH_BY_YEAR` (2006–2025, kg/kWh values converted from research.md R1's g/kWh table, `÷ 1000`), `CO2_FALLBACK_FACTOR_KG_PER_KWH = 0.363`, and `co2FactorForYear(year)` (returns the table entry or the fallback, per data-model.md's `??` lookup) — per FR-003/FR-005/FR-006
-- [X] T003 [P] Create `web/js/data/co2-factors.test.js` (node:test) asserting: a historical year returns its exact factor (e.g. 2020 → 0.365, 2006 → 0.608, 2025 → 0.344), a year with no entry (e.g. 2026, 1990) returns the fallback 0.363, and the table's boundary years (2006, 2025) resolve correctly
-- [X] T004 [P] Add `formatCo2(valueKg, opts)` export to `web/js/format.js`, porting the legacy kg/tonne threshold exactly (< 10,000 kg → `"{n} kg"` with locale decimal convention and 0 decimals via `Math.floor`-equivalent rounding; ≥ 10,000 kg → `"{n} t"` with 2 decimals) per FR-007/research.md R3
-- [X] T005 [P] Add `formatCo2` test cases to `web/js/format.test.js`: one value below the 10,000 kg threshold (kg output), one at/above it (tonne output, "t" suffix, 2 decimals), and one case per locale (de comma / en period decimal)
+- [x] T002 [P] Create `web/js/data/co2-factors.js` exporting `CO2_FACTOR_KG_PER_KWH_BY_YEAR` (2006–2025, kg/kWh values converted from research.md R1's g/kWh table, `÷ 1000`), `CO2_FALLBACK_FACTOR_KG_PER_KWH = 0.363`, and `co2FactorForYear(year)` (returns the table entry or the fallback, per data-model.md's `??` lookup) — per FR-003/FR-005/FR-006
+- [x] T003 [P] Create `web/js/data/co2-factors.test.js` (node:test) asserting: a historical year returns its exact factor (e.g. 2020 → 0.365, 2006 → 0.608, 2025 → 0.344), a year with no entry (e.g. 2026, 1990) returns the fallback 0.363, and the table's boundary years (2006, 2025) resolve correctly
+- [x] T004 [P] Add `formatCo2(valueKg, opts)` export to `web/js/format.js`, porting the legacy kg/tonne threshold exactly (< 10,000 kg → `"{n} kg"` with locale decimal convention and 0 decimals via `Math.floor`-equivalent rounding; ≥ 10,000 kg → `"{n} t"` with 2 decimals) per FR-007/research.md R3
+- [x] T005 [P] Add `formatCo2` test cases to `web/js/format.test.js`: one value below the 10,000 kg threshold (kg output), one at/above it (tonne output, "t" suffix, 2 decimals), and one case per locale (de comma / en period decimal)
 
 **Checkpoint**: `co2FactorForYear()` and `formatCo2()` exist, are unit-tested, and are ready to be consumed by every view.
 
@@ -58,14 +57,14 @@ Existing single-project `web/` tree (see plan.md's Project Structure) — no new
 
 ### Tests for User Story 1
 
-- [X] T006 [P] [US1] Extend the "Lifetime (total) view" `test.describe` block in `tests/e2e/detail-views.spec.js` to assert the stats panel's CO2 row is present (via the new `total.stats.co2` label) in addition to the existing kg/€ regex checks
+- [x] T006 [P] [US1] Extend the "Lifetime (total) view" `test.describe` block in `tests/e2e/detail-views.spec.js` to assert the stats panel's CO2 row is present (via the new `total.stats.co2` label) in addition to the existing kg/€ regex checks
 
 ### Implementation for User Story 1
 
-- [X] T007 [US1] Update `deriveLifetimeSummary` in `web/js/data/aggregates.js` to import `co2FactorForYear` from `./co2-factors.js` and compute `co2SavedKg` as `Σ (yearlyYieldKwh * co2FactorForYear(year))` over `yearlyTotals`, replacing the flat `CO2_KG_PER_KWH = 0.7` constant (remove the now-unused constant) — per FR-002/FR-008
-- [X] T008 [P] [US1] Update `web/js/data/aggregates.test.js`'s `deriveLifetimeSummary` CO2 assertion to use multi-year fixture data spanning at least two different factor years, and assert `co2SavedKg` equals the per-year sum (not `totalKwh * one factor`) — per SC-005
-- [X] T009 [US1] Add a CO2 avoidance row to `totalStatsRows()` in `web/js/views/total-view.js` using `formatCo2(summary.co2SavedKg)` and a new `total.stats.co2` i18n key, placed alongside the existing yield/€ rows
-- [X] T010 [P] [US1] Add the `total.stats.co2` label key to `web/i18n/de.json` ("Vermiedenes CO2") and `web/i18n/en.json` ("CO2 avoided") under the existing `total.stats` object
+- [x] T007 [US1] Update `deriveLifetimeSummary` in `web/js/data/aggregates.js` to import `co2FactorForYear` from `./co2-factors.js` and compute `co2SavedKg` as `Σ (yearlyYieldKwh * co2FactorForYear(year))` over `yearlyTotals`, replacing the flat `CO2_KG_PER_KWH = 0.7` constant (remove the now-unused constant) — per FR-002/FR-008
+- [x] T008 [P] [US1] Update `web/js/data/aggregates.test.js`'s `deriveLifetimeSummary` CO2 assertion to use multi-year fixture data spanning at least two different factor years, and assert `co2SavedKg` equals the per-year sum (not `totalKwh * one factor`) — per SC-005
+- [x] T009 [US1] Add a CO2 avoidance row to `totalStatsRows()` in `web/js/views/total-view.js` using `formatCo2(summary.co2SavedKg)` and a new `total.stats.co2` i18n key, placed alongside the existing yield/€ rows
+- [x] T010 [P] [US1] Add the `total.stats.co2` label key to `web/i18n/de.json` ("Vermiedenes CO2") and `web/i18n/en.json` ("CO2 avoided") under the existing `total.stats` object
 
 **Checkpoint**: Total/lifetime view independently shows an accurate, per-year-weighted CO2 figure (User Story 1 fully functional and testable on its own).
 
@@ -79,14 +78,14 @@ Existing single-project `web/` tree (see plan.md's Project Structure) — no new
 
 ### Tests for User Story 2
 
-- [X] T011 [P] [US2] Add/extend `test.describe` blocks in `tests/e2e/detail-views.spec.js` covering: (a) a historical year (e.g. `#/year/2020`, `#/month/2020/06`, `#/day/2020/06/15`) all show a CO2 row, and (b) the current year's view (`#/year/<current>`) shows a CO2 row consistent with the fallback factor — per quickstart.md scenarios 2–4
+- [x] T011 [P] [US2] Add/extend `test.describe` blocks in `tests/e2e/detail-views.spec.js` covering: (a) a historical year (e.g. `#/year/2020`, `#/month/2020/06`, `#/day/2020/06/15`) all show a CO2 row, and (b) the current year's view (`#/year/<current>`) shows a CO2 row consistent with the fallback factor — per quickstart.md scenarios 2–4
 
 ### Implementation for User Story 2
 
-- [X] T012 [P] [US2] Add a CO2 avoidance row to `dayStatsRows()` in `web/js/views/day-view.js`, computed as `yieldKwh * co2FactorForYear(params.year)` via `formatCo2()`, with a new `day.stats.co2` i18n key
-- [X] T013 [P] [US2] Add a CO2 avoidance row to `monthStatsRows()` in `web/js/views/month-view.js`, computed as `yieldKwh * co2FactorForYear(params.year)` via `formatCo2()`, with a new `month.stats.co2` i18n key
-- [X] T014 [P] [US2] Add a CO2 avoidance row to `yearStatsRows()` in `web/js/views/year-view.js`, computed as `yieldKwh * co2FactorForYear(year)` via `formatCo2()`, with a new `year.stats.co2` i18n key
-- [X] T015 [P] [US2] Add `day.stats.co2`, `month.stats.co2`, `year.stats.co2` label keys to `web/i18n/de.json` and `web/i18n/en.json` under their respective `.stats` objects
+- [x] T012 [P] [US2] Add a CO2 avoidance row to `dayStatsRows()` in `web/js/views/day-view.js`, computed as `yieldKwh * co2FactorForYear(params.year)` via `formatCo2()`, with a new `day.stats.co2` i18n key
+- [x] T013 [P] [US2] Add a CO2 avoidance row to `monthStatsRows()` in `web/js/views/month-view.js`, computed as `yieldKwh * co2FactorForYear(params.year)` via `formatCo2()`, with a new `month.stats.co2` i18n key
+- [x] T014 [P] [US2] Add a CO2 avoidance row to `yearStatsRows()` in `web/js/views/year-view.js`, computed as `yieldKwh * co2FactorForYear(year)` via `formatCo2()`, with a new `year.stats.co2` i18n key
+- [x] T015 [P] [US2] Add `day.stats.co2`, `month.stats.co2`, `year.stats.co2` label keys to `web/i18n/de.json` and `web/i18n/en.json` under their respective `.stats` objects
 
 **Checkpoint**: All four views (day, month, year, total) show consistent, year-correct CO2 figures — User Story 1 AND 2 both work independently.
 
@@ -100,9 +99,9 @@ Existing single-project `web/` tree (see plan.md's Project Structure) — no new
 
 ### Implementation for User Story 3
 
-- [X] T016 [US3] Document the yearly-factor maintenance workflow (where `web/js/data/co2-factors.js` lives, how to add a newly published UBA year, no other code change required) in `README.md` and `README.de.md` — per FR-006/SC-004
-- [X] T017 [P] [US3] Document the CO2 avoidance figure from a user-facing perspective (what it means, its UBA grid-mix source, the fallback-constant behavior for the current year) in `docs/user-guide.md` and `docs/user-guide.de.md`
-- [X] T018 [US3] Manually validate the maintenance workflow per quickstart.md step 6: add a placeholder entry to `CO2_FACTOR_KG_PER_KWH_BY_YEAR` in `web/js/data/co2-factors.js`, reload the corresponding year/month/day views to confirm the new factor takes effect with no other code touched, then revert the placeholder
+- [x] T016 [US3] Document the yearly-factor maintenance workflow (where `web/js/data/co2-factors.js` lives, how to add a newly published UBA year, no other code change required) in `README.md` and `README.de.md` — per FR-006/SC-004
+- [x] T017 [P] [US3] Document the CO2 avoidance figure from a user-facing perspective (what it means, its UBA grid-mix source, the fallback-constant behavior for the current year) in `docs/user-guide.md` and `docs/user-guide.de.md`
+- [x] T018 [US3] Manually validate the maintenance workflow per quickstart.md step 6: add a placeholder entry to `CO2_FACTOR_KG_PER_KWH_BY_YEAR` in `web/js/data/co2-factors.js`, reload the corresponding year/month/day views to confirm the new factor takes effect with no other code touched, then revert the placeholder
 
 **Checkpoint**: All user stories independently functional; reference-data maintenance path is documented and proven to work.
 
@@ -112,11 +111,11 @@ Existing single-project `web/` tree (see plan.md's Project Structure) — no new
 
 **Purpose**: Final gates across all stories (Linting/Testing standards from the Constitution Check in plan.md).
 
-- [X] T019 [P] Run `npx eslint web/js/data/co2-factors.js web/js/data/co2-factors.test.js web/js/data/aggregates.js web/js/data/aggregates.test.js web/js/format.js web/js/format.test.js web/js/views/day-view.js web/js/views/month-view.js web/js/views/year-view.js web/js/views/total-view.js` and fix all errors (Linting standard)
-- [X] T020 [P] Run `npm run format:check` and resolve any formatting diffs across all files touched by this feature
-- [X] T021 Run `npm run test:scripts` and confirm all unit tests pass, including the new `co2-factors.test.js` and the updated `aggregates.test.js`/`format.test.js`
-- [X] T022 Run `npx playwright test --reporter=line` and confirm all e2e specs pass, including the extended `tests/e2e/detail-views.spec.js`
-- [X] T023 Perform quickstart.md's network check (step 5): with DevTools' Network tab open, reload each of the four statistics views and confirm zero requests are attributable to CO2/emission-factor lookup — per FR-004/SC-003
+- [x] T019 [P] Run `npx eslint web/js/data/co2-factors.js web/js/data/co2-factors.test.js web/js/data/aggregates.js web/js/data/aggregates.test.js web/js/format.js web/js/format.test.js web/js/views/day-view.js web/js/views/month-view.js web/js/views/year-view.js web/js/views/total-view.js` and fix all errors (Linting standard)
+- [x] T020 [P] Run `npm run format:check` and resolve any formatting diffs across all files touched by this feature
+- [x] T021 Run `npm run test:scripts` and confirm all unit tests pass, including the new `co2-factors.test.js` and the updated `aggregates.test.js`/`format.test.js`
+- [x] T022 Run `npx playwright test --reporter=line` and confirm all e2e specs pass, including the extended `tests/e2e/detail-views.spec.js`
+- [x] T023 Perform quickstart.md's network check (step 5): with DevTools' Network tab open, reload each of the four statistics views and confirm zero requests are attributable to CO2/emission-factor lookup — per FR-004/SC-003
 
 ---
 

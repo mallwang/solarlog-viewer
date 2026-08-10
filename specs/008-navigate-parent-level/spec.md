@@ -8,7 +8,7 @@
 
 **Input**: User description: "I would like to enable the user to navigate from the child page to the parent page, e.g. from the current day to the month, from the month to the year, from the year to the total. A button similar like the "Heute" / "Dieser Monat" would be nice to have for the user to click on it to navigate"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Jump from a day to its containing month (Priority: P1)
 
@@ -59,7 +59,7 @@ A user viewing a specific year's yield data wants to step out to the all-time to
 - The parent-navigation control is always enabled and always navigates to a real, valid parent period — unlike the existing "Heute"/"Dieser Monat" jump-to-current control, there is no "already there" state to disable for, since the parent period is always a distinct level from the child.
 - Parent navigation must work identically regardless of how the child view was reached (deep link, prev/next stepping, "Heute" jump, or a previous parent-navigation click), since it derives the parent from the currently routed period rather than from navigation history.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -76,7 +76,7 @@ A user viewing a specific year's yield data wants to step out to the all-time to
 
 - **Period Hierarchy**: The four navigable levels — Day, Month, Year, Total — each nested inside the next (Day ⊂ Month ⊂ Year ⊂ Total). This feature adds one-directional "zoom out" links from each level to its immediate parent; it does not change the existing prev/next stepping or "jump to current period" behavior.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

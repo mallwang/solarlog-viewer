@@ -73,10 +73,7 @@ function yearStatsRows(monthlyBreakdown, plant, year, isCurrentYear) {
       'year.stats.maxMonth',
       maxMonthName ? `${formatKwh(maxMonth.kwh)} (${maxMonthName})` : formatKwh(maxMonth.kwh),
     ],
-    [
-      isCurrentYear ? 'year.stats.sollAuflaufend' : 'year.stats.sollTotal',
-      formatKwh(sollKwh),
-    ],
+    [isCurrentYear ? 'year.stats.sollAuflaufend' : 'year.stats.sollTotal', formatKwh(sollKwh)],
     ['year.stats.ist', `${ist}%`],
     ['year.stats.co2', formatCo2(co2SavedKg)],
   ];
@@ -117,12 +114,12 @@ export async function render(container, { route, plant }) {
     // "Vorheriger"/"Nächster" that day/month use (shared via common.prev/common.next) —
     // a year-specific short label instead of the generic one.
     prevShortLabel: t('year.prevShort'),
-    nextHref: isFutureYear(nextParams)
-      ? null
-      : formatRoute({ view: 'year', params: nextParams }),
+    nextHref: isFutureYear(nextParams) ? null : formatRoute({ view: 'year', params: nextParams }),
     nextLabel: t('year.next'),
     nextShortLabel: t('year.nextShort'),
-    todayHref: isCurrentYear ? null : formatRoute({ view: 'year', params: { year: currentYear() } }),
+    todayHref: isCurrentYear
+      ? null
+      : formatRoute({ view: 'year', params: { year: currentYear() } }),
     todayLabel: t('year.thisYear'),
     parentHref: formatRoute({ view: 'total', params: parentOfYear({ year }) }),
     parentLabel: t('year.parentLink'),
@@ -179,10 +176,15 @@ export async function render(container, { route, plant }) {
   );
 
   const mount = container.querySelector('.chart-mount');
-  renderChart(mount, 'year-months', { year, monthlyBreakdown: fillYearMonths(year, monthlyBreakdown) }, {
-    lang: getLanguage(),
-    onDataPointClick: (index) => {
-      window.location.hash = formatRoute({ view: 'month', params: { year, month: index + 1 } });
+  renderChart(
+    mount,
+    'year-months',
+    { year, monthlyBreakdown: fillYearMonths(year, monthlyBreakdown) },
+    {
+      lang: getLanguage(),
+      onDataPointClick: (index) => {
+        window.location.hash = formatRoute({ view: 'month', params: { year, month: index + 1 } });
+      },
     },
-  });
+  );
 }

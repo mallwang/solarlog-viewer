@@ -53,20 +53,20 @@ JSON files (`de.json`, `en.json`) gain one label key each per view.
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle / Standard | Applies? | How satisfied |
-|---|---|---|
-| I. Static-File Data Model is Sacred | Yes (adjacent) | This feature adds a new, separate static JS reference module; it does not read, write, or reinterpret any SolarLog `.js` data file format. |
-| II. Zero Historical Data Loss | No | No historical yield/aggregate data is modified, dropped, or reprocessed — CO2 is a purely derived display value computed on top of existing, unchanged yield aggregates. |
-| III. No Backend Introduction | Yes | Factor lookup and CO2 calculation run entirely client-side from the bundled ES module; FR-004 explicitly forbids any network request for this data, verified via SC-003 and quickstart.md step 5. |
-| IV. Responsive-First Layout | Yes (adjacent) | The new stats row reuses the existing `statsPanelMarkup`/`statsRow` table markup (`stats-panel.js`), already responsive — no new layout introduced. |
-| V. Modern Charting — No Custom Pixel Math | No | No chart changes; this is a stats-panel text row, not a chart element. |
-| VI. Preserve All Five Visualization Modes | No | No visualization mode is added, removed, or altered. |
-| Technical Standards → Frontend | Yes | Vanilla ES module, no framework/bundler; CSS untouched. |
-| Testing standard | Yes | Unit tests for the new module + updated `aggregates.js`/`format.js` logic; Playwright coverage extended for all four views per the "every visible UI change" rule. |
-| Linting / Formatting | Yes | `npm run lint` / `npm run format:check` gate, as for any change. |
-| Documentation Standards | Yes | README.md/README.de.md and docs/user-guide.md/.de.md updated to describe the new CO2 figures (per Documentation Standards, applies after every feature implementation — tracked as an implementation task, not a planning-phase gate). |
+| Principle / Standard                      | Applies?       | How satisfied                                                                                                                                                                                                                          |
+| ----------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Static-File Data Model is Sacred       | Yes (adjacent) | This feature adds a new, separate static JS reference module; it does not read, write, or reinterpret any SolarLog `.js` data file format.                                                                                             |
+| II. Zero Historical Data Loss             | No             | No historical yield/aggregate data is modified, dropped, or reprocessed — CO2 is a purely derived display value computed on top of existing, unchanged yield aggregates.                                                               |
+| III. No Backend Introduction              | Yes            | Factor lookup and CO2 calculation run entirely client-side from the bundled ES module; FR-004 explicitly forbids any network request for this data, verified via SC-003 and quickstart.md step 5.                                      |
+| IV. Responsive-First Layout               | Yes (adjacent) | The new stats row reuses the existing `statsPanelMarkup`/`statsRow` table markup (`stats-panel.js`), already responsive — no new layout introduced.                                                                                    |
+| V. Modern Charting — No Custom Pixel Math | No             | No chart changes; this is a stats-panel text row, not a chart element.                                                                                                                                                                 |
+| VI. Preserve All Five Visualization Modes | No             | No visualization mode is added, removed, or altered.                                                                                                                                                                                   |
+| Technical Standards → Frontend            | Yes            | Vanilla ES module, no framework/bundler; CSS untouched.                                                                                                                                                                                |
+| Testing standard                          | Yes            | Unit tests for the new module + updated `aggregates.js`/`format.js` logic; Playwright coverage extended for all four views per the "every visible UI change" rule.                                                                     |
+| Linting / Formatting                      | Yes            | `npm run lint` / `npm run format:check` gate, as for any change.                                                                                                                                                                       |
+| Documentation Standards                   | Yes            | README.md/README.de.md and docs/user-guide.md/.de.md updated to describe the new CO2 figures (per Documentation Standards, applies after every feature implementation — tracked as an implementation task, not a planning-phase gate). |
 
 No violations requiring justification — Complexity Tracking section is empty/not applicable.
 
@@ -121,4 +121,4 @@ module-per-concern convention.
 
 ## Complexity Tracking
 
-*No Constitution Check violations — section intentionally left empty.*
+_No Constitution Check violations — section intentionally left empty._

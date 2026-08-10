@@ -37,6 +37,20 @@ static backdrop — there is no error UI and no impact on the dashboard's PV-dat
 reflecting real conditions through static cues. See
 `specs/007-dynamic-sky-weather/` for the full spec/plan.
 
+## Global desktop info panel
+
+A persistent panel in the header (visible at desktop widths only, `768px` and above) shows the
+plant's current production, the current weather condition, and today's remaining forecast for
+the installation's location — visible from every view, not just the dashboard. It polls
+`data/min_cur.js` and [Open-Meteo](https://open-meteo.com) every ~10 minutes, matching the
+SolarLog device's own minimum data-file update interval. A small pulsing indicator next to the
+production value scales its size/speed with `currentPacW / capacityKwp` (idle near zero, most
+active near the plant's configured peak output). Clicking the weather/forecast area opens a
+wetteronline.de search for the installation's configured address in a new tab — the plant
+owner's usual weather source. Production and weather/forecast each show an independent
+"unavailable" state if their own data source can't be retrieved, without affecting the other.
+See `specs/010-global-info-panel/` for the full spec/plan.
+
 ## Dev server
 
 ```bash

@@ -19,7 +19,7 @@ Expected: all pass, covering (per module):
   values across each tier's threshold, ≥ ~90% of `capacityKwp` → peak tier, values above
   nameplate capacity clamp rather than overflow).
 - `weather-forecast-client.test.js` — successful response parsed into `{ weatherCode,
-  temperatureC, todayWeatherCode, todayMaxC, todayMinC, available: true }`; failed/malformed
+temperatureC, todayWeatherCode, todayMaxC, todayMinC, available: true }`; failed/malformed
   response resolves to `available: false` (mocked `fetch`, no real network call).
 - `wetteronline-link.test.js` — address correctly URL-encoded into the search URL; empty/
   missing address returns `null` rather than a broken URL.
@@ -39,7 +39,7 @@ Expected: all pass, covering (per module):
 ## 3. Manual smoke test — weather + today's forecast (User Story 2)
 
 1. Open DevTools → Network, confirm one request to `api.open-meteo.com/v1/forecast?...
-   weather_code...` fires shortly after load.
+weather_code...` fires shortly after load.
 2. Confirm the panel shows a current weather label and today's forecast summary
    (min/max temperature and/or condition) for the installation's configured location.
 3. Block requests to `api.open-meteo.com` and reload → the weather/forecast side of the

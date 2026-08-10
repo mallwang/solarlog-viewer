@@ -4,12 +4,12 @@ No persisted or fetched data entities are introduced by this feature — it is a
 
 ## Period Hierarchy (conceptual, not persisted)
 
-| Level | Params shape                                | Parent level | Parent params derivation                  |
-|-------|----------------------------------------------|---------------|---------------------------------------------|
-| Day   | `{ year, month, day }`                        | Month         | `{ year, month }` (drop `day`)               |
-| Month | `{ year, month }`                             | Year          | `{ year }` (drop `month`)                    |
-| Year  | `{ year }`                                    | Total         | `{}` (drop `year`)                           |
-| Total | `{}`                                          | *(none)*      | N/A — top of hierarchy, no parent link       |
+| Level | Params shape           | Parent level | Parent params derivation               |
+| ----- | ---------------------- | ------------ | -------------------------------------- |
+| Day   | `{ year, month, day }` | Month        | `{ year, month }` (drop `day`)         |
+| Month | `{ year, month }`      | Year         | `{ year }` (drop `month`)              |
+| Year  | `{ year }`             | Total        | `{}` (drop `year`)                     |
+| Total | `{}`                   | _(none)_     | N/A — top of hierarchy, no parent link |
 
 This mirrors the existing `route = { view: string, params: object }` shape produced/consumed by [router.js](../../web/js/router.js)'s `parseRoute`/`formatRoute`, and is a strict subset relationship (no new fields, no computed/derived values beyond dropping keys) — consistent with `research.md`'s decision to avoid new date-arithmetic.
 
@@ -19,7 +19,7 @@ Added for consistency with the existing `addDays`/`addMonths`/`addYears`/`isFutu
 
 - `parentOfDay({ year, month, day }) → { year, month }`
 - `parentOfMonth({ year, month }) → { year }`
-- `parentOfYear({ year }) → {}` *(trivial; documented for symmetry, may be inlined instead — see tasks)*
+- `parentOfYear({ year }) → {}` _(trivial; documented for symmetry, may be inlined instead — see tasks)_
 
 These are pure functions with no side effects, matching the existing style in `period-nav.js`.
 

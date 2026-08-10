@@ -36,6 +36,21 @@ nicht betroffen. Ist in System/Browser "Bewegung reduzieren" aktiviert, werden s
 Himmel-Animationen und fliegenden Objekte unterdrückt, während Wolkendichte und Sonne-/
 Mond-Zustand weiterhin aktualisiert werden.
 
+## Globales Desktop-Infopanel
+
+Ab Desktop-Breiten (768px und mehr) zeigt ein Panel im Header — sichtbar in jeder Ansicht, nicht
+nur im Dashboard — die aktuelle Leistung der Anlage zusammen mit dem aktuellen Wetter und der
+Restprognose für den heutigen Tag am Standort der Anlage. Beide werden alle ~10 Minuten
+aktualisiert (passend zum minimalen Aktualisierungsintervall des SolarLog-Geräts selbst, ein
+schnelleres Abfragen würde also ohnehin keine neueren Daten finden). Ein kleiner pulsierender
+Punkt neben dem Leistungswert wird größer und pulsiert schneller, je näher die aktuelle Leistung
+an der konfigurierten Spitzenleistung der Anlage liegt, und beruhigt sich nahe null (z. B.
+nachts). Ein Klick/Tap auf den Wetter-/Prognosebereich öffnet eine wetteronline.de-Suche für die
+Adresse der Anlage in einem neuen Tab. Können Leistungs- oder Wetterdaten nicht abgerufen
+werden, zeigt der jeweilige Bereich "Nicht verfügbar" an, während der andere Bereich normal
+weiterarbeitet. Das Panel ist unterhalb von 768px vollständig ausgeblendet — es beansprucht im
+mobilen Layout keinen zusätzlichen Platz.
+
 ## Vermiedenes CO2
 
 Die Ansichten Tag, Monat, Jahr und Gesamt (Lebenszeit) zeigen im Statistikbereich neben dem

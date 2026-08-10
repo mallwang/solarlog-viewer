@@ -8,7 +8,7 @@
 
 **Input**: User description: "I would like to use a historical factor for the reduced co2 emissions, starting with 2006 up to the upcoming years based on the UBA historical values. The values should be stored locally as reference and not requested for each diagram/view. For future years which does not have a statistics yet, a konstant should be used, e.g. the suggested one from 1. (0,363)."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - See avoided CO2 in the lifetime/total view (Priority: P1)
 
@@ -61,7 +61,7 @@ As the site maintainer, I want the yearly CO2 emission factors to live in one lo
 - What happens when a period's yield spans a year boundary (e.g., a day view for December 31st contributing to the next year's partial total, matching existing legacy behavior)? Each portion of yield is matched to the emission factor of the calendar year it actually occurred in.
 - How does the display handle very small vs. very large avoided-CO2 amounts? Existing unit-scaling behavior is preserved: figures below 10,000 kg are shown in kilograms, larger figures are shown in tonnes.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -79,7 +79,7 @@ As the site maintainer, I want the yearly CO2 emission factors to live in one lo
 - **Yearly CO2 Emission Factor**: Represents the CO2 emitted per kWh of the German electricity grid mix for a specific calendar year (kg CO2/kWh). Attributes: calendar year, factor value, and whether the value is a published historical figure or the fallback constant.
 - **Energy Yield Period**: The existing solar energy yield data for a given day, month, year, or the full plant lifetime (kWh), already available in the current statistics data. Each yield amount is associated with the calendar year(s) it was produced in.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

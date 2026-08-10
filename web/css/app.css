@@ -305,6 +305,134 @@ a {
   height: 28px;
 }
 
+/* Global desktop info panel (010-global-info-panel): production + weather/forecast, always
+   part of `app-header` so it persists across in-app route changes (FR-011). Visibility below
+   the `md:` breakpoint is handled by the `hidden md:flex` Tailwind utilities on the element
+   itself (see index.html) — this file only owns layout/appearance once visible. Opaque
+   background for the same reason as `.app-header` above: the fixed cloud backdrop must never
+   show through it. */
+.info-panel {
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.info-panel__production {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.info-panel__value {
+  font-weight: 600;
+}
+
+.info-panel__production[data-available='false'] .info-panel__value {
+  color: var(--color-text-muted);
+}
+
+/* Production-animation pulse (User Story 4, FR-009/FR-010): a plain circular dot whose size/
+   glow/animation-speed scale with `data-intensity`, set from
+   `web/js/info-panel/production-animation.js`'s `productionIntensity()` on every poll tick.
+   Discrete tiers (not continuous interpolation) mirror the sky feature's
+   `cloud-density.js` → CSS-custom-property precedent (research.md §4). The `transition` here
+   (not just the `@keyframes` below) is what makes a tier *change* between polls smooth rather
+   than an abrupt jump (FR-010) — only the pulsing itself is keyframe-driven. */
+.info-panel__pulse {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  transition:
+    width 0.6s ease,
+    height 0.6s ease,
+    box-shadow 0.6s ease,
+    background-color 0.6s ease;
+}
+
+.info-panel__pulse[data-intensity='idle'] {
+  width: 8px;
+  height: 8px;
+  background: var(--color-text-muted);
+  animation: none;
+  box-shadow: none;
+}
+
+.info-panel__pulse[data-intensity='low'] {
+  animation: info-panel-pulse 3s ease-in-out infinite;
+  box-shadow: 0 0 4px var(--color-primary);
+}
+
+.info-panel__pulse[data-intensity='medium'] {
+  width: 12px;
+  height: 12px;
+  animation: info-panel-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--color-primary);
+}
+
+.info-panel__pulse[data-intensity='high'] {
+  width: 14px;
+  height: 14px;
+  animation: info-panel-pulse 1.2s ease-in-out infinite;
+  box-shadow: 0 0 12px var(--color-primary);
+}
+
+.info-panel__pulse[data-intensity='peak'] {
+  width: 16px;
+  height: 16px;
+  background: var(--color-primary-dark);
+  animation: info-panel-pulse 0.7s ease-in-out infinite;
+  box-shadow: 0 0 16px var(--color-primary-dark);
+}
+
+@keyframes info-panel-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info-panel__pulse {
+    animation: none !important;
+  }
+}
+
+.info-panel__weather {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.info-panel__weather:hover {
+  background: var(--color-border);
+}
+
+.info-panel__weather-forecast {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs, 0.8em);
+}
+
+.info-panel__weather[data-available='false'] {
+  pointer-events: none;
+  color: var(--color-text-muted);
+}
+
 /* .app-nav / .app-nav__toggle / .app-nav__list — see tailwind.css `@layer components`,
    which owns the responsive persistent/collapsible nav contract (contracts/navigation.md). */
 

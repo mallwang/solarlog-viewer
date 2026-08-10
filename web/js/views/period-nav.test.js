@@ -92,8 +92,14 @@ test('periodNavMarkup shows the short label below md: and the full label from md
     nextLabel: 'Next day',
     nextShortLabel: 'Next',
   });
-  assert.match(html, /<span class="hidden md:inline">Previous day<\/span><span class="md:hidden">Previous<\/span>/);
-  assert.match(html, /<span class="hidden md:inline">Next day<\/span><span class="md:hidden">Next<\/span>/);
+  assert.match(
+    html,
+    /<span class="hidden md:inline">Previous day<\/span><span class="md:hidden">Previous<\/span>/,
+  );
+  assert.match(
+    html,
+    /<span class="hidden md:inline">Next day<\/span><span class="md:hidden">Next<\/span>/,
+  );
 });
 
 test('periodNavMarkup disables next when nextHref is null', () => {
@@ -139,7 +145,10 @@ test('periodNavMarkup disables the today link when todayHref is null', () => {
     todayHref: null,
     todayLabel: 'Today',
   });
-  assert.match(html, /period-nav__link--today period-nav__link--disabled[^>]*aria-disabled="true"[^<]*Today/);
+  assert.match(
+    html,
+    /period-nav__link--today period-nav__link--disabled[^>]*aria-disabled="true"[^<]*Today/,
+  );
   assert.doesNotMatch(html, /<a[^>]*period-nav__link--today/);
 });
 

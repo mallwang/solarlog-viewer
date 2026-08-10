@@ -23,7 +23,7 @@ Expected: all pass, covering (per module):
 - `location.test.js` — override takes precedence over geocoding; invalid lat/lon (out of
   range) is rejected; `null` returned when no override/cache/geocode result is available.
 - `weather-client.test.js` — successful response parsed into `{ cloudCoverPercent, tier,
-  sunrise, sunset, nextSunrise }`; failed/malformed response leaves last-known-good state
+sunrise, sunset, nextSunrise }`; failed/malformed response leaves last-known-good state
   untouched (mocked `fetch`, no real network call in unit tests).
 
 ## 2. Manual smoke test — weather-driven cloud density (User Story 1)

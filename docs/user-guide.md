@@ -31,6 +31,20 @@ simply keeps its original static appearance; nothing else on the dashboard is af
 system/browser has "reduce motion" enabled, all sky animation and flying objects are suppressed
 while the cloud density/sun-moon state still updates.
 
+## Global desktop info panel
+
+At desktop widths (768px and above), a panel in the header — visible on every view, not just
+the dashboard — shows the plant's current production alongside the current weather condition
+and today's remaining forecast for the installation's location. It refreshes both every ~10
+minutes (matching the SolarLog device's own minimum update interval, so a faster refresh
+wouldn't find newer data anyway). A small pulsing dot next to the production value gets larger
+and pulses faster the closer current output is to the plant's configured peak capacity, and
+calms to idle near zero (e.g. at night). Click or tap the weather/forecast area to open a
+wetteronline.de search for the installation's address in a new tab. If production or weather
+data can't be retrieved, that side of the panel shows "Unavailable" while the other side keeps
+working normally. The panel is hidden entirely below 768px — it contributes no extra space to
+the mobile layout.
+
 ## CO2 avoidance figures
 
 The day, month, year, and total (lifetime) views each show a "CO2 avoided" figure in the stats

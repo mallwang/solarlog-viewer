@@ -75,20 +75,20 @@ post-bootstrap, and one new Playwright spec file.
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle / Standard | Applies? | How satisfied |
-|---|---|---|
-| I. Static-File Data Model is Sacred | Yes (adjacent) | Reads `data/min_cur.js` exactly as `dashboard.js` already does, via the existing `fetchText` + `parseMinFile` path. No SolarLog `.js` data file is modified. |
-| II. Zero Historical Data Loss | No | No historical yield/aggregate data is touched; the panel shows only the live current-production reading. |
-| III. No Backend Introduction | Yes | No application server introduced. Direct client-side `fetch` calls to the already-approved third-party Open-Meteo API (per feature 007's precedent) plus a plain `<a target="_blank">` link to wetteronline.com — not a dependency the site requires to function. |
-| IV. Responsive-First Layout | Yes | The panel is hidden entirely (no layout space) below `md:`, and on desktop widths is laid out with relative units inside the existing header chrome so it never causes horizontal scroll or overlaps `app-main`. |
-| V. Modern Charting — No Custom Pixel Math | No | Not a data-visualization chart; the production animation is CSS-driven (scale/opacity/keyframe intensity), not pixel-positioned chart data. |
-| VI. Preserve All Five Visualization Modes | No | No visualization mode is touched. |
-| Technical Standards → Frontend | Yes | Vanilla ES modules, no framework/bundler introduced; new CSS uses existing custom-property theming (`tokens.css`) and the existing `md:` Tailwind breakpoint already used by the nav. |
-| Testing standard | Yes | New pure-logic modules get `node:test` unit coverage; the visible UI change gets a new Playwright spec per the "every feature addition or visible UI change" rule. |
-| Linting / Formatting | Yes | `npm run lint` / `npm run format:check` gate, as for any change. |
-| Documentation Standards | Yes | README.md/README.de.md and docs/user-guide.md/.de.md updated to describe the new panel (tracked as an implementation task). JSDoc required on every new/modified exported function, and a file-level JSDoc block on every new file. |
+| Principle / Standard                      | Applies?       | How satisfied                                                                                                                                                                                                                                                     |
+| ----------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Static-File Data Model is Sacred       | Yes (adjacent) | Reads `data/min_cur.js` exactly as `dashboard.js` already does, via the existing `fetchText` + `parseMinFile` path. No SolarLog `.js` data file is modified.                                                                                                      |
+| II. Zero Historical Data Loss             | No             | No historical yield/aggregate data is touched; the panel shows only the live current-production reading.                                                                                                                                                          |
+| III. No Backend Introduction              | Yes            | No application server introduced. Direct client-side `fetch` calls to the already-approved third-party Open-Meteo API (per feature 007's precedent) plus a plain `<a target="_blank">` link to wetteronline.com — not a dependency the site requires to function. |
+| IV. Responsive-First Layout               | Yes            | The panel is hidden entirely (no layout space) below `md:`, and on desktop widths is laid out with relative units inside the existing header chrome so it never causes horizontal scroll or overlaps `app-main`.                                                  |
+| V. Modern Charting — No Custom Pixel Math | No             | Not a data-visualization chart; the production animation is CSS-driven (scale/opacity/keyframe intensity), not pixel-positioned chart data.                                                                                                                       |
+| VI. Preserve All Five Visualization Modes | No             | No visualization mode is touched.                                                                                                                                                                                                                                 |
+| Technical Standards → Frontend            | Yes            | Vanilla ES modules, no framework/bundler introduced; new CSS uses existing custom-property theming (`tokens.css`) and the existing `md:` Tailwind breakpoint already used by the nav.                                                                             |
+| Testing standard                          | Yes            | New pure-logic modules get `node:test` unit coverage; the visible UI change gets a new Playwright spec per the "every feature addition or visible UI change" rule.                                                                                                |
+| Linting / Formatting                      | Yes            | `npm run lint` / `npm run format:check` gate, as for any change.                                                                                                                                                                                                  |
+| Documentation Standards                   | Yes            | README.md/README.de.md and docs/user-guide.md/.de.md updated to describe the new panel (tracked as an implementation task). JSDoc required on every new/modified exported function, and a file-level JSDoc block on every new file.                               |
 
 No violations requiring justification — Complexity Tracking section is empty/not
 applicable.
@@ -159,4 +159,4 @@ spec. No new top-level directories or build tooling.
 
 ## Complexity Tracking
 
-*No violations — table intentionally omitted.*
+_No violations — table intentionally omitted._

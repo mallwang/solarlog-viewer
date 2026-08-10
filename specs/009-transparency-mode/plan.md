@@ -32,7 +32,7 @@ Add a single global, persisted toggle ("transparency mode") that a user can swit
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Static-File Data Model is Sacred** — PASS. Feature touches only presentation (CSS/JS UI toggle); no `.js` SolarLog data file is read differently or altered.
 - **II. Zero Historical Data Loss** — PASS. Purely visual; no data is dropped, filtered, or misrendered — content is still fully present, just rendered at reduced opacity.
@@ -95,7 +95,7 @@ tests/
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |

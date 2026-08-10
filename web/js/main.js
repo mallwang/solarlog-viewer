@@ -186,6 +186,13 @@ async function bootstrap() {
     initSkyController({ plant, locationOverride: SKY_LOCATION_OVERRIDE }),
   );
 
+  // Same lazy-init pattern as the sky controller above: the global desktop info panel's
+  // production/weather polling never delays first render, and mounts once here so it
+  // persists across in-app route changes (FR-011) rather than being re-created per view.
+  import('./info-panel/info-panel-controller.js').then(({ initInfoPanelController }) =>
+    initInfoPanelController({ plant, locationOverride: SKY_LOCATION_OVERRIDE }),
+  );
+
   onRouteChange((route) => {
     dispatch(route);
   });

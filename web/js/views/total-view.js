@@ -48,7 +48,10 @@ function totalStatsRows(summary, plant) {
     ['total.stats.yieldKwh', formatKwh(yieldKwh)],
     ['total.stats.yieldEuro', formatCurrency(summary.feedInTotal)],
     ['total.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
-    ['total.stats.maxYear', best.year ? `${formatKwh(best.kwh)} (${best.year})` : formatKwh(best.kwh)],
+    [
+      'total.stats.maxYear',
+      best.year ? `${formatKwh(best.kwh)} (${best.year})` : formatKwh(best.kwh),
+    ],
     ['total.stats.sollTotal', formatKwh(sollKwh)],
     ['total.stats.ist', `${ist}%`],
     ['total.stats.co2', formatCo2(summary.co2SavedKg)],

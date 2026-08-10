@@ -16,7 +16,7 @@ GET https://api.open-meteo.com/v1/forecast
 Implemented as a new function in `web/js/info-panel/weather-forecast-client.js` rather than
 modifying `web/js/sky/weather-client.js` — the sky feature only needs cloud-cover-percent and
 sunrise/sunset and its module is scoped and tested around that; this feature needs a discrete
-weather *code* (for a human label like "clear"/"rain") and today's min/max temperature, a
+weather _code_ (for a human label like "clear"/"rain") and today's min/max temperature, a
 different response shape. Duplicating the small `fetch` + parse (~15 lines) keeps both
 modules single-purpose and independently testable, consistent with how `cloud-density.js`
 and `solar-arc.js` are already split by concern in the sky feature rather than merged into
@@ -27,10 +27,11 @@ in this codebase (007's Constitution Check precedent), and returns both current 
 today's forecast in one request — no new dependency class introduced.
 
 **Alternatives considered**:
-- *Reuse/extend `fetchWeather()` in `sky/weather-client.js` directly* — rejected: would widen
+
+- _Reuse/extend `fetchWeather()` in `sky/weather-client.js` directly_ — rejected: would widen
   that module's single responsibility (cloud density + solar arc) and couple two features'
   test suites together for no shared benefit; the two `fetch` calls are cheap and independent.
-- *A dedicated weather-code icon library* — rejected: out of scope; the panel needs a short
+- _A dedicated weather-code icon library_ — rejected: out of scope; the panel needs a short
   text label (e.g. via `weather_code` → i18n string mapping), not icon artwork.
 
 ## 2. Location resolution for weather + wetteronline.com link
@@ -49,7 +50,8 @@ wetteronline link keeps working even when geocoding to lat/lon fails (FR-012's l
 source is `plant.location`, available whenever `base_vars.js` parses at all).
 
 **Alternatives considered**:
-- *Reverse-geocode the resolved lat/lon to a place name for the link* — rejected: adds a
+
+- _Reverse-geocode the resolved lat/lon to a place name for the link_ — rejected: adds a
   second geocoding round-trip for a value (`plant.location`) the app already has as a plain
   string.
 
@@ -74,10 +76,11 @@ on a normal wetteronline.com search-results page (their generic page for that qu
 dead link or the wrong location silently shown.
 
 **Alternatives considered**:
-- *Hand-maintained address → wetteronline slug mapping* — rejected: a new manually-maintained
+
+- _Hand-maintained address → wetteronline slug mapping_ — rejected: a new manually-maintained
   data source is exactly what Principle I's spirit (dynamic, config-driven UI) warns against;
   a single-installation site has no way to keep such a mapping current or verify it.
-- *wetteronline.com's API* — rejected: no public/free API is documented; site search is a
+- _wetteronline.com's API_ — rejected: no public/free API is documented; site search is a
   plain, stable, unauthenticated URL pattern.
 
 ## 4. Production-animation intensity scaling
@@ -99,8 +102,9 @@ requirement that low vs. high production be visibly distinguishable. Reusing
 "typical peak output" derivation from existing configured capacity.
 
 **Alternatives considered**:
-- *Continuous CSS custom-property scaling (`--ratio: 0.0–1.0`) driving `animation-duration`
-  directly* — considered viable and not excluded by the spec, but discrete tiers were chosen
+
+- _Continuous CSS custom-property scaling (`--ratio: 0.0–1.0`) driving `animation-duration`
+  directly_ — considered viable and not excluded by the spec, but discrete tiers were chosen
   for consistency with the existing `cloud-density.js` precedent and to bound the number of
   visually-tested states in the Playwright spec (four fixed states vs. an unbounded range).
 
@@ -116,7 +120,8 @@ it means "desktop clients" in the spec maps to a concrete, already-tested value 
 inventing a second breakpoint that could disagree with the nav's own mobile/desktop split.
 
 **Alternatives considered**:
-- *`lg:` (1024px, used by the dashboard's `lg:grid-cols-3`)* — rejected: that breakpoint
+
+- _`lg:` (1024px, used by the dashboard's `lg:grid-cols-3`)_ — rejected: that breakpoint
   governs a content-density decision (how many widget columns fit), not a mobile-vs-desktop
   identity split; using it here would make the panel disappear on tablet-width windows that
   the nav still treats as "desktop."
@@ -135,6 +140,7 @@ existing, already-shipped widget); the new info-panel controller uses its own in
 constant rather than importing `dashboard.js`'s.
 
 **Alternatives considered**:
-- *Match `dashboard.js`'s existing 5-minute interval for consistency* — rejected per the
+
+- _Match `dashboard.js`'s existing 5-minute interval for consistency_ — rejected per the
   user's explicit clarification that 10 minutes is the device's real update floor; polling at
   5 minutes only doubles requests without ever finding new data half the time.

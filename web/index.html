@@ -71,6 +71,32 @@
         </button>
       </div>
     </header>
+    <!-- Global desktop info panel (010-global-info-panel): production + weather/forecast,
+         populated and shown/hidden by info-panel-controller.js. Hidden by default and only
+         ever unhidden on desktop widths (`md:flex`, the same breakpoint gating .app-nav's
+         mobile/desktop split) — see app.css's `.info-panel` rules. -->
+    <div class="info-panel hidden md:flex" id="info-panel">
+      <div class="info-panel__production" id="info-panel-production" data-available="false">
+        <span
+          class="info-panel__pulse"
+          id="info-panel-pulse"
+          data-intensity="idle"
+          aria-hidden="true"
+        ></span>
+        <span class="info-panel__value" id="info-panel-production-value">—</span>
+      </div>
+      <a
+        class="info-panel__weather"
+        id="info-panel-weather"
+        data-available="false"
+        rel="noopener"
+        target="_blank"
+        hidden
+      >
+        <span class="info-panel__weather-current" id="info-panel-weather-current">—</span>
+        <span class="info-panel__weather-forecast" id="info-panel-weather-forecast">—</span>
+      </a>
+    </div>
     <nav class="app-nav" id="app-nav">
       <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
     </nav>

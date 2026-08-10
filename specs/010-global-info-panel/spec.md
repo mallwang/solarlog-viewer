@@ -8,7 +8,7 @@
 
 **Input**: User description: "I would like to introduce a global information field for using on desktop clients, that shows the current produced energy, the current weather, the forecast for today. Furthermore, clicking on the weather information, it should forward to the wetteronline.com for the given location (this is what the plant owner normally uses for weather forecasts). There should also be a animation for the produced energy that adapts to the amount of energy."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 <!--
   IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
@@ -97,7 +97,7 @@ A visitor watching the info panel sees a visual animation next to the current pr
 - What happens when the plant has multiple inverters/strings? → The current produced energy value represents the plant's total current output, not a single inverter.
 - What happens if the panel polls before the SolarLog device has written its next update (device updates only every 10 minutes)? → The panel keeps showing the last retrieved value rather than flickering to "no data"; a value is only replaced once a genuinely newer reading is available.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -121,7 +121,7 @@ A visitor watching the info panel sees a visual animation next to the current pr
 - **Today's Forecast Summary**: A same-day outlook (expected conditions and/or temperature range) for the installation's location.
 - **Installation Location**: The configured geographic location of the plant, used to resolve both weather data and the corresponding wetteronline.com forecast page.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

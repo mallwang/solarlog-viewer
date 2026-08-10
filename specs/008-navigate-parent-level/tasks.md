@@ -23,7 +23,7 @@ Single static web app — paths are relative to repository root: `web/js/views/`
 
 **Purpose**: No new project scaffolding needed — this feature extends existing modules only. Nothing to do here.
 
-*(No setup tasks — proceed directly to Foundational.)*
+_(No setup tasks — proceed directly to Foundational.)_
 
 ---
 
@@ -33,9 +33,9 @@ Single static web app — paths are relative to repository root: `web/js/views/`
 
 **⚠️ CRITICAL**: Must complete before any user story phase.
 
-- [X] T001 Add `parentOfDay`, `parentOfMonth`, `parentOfYear` pure helper functions to [web/js/views/period-nav.js](../../web/js/views/period-nav.js), matching the existing `addDays`/`addMonths`/`addYears` JSDoc style (see [data-model.md](./data-model.md))
-- [X] T002 Extend `periodNavMarkup()` in [web/js/views/period-nav.js](../../web/js/views/period-nav.js) with optional `parentHref`/`parentLabel` params: render an enabled `<a class="period-nav__link period-nav__link--parent">` when `parentLabel` is set, omit entirely otherwise (no disabled state — see [contracts/period-nav-markup.md](./contracts/period-nav-markup.md))
-- [X] T003 [P] Add unit tests for `parentOfDay`/`parentOfMonth`/`parentOfYear` and the new `periodNavMarkup` parent-link branch to [web/js/views/period-nav.test.js](../../web/js/views/period-nav.test.js) (mirrors existing `addDays`/today-link test style)
+- [x] T001 Add `parentOfDay`, `parentOfMonth`, `parentOfYear` pure helper functions to [web/js/views/period-nav.js](../../web/js/views/period-nav.js), matching the existing `addDays`/`addMonths`/`addYears` JSDoc style (see [data-model.md](./data-model.md))
+- [x] T002 Extend `periodNavMarkup()` in [web/js/views/period-nav.js](../../web/js/views/period-nav.js) with optional `parentHref`/`parentLabel` params: render an enabled `<a class="period-nav__link period-nav__link--parent">` when `parentLabel` is set, omit entirely otherwise (no disabled state — see [contracts/period-nav-markup.md](./contracts/period-nav-markup.md))
+- [x] T003 [P] Add unit tests for `parentOfDay`/`parentOfMonth`/`parentOfYear` and the new `periodNavMarkup` parent-link branch to [web/js/views/period-nav.test.js](../../web/js/views/period-nav.test.js) (mirrors existing `addDays`/today-link test style)
 
 **Checkpoint**: `node --test web/js/views/period-nav.test.js` passes; `periodNavMarkup`/helpers ready for all three view integrations below.
 
@@ -49,12 +49,12 @@ Single static web app — paths are relative to repository root: `web/js/views/`
 
 ### Tests for User Story 1
 
-- [X] T004 [P] [US1] Add `day.parentLink` key ("Monat" / "Month") to [web/i18n/de.json](../../web/i18n/de.json) and [web/i18n/en.json](../../web/i18n/en.json), under the existing `day` section
-- [X] T005 [US1] Create [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js) with a day-view test: navigate to `#/day/2026/3/15`, assert a parent link is present with the correct month href, click it, assert the resulting view is the March 2026 month view (depends on T006)
+- [x] T004 [P] [US1] Add `day.parentLink` key ("Monat" / "Month") to [web/i18n/de.json](../../web/i18n/de.json) and [web/i18n/en.json](../../web/i18n/en.json), under the existing `day` section
+- [x] T005 [US1] Create [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js) with a day-view test: navigate to `#/day/2026/3/15`, assert a parent link is present with the correct month href, click it, assert the resulting view is the March 2026 month view (depends on T006)
 
 ### Implementation for User Story 1
 
-- [X] T006 [US1] In [web/js/views/day-view.js](../../web/js/views/day-view.js), pass `parentHref: formatRoute({ view: 'month', params: parentOfDay(params) })` and `parentLabel: t('day.parentLink')` into the `periodNavMarkup()` call (depends on T001, T002, T004)
+- [x] T006 [US1] In [web/js/views/day-view.js](../../web/js/views/day-view.js), pass `parentHref: formatRoute({ view: 'month', params: parentOfDay(params) })` and `parentLabel: t('day.parentLink')` into the `periodNavMarkup()` call (depends on T001, T002, T004)
 
 **Checkpoint**: Day view shows a working, always-enabled "go to month" link; `parent-nav.spec.js`'s day-view test passes; User Story 1 is independently shippable.
 
@@ -68,12 +68,12 @@ Single static web app — paths are relative to repository root: `web/js/views/`
 
 ### Tests for User Story 2
 
-- [X] T007 [P] [US2] Add `month.parentLink` key ("Jahr" / "Year") to [web/i18n/de.json](../../web/i18n/de.json) and [web/i18n/en.json](../../web/i18n/en.json), under the existing `month` section
-- [X] T008 [US2] Add a month-view test to [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js): navigate to `#/month/2026/3`, assert a parent link is present with the correct year href, click it, assert the resulting view is the 2026 year view (depends on T009)
+- [x] T007 [P] [US2] Add `month.parentLink` key ("Jahr" / "Year") to [web/i18n/de.json](../../web/i18n/de.json) and [web/i18n/en.json](../../web/i18n/en.json), under the existing `month` section
+- [x] T008 [US2] Add a month-view test to [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js): navigate to `#/month/2026/3`, assert a parent link is present with the correct year href, click it, assert the resulting view is the 2026 year view (depends on T009)
 
 ### Implementation for User Story 2
 
-- [X] T009 [US2] In [web/js/views/month-view.js](../../web/js/views/month-view.js), pass `parentHref: formatRoute({ view: 'year', params: parentOfMonth(params) })` and `parentLabel: t('month.parentLink')` into the `periodNavMarkup()` call (depends on T001, T002, T007)
+- [x] T009 [US2] In [web/js/views/month-view.js](../../web/js/views/month-view.js), pass `parentHref: formatRoute({ view: 'year', params: parentOfMonth(params) })` and `parentLabel: t('month.parentLink')` into the `periodNavMarkup()` call (depends on T001, T002, T007)
 
 **Checkpoint**: Month view shows a working "go to year" link; User Stories 1 AND 2 both work independently.
 
@@ -87,12 +87,12 @@ Single static web app — paths are relative to repository root: `web/js/views/`
 
 ### Tests for User Story 3
 
-- [X] T010 [P] [US3] Add `year.parentLink` key ("Gesamt" / "Total") to [web/i18n/de.json](../../web/i18n/de.json) and [web/i18n/en.json](../../web/i18n/en.json), under the existing `year` section
-- [X] T011 [US3] Add a year-view test to [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js): navigate to `#/year/2026`, assert a parent link is present with the total-view href, click it, assert the resulting view is the total/overview view; plus a total-view test asserting NO parent link is rendered there (depends on T012)
+- [x] T010 [P] [US3] Add `year.parentLink` key ("Gesamt" / "Total") to [web/i18n/de.json](../../web/i18n/de.json) and [web/i18n/en.json](../../web/i18n/en.json), under the existing `year` section
+- [x] T011 [US3] Add a year-view test to [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js): navigate to `#/year/2026`, assert a parent link is present with the total-view href, click it, assert the resulting view is the total/overview view; plus a total-view test asserting NO parent link is rendered there (depends on T012)
 
 ### Implementation for User Story 3
 
-- [X] T012 [US3] In [web/js/views/year-view.js](../../web/js/views/year-view.js), pass `parentHref: formatRoute({ view: 'total', params: {} })` and `parentLabel: t('year.parentLink')` into the `periodNavMarkup()` call (depends on T001, T002, T010)
+- [x] T012 [US3] In [web/js/views/year-view.js](../../web/js/views/year-view.js), pass `parentHref: formatRoute({ view: 'total', params: {} })` and `parentLabel: t('year.parentLink')` into the `periodNavMarkup()` call (depends on T001, T002, T010)
 
 **Checkpoint**: Year view shows a working "go to total" link, total view shows none; all three user stories independently functional — full feature complete.
 
@@ -102,10 +102,10 @@ Single static web app — paths are relative to repository root: `web/js/views/`
 
 **Purpose**: Cross-story verification and documentation cleanup.
 
-- [X] T013 [P] Add a language-toggle assertion to [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js) verifying parent-link labels switch DE ⇄ EN correctly (covers FR-007/SC-004; exercises day, month, and year links together)
-- [X] T014 [P] Add a deep-link assertion to [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js): load a day view directly via URL (no prior in-app navigation) and confirm the parent link still resolves correctly (covers spec.md Edge Cases / Acceptance Scenario 1.2)
-- [X] T015 Run `npx eslint web/js/views/period-nav.js web/js/views/period-nav.test.js web/js/views/day-view.js web/js/views/month-view.js web/js/views/year-view.js` and fix any errors
-- [X] T016 Run the full [quickstart.md](./quickstart.md) manual validation checklist end-to-end and confirm all steps pass
+- [x] T013 [P] Add a language-toggle assertion to [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js) verifying parent-link labels switch DE ⇄ EN correctly (covers FR-007/SC-004; exercises day, month, and year links together)
+- [x] T014 [P] Add a deep-link assertion to [tests/e2e/parent-nav.spec.js](../../tests/e2e/parent-nav.spec.js): load a day view directly via URL (no prior in-app navigation) and confirm the parent link still resolves correctly (covers spec.md Edge Cases / Acceptance Scenario 1.2)
+- [x] T015 Run `npx eslint web/js/views/period-nav.js web/js/views/period-nav.test.js web/js/views/day-view.js web/js/views/month-view.js web/js/views/year-view.js` and fix any errors
+- [x] T016 Run the full [quickstart.md](./quickstart.md) manual validation checklist end-to-end and confirm all steps pass
 
 **Checkpoint**: Feature complete, tested (unit + e2e), linted, and manually validated per quickstart.md.
 
