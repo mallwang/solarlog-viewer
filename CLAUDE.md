@@ -2,7 +2,7 @@
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/010-global-info-panel/plan.md
+at specs/011-realistic-bird-sprites/plan.md
 <!-- SPECKIT END -->
 
 ## Local Development Server
