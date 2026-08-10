@@ -6,7 +6,8 @@
     "yearView": "Yearly Yields",
     "totalView": "Total Yields",
     "ariaLabel": "Main navigation",
-    "toggleLabel": "Toggle navigation"
+    "toggleLabel": "Toggle navigation",
+    "transparencyToggleLabel": "Toggle transparency mode"
   },
   "common": {
     "prev": "Previous",

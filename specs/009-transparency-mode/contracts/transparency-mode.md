@@ -49,32 +49,42 @@ html[data-transparency='on'] {
   --transparency-panel-opacity: 0.4;
 }
 
-.app-nav,
-.period-nav {
-  background-color: color-mix(in srgb, var(--color-bg) calc(var(--transparency-nav-opacity) * 100%), transparent);
+/* .period-nav__link (prev/next/today/parent buttons) is deliberately excluded — those stay
+   fully opaque at all times so they remain easy to spot/click (user feedback). Only the main
+   header nav's background fades. */
+.app-nav {
+  background-color: color-mix(
+    in srgb,
+    var(--color-bg) calc(var(--transparency-nav-opacity) * 100%),
+    transparent
+  );
 }
 
 .chart-container,
 .stats-panel {
-  opacity: var(--transparency-panel-opacity);
+  background-color: color-mix(
+    in srgb,
+    var(--color-bg-elevated) calc(var(--transparency-panel-opacity) * 100%),
+    transparent
+  );
 }
 ```
 
-(Exact selectors/property choice — `background-color` vs. `opacity` — is an implementation detail for the nav rule, since nav bars must stay fully interactive and legible per FR-002/FR-008; panels use `opacity` directly since FR-003 specifies "40% opacity" for the whole panel including its content.)
+(Exact selectors/property choice — `background-color` vs. `opacity` — is an implementation detail, and for panels it matters: an earlier draft applied `opacity` directly to `.chart-container`/`.stats-panel`, which faded the panel's text/values along with its background and made them hard to read. FR-003 was corrected during implementation to mean the panel's _background card_ renders at 40% opacity, not its content — so `background-color` + `color-mix()` is used here too, mirroring the nav rule, leaving text/chart-content opacity untouched at `1`.)
 
 ## Behavioral requirements
 
 - **Immediate effect (FR-007)**: toggling MUST update `data-transparency` synchronously in the same event handler that reads the user's action — no reload, no route change.
 - **Global scope (FR-001, FR-005)**: because the attribute lives on `<html>`, every current and future view automatically inherits the effect; no view module needs to opt in individually.
 - **Persistence (FR-006)**: `setTransparencyEnabled()` MUST write to `localStorage` before or in the same tick as applying the attribute, so a refresh immediately after toggling reflects the latest choice.
-- **Full transparency for nav (FR-002)**: computed nav background alpha MUST be `0` when enabled — not a low-but-nonzero value.
-- **40% opacity for panels (FR-003)**: computed panel opacity MUST be exactly `0.4` when enabled.
+- **Full transparency for nav (FR-002)**: computed `.app-nav` background alpha MUST be `0` when enabled — not a low-but-nonzero value. `.period-nav__link` background alpha MUST stay `1` (unaffected) at all times.
+- **40% opacity for panels (FR-003)**: computed panel _background_ alpha MUST be `0.4` when enabled; panel content (text, values, chart lines) MUST stay at opacity `1`.
 - **Restore on disable (FR-004)**: both tokens MUST return to `1` when disabled, exactly matching pre-feature appearance (no regression to existing visual baseline).
 - **Legibility (FR-008)**: nav text/icons and panel content MUST remain in the DOM and interactive at all times — transparency is a paint-layer effect only, never `display:none`/`visibility:hidden`/`pointer-events:none`.
 
 ## Test hooks for Playwright (`tests/e2e/transparency-mode.spec.js`)
 
 - Assert `document.documentElement.getAttribute('data-transparency')` toggles between `null`/`'off'` and `'on'`.
-- Assert computed style: nav background alpha ≈ 0 when on; chart-container/stats-panel computed `opacity` ≈ `0.4` when on.
+- Assert computed style: `.app-nav` background alpha ≈ 0 when on; `.period-nav__link` background alpha stays ≈ 1 when on; chart-container/stats-panel computed background alpha ≈ `0.4` when on, while their content (`.chart-mount`, `.stats-panel table`) stays at `opacity: 1`.
 - Assert `localStorage.getItem('solarlog-transparency')` reflects the last toggle after a `page.reload()`.
 - Repeat the assertions across at least two routes (e.g. `#/` dashboard and `#/year`) to cover FR-005.

@@ -371,6 +371,22 @@ a {
   border-color: var(--color-primary);
 }
 
+.transparency-toggle {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.transparency-toggle[aria-pressed='true'] {
+  background: var(--color-primary);
+  color: #1a1d21;
+  border-color: var(--color-primary);
+}
+
 /* .summary-table's width/border-collapse/margin-top are Tailwind utilities inline
    (web/js/views/total-view.js); cell borders/padding have no Tailwind equivalent applied yet. */
 .summary-table th,
@@ -378,4 +394,52 @@ a {
   text-align: left;
   padding: var(--space-xs) var(--space-sm);
   border-bottom: 1px solid var(--color-border);
+}
+
+/* Transparency mode (settings.js, contracts/transparency-mode.md): overrides the two tokens
+   declared in tokens.css so the sky background shows through the header nav chrome/chart-
+   container/stats-panel. This block is unlayered, so it always beats the same selectors' `bg-bg`/
+   `bg-bg-elevated` declarations compiled into tailwind.generated.css's `@layer components` —
+   see the `a[aria-current='page']` comment above for why that ordering is guaranteed regardless
+   of stylesheet <link> order.
+   `.period-nav__link` (the prev/next/today/parent buttons) is deliberately NOT included here —
+   those stay fully opaque at all times so they remain easy to spot/click over the busy sky
+   backdrop, unlike `.app-nav`, whose links already get the text-shadow treatment below. */
+html[data-transparency='on'] {
+  --transparency-nav-opacity: 0;
+  --transparency-panel-opacity: 0.4;
+}
+
+.app-nav {
+  background-color: color-mix(
+    in srgb,
+    var(--color-bg) calc(var(--transparency-nav-opacity) * 100%),
+    transparent
+  );
+}
+
+/* Only the card background fades — text/values/chart lines stay at full opacity, so numbers and
+   labels remain crisp instead of washing out along with the backdrop (using the CSS `opacity`
+   property here would dim the content too, not just the card fill). `.chart-container`'s own
+   `background:` declaration above and `.stats-panel`'s Tailwind `bg-bg-elevated` utility are both
+   overridden by this color-mix, same unlayered-beats-layered reasoning as `.app-nav` above. */
+.chart-container,
+.stats-panel {
+  background-color: color-mix(
+    in srgb,
+    var(--color-bg-elevated) calc(var(--transparency-panel-opacity) * 100%),
+    transparent
+  );
+}
+
+/* FR-002/FR-008: with the header nav background gone, labels/icons sit directly over the
+   animated sky (which ranges from pale cloud-white to deep blue), so `--color-text`'s usual
+   dark-on-white contrast can no longer be assumed. A soft light halo keeps dark text legible
+   against both ends of that range without needing a second (light-on-dark) text color.
+   `.period-nav__link` doesn't need this — it stays fully opaque (see above), so its usual
+   contrast against `--color-bg` already holds. */
+html[data-transparency='on'] .app-nav__list a {
+  text-shadow:
+    0 0 4px var(--color-bg),
+    0 0 4px var(--color-bg);
 }

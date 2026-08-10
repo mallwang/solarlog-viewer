@@ -4,8 +4,8 @@ This feature introduces one client-side preference entity. It has no relationshi
 
 ## Entity: Transparency Mode Setting
 
-| Field | Type | Description | Validation |
-|---|---|---|---|
+| Field     | Type    | Description                                | Validation                                                                             |
+| --------- | ------- | ------------------------------------------ | -------------------------------------------------------------------------------------- |
 | `enabled` | boolean | Whether transparency mode is currently on. | Must be `true` or `false`; any other stored value is treated as `false` (default off). |
 
 ### Storage representation
@@ -18,10 +18,10 @@ This feature introduces one client-side preference entity. It has no relationshi
 
 These are not stored — they are computed/applied purely via CSS custom properties keyed off the `enabled` state, per `research.md`:
 
-| Token (in `web/css/tokens.css`) | Applies to | Value when `enabled = true` | Value when `enabled = false` |
-|---|---|---|---|
-| `--transparency-nav-opacity` | Header nav (`app-nav`) and period nav (`period-nav`) backgrounds | `0` (fully transparent) | `1` (current opaque background) |
-| `--transparency-panel-opacity` | Chart-container cards and `stats-panel` | `0.4` (40% opacity) | `1` (current opaque background) |
+| Token (in `web/css/tokens.css`) | Applies to                                                                                                                                                                                                                                                  | Value when `enabled = true` | Value when `enabled = false`    |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------- |
+| `--transparency-nav-opacity`    | Header nav (`app-nav`) background only. `.period-nav__link` (prev/next/today/parent buttons) intentionally never reads this token — it stays fully opaque at all times so it remains easy to spot/click (corrected during implementation per user feedback) | `0` (fully transparent)     | `1` (current opaque background) |
+| `--transparency-panel-opacity`  | Chart-container cards' and `stats-panel`'s _background_ only (their text/values/chart content stays at opacity `1` — an earlier draft applying this to the whole panel via `opacity` made content unreadable and was corrected during implementation)       | `0.4` (40% opacity)         | `1` (current opaque background) |
 
 ### State transitions
 
