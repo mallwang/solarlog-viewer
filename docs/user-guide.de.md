@@ -16,6 +16,12 @@ Einheit (W für die Tagesansicht, kWh in den übrigen). Diagramme passen sich de
 und das gesamte Layout — inklusive Navigation — bleibt von 320px breiten Smartphones bis zu
 2560px breiten Monitoren nutzbar, ohne horizontales Scrollen.
 
+Die Ansichten Tag, Monat und Jahr haben jeweils oberhalb des Diagramms eine Zeile mit
+Vor-/Zurück-Links, einem Link zum aktuellen Zeitraum (z. B. "Heute"/"Dieser Monat") und einem
+Link zur nächstgrößeren Zeitebene (Tag → Monat → Jahr → Gesamt) — z. B. führt "Monat" von einer
+Tagesansicht direkt zur zugehörigen Monatsansicht. Die Gesamt-Ansicht hat keinen solchen Link, da
+sie die oberste Ebene der Hierarchie ist.
+
 ## Dynamischer Himmel-Hintergrund
 
 Die Wolkenkulisse hinter dem Dashboard ändert sich mit dem realen aktuellen Wetter und der
