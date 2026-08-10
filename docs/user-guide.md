@@ -14,6 +14,11 @@ line to see a tooltip with the exact value and its unit (W for the day view, kWh
 Charts resize with the browser window, and the whole layout — nav included — stays usable from
 320px-wide phones up to 2560px-wide monitors with no horizontal scrolling.
 
+The day, month, and year views each have a row above the chart with prev/next links, a "jump to
+current period" link (e.g. "Heute"/"Dieser Monat"), and a link to zoom out to the next-larger
+period (day → month → year → total) — e.g. from a day view, click "Monat" to jump straight to
+that day's month view. The total view has no such link since it's the top of the hierarchy.
+
 ## Dynamic sky background
 
 The cloud backdrop behind the dashboard changes with the installation's real current weather

@@ -13,6 +13,7 @@
     "prev": "Vorheriger Tag",
     "next": "Nächster Tag",
     "today": "Heute",
+    "parentLink": "Monat",
     "powerUnavailable": "Für diesen Tag ist kein Leistungsverlauf gespeichert (archivierte/rekonstruierte Daten). Es wird stattdessen der kumulierte Ertrag angezeigt.",
     "stats": {
       "title": "Statistik",
@@ -30,6 +31,7 @@
     "prev": "Vorheriger Monat",
     "next": "Nächster Monat",
     "thisMonth": "Dieser Monat",
+    "parentLink": "Jahr",
     "short": {
       "01": "Jan", "02": "Feb", "03": "Mär", "04": "Apr", "05": "Mai", "06": "Jun",
       "07": "Jul", "08": "Aug", "09": "Sep", "10": "Okt", "11": "Nov", "12": "Dez"
@@ -55,6 +57,7 @@
     "prev": "Vorheriges Jahr",
     "next": "Nächstes Jahr",
     "thisYear": "Dieses Jahr",
+    "parentLink": "Gesamt",
     "stats": {
       "title": "Statistik",
       "yieldKwh": "Jahresertrag",

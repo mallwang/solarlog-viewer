@@ -5,6 +5,9 @@ import {
   addMonths,
   isFutureDay,
   isFutureMonth,
+  parentOfDay,
+  parentOfMonth,
+  parentOfYear,
   periodNavMarkup,
 } from './period-nav.js';
 
@@ -112,4 +115,40 @@ test('periodNavMarkup disables the today link when todayHref is null', () => {
   });
   assert.match(html, /period-nav__link--today period-nav__link--disabled[^>]*aria-disabled="true"[^<]*Today/);
   assert.doesNotMatch(html, /<a[^>]*period-nav__link--today/);
+});
+
+test('parentOfDay drops the day, keeping year/month', () => {
+  assert.deepEqual(parentOfDay({ year: 2026, month: 3, day: 15 }), { year: 2026, month: 3 });
+});
+
+test('parentOfMonth drops the month, keeping year', () => {
+  assert.deepEqual(parentOfMonth({ year: 2026, month: 3 }), { year: 2026 });
+});
+
+test('parentOfYear returns empty params', () => {
+  assert.deepEqual(parentOfYear({ year: 2026 }), {});
+});
+
+test('periodNavMarkup renders an enabled parent link when parentLabel is set', () => {
+  const html = periodNavMarkup({
+    prevHref: '#/day/2026/08/06',
+    prevLabel: 'Previous day',
+    nextHref: '#/day/2026/08/08',
+    nextLabel: 'Next day',
+    parentHref: '#/month/2026/8',
+    parentLabel: 'Month',
+  });
+  assert.match(html, /period-nav__link--parent/);
+  assert.match(html, /<a[^>]*href="#\/month\/2026\/8"[^>]*>Month<\/a>/);
+  assert.doesNotMatch(html, /aria-disabled/);
+});
+
+test('periodNavMarkup omits the parent link when parentLabel is not set', () => {
+  const html = periodNavMarkup({
+    prevHref: '#/day/2026/08/06',
+    prevLabel: 'Previous day',
+    nextHref: '#/day/2026/08/08',
+    nextLabel: 'Next day',
+  });
+  assert.doesNotMatch(html, /period-nav__link--parent/);
 });

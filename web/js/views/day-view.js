@@ -5,7 +5,7 @@ import { getLanguage, t } from '../i18n.js';
 import { sourceDirForDate } from '../data/data-source.js';
 import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
-import { addDays, isFutureDay, periodNavMarkup } from './period-nav.js';
+import { addDays, isFutureDay, parentOfDay, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
 import { formatKwh, formatCurrency, formatDate, formatCo2 } from '../format.js';
@@ -94,6 +94,8 @@ export async function render(container, { route, plant }) {
     nextLabel: t('day.next'),
     todayHref: isToday ? null : formatRoute({ view: 'day', params: todayParams() }),
     todayLabel: t('day.today'),
+    parentHref: formatRoute({ view: 'month', params: parentOfDay(params) }),
+    parentLabel: t('day.parentLink'),
   });
 
   container.innerHTML = `<div class="view-header flex items-center justify-between gap-sm flex-wrap mb-md">
