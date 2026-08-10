@@ -3,19 +3,23 @@ import { parseBaseVars } from './data/plant.js';
 import { onRouteChange, formatRoute } from './router.js';
 import { initI18n, getLanguage, t } from './i18n.js';
 import { initTransparencyMode, isTransparencyEnabled, setTransparencyEnabled } from './settings.js';
-import { SHOW_LANGUAGE_SWITCHER, SKY_LOCATION_OVERRIDE } from './config.js';
+import { SHOW_LANGUAGE_SWITCHER, SKY_LOCATION_OVERRIDE, SITE_TITLE } from './config.js';
+import { icon } from './icons.js';
 
 function todayParams() {
   const now = new Date();
   return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
 }
 
+// The dashboard nav item is temporarily removed (see views/dashboard.js) pending a redesign;
+// its "today so far" figures live on in the info panel's yield element instead (see
+// info-panel/info-panel-controller.js).
 const NAV_ITEMS = [
-  { view: 'dashboard', labelKey: 'nav.dashboard', params: {} },
-  { view: 'day', labelKey: 'nav.dayView', params: () => todayParams() },
+  { view: 'day', labelKey: 'nav.dayView', icon: 'bolt', params: () => todayParams() },
   {
     view: 'month',
     labelKey: 'nav.monthView',
+    icon: 'calendarDateRange',
     params: () => {
       const { year, month } = todayParams();
       return { year, month };
@@ -24,25 +28,26 @@ const NAV_ITEMS = [
   {
     view: 'year',
     labelKey: 'nav.yearView',
+    icon: 'calendar',
     params: () => {
       const { year } = todayParams();
       return { year };
     },
   },
-  { view: 'total', labelKey: 'nav.totalView', params: {} },
+  { view: 'total', labelKey: 'nav.totalView', icon: 'presentationChartBar', params: {} },
 ];
 
 let plant = null;
-let currentRoute = { view: 'dashboard', params: {} };
+let currentRoute = { view: 'day', params: todayParams() };
 
 const viewMain = document.getElementById('app-main');
 const viewNav = document.getElementById('app-nav');
 const viewNavList = document.getElementById('app-nav-list');
 const navToggle = document.getElementById('app-nav-toggle');
 const langSwitcher = document.getElementById('lang-switcher');
-// Two instances of the same control (mobile: header; desktop: the nav row, alongside the info
-// panel — see index.html/tailwind.css's `.app-nav__end`), kept in sync as a NodeList rather
-// than a single element.
+// A NodeList rather than a single element — currently always exactly one (`.transparency-
+// toggle` in `.app-header__actions`), but kept as a NodeList so a future second instance (e.g.
+// a mobile-specific one) would need no change here, only in initTransparencyToggle's callers.
 const transparencyToggles = document.querySelectorAll('.transparency-toggle');
 
 function applyNavLabels() {
@@ -66,7 +71,7 @@ function renderNav() {
     const li = document.createElement('li');
     const link = document.createElement('a');
     link.href = formatRoute({ view: item.view, params });
-    link.textContent = t(item.labelKey);
+    link.innerHTML = `${icon(item.icon)}<span>${t(item.labelKey)}</span>`;
     if (currentRoute.view === item.view) link.setAttribute('aria-current', 'page');
     link.addEventListener('click', () => closeNav());
     li.append(link);
@@ -75,16 +80,19 @@ function renderNav() {
 }
 
 /**
- * Keeps the `--chrome-height` custom property in sync with the actual rendered height of the
- * header + nav bar, so the animated `.sky-clouds` backdrop (fixed, positioned via that
- * variable — see app.css) starts exactly below the nav instead of being clipped by it or
- * leaving a gap. Header/nav height isn't a fixed constant: it depends on font rendering and can
- * change on resize (e.g. the title wrapping to two lines on narrow viewports), so this is
- * re-measured on load and on every resize rather than hard-coded.
+ * Keeps the `--chrome-height` custom property in sync with the actual rendered top of
+ * `#app-main`, so the animated `.sky-clouds` backdrop (fixed, positioned via that variable —
+ * see app.css) starts exactly below whatever chrome precedes it — instead of being clipped by
+ * it or leaving a gap — regardless of how many bars that chrome is made of (the combined
+ * header+nav row alone on desktop; header row + the mobile info sub-nav bar on mobile — see
+ * index.html). Measuring `#app-main` directly rather than any one specific chrome element means
+ * this doesn't need updating every time the chrome's structure changes. Chrome height isn't a
+ * fixed constant: it depends on font rendering and can change on resize (e.g. the title
+ * wrapping to two lines on narrow viewports), so this is re-measured on load and on resize.
  */
 function updateChromeHeight() {
-  const bottom = Math.max(viewNav.getBoundingClientRect().bottom, 120);
-  document.documentElement.style.setProperty('--chrome-height', `${Math.ceil(bottom)}px`);
+  const top = Math.max(viewMain.getBoundingClientRect().top, 60);
+  document.documentElement.style.setProperty('--chrome-height', `${Math.ceil(top)}px`);
 }
 
 function initNavToggle() {
@@ -110,8 +118,14 @@ function initNavToggle() {
 }
 
 function renderTransparencyToggle() {
+  // eye-slash once transparency mode has hidden the panels' backgrounds, eye while they're
+  // still opaque/"visible" — the icon always names the state currently in effect, not the
+  // action a click would perform (matches the pulse/production icons elsewhere, which are
+  // likewise state, not affordance).
+  const enabled = isTransparencyEnabled();
   transparencyToggles.forEach((toggle) => {
-    toggle.setAttribute('aria-pressed', String(isTransparencyEnabled()));
+    toggle.setAttribute('aria-pressed', String(enabled));
+    toggle.innerHTML = icon(enabled ? 'eyeSlash' : 'eye', 'size-5');
   });
 }
 
@@ -184,9 +198,14 @@ async function bootstrap() {
   const result = await fetchText('data/base_vars.js');
   if (result.ok) {
     plant = parseBaseVars(result.text);
-    document.getElementById('app-title').textContent = plant.title || 'SolarLog Viewer';
     updateChromeHeight();
   }
+  // SITE_TITLE (config.js) wins over the plant's device-generated HPTitel (e.g.
+  // "Photovoltaikanlage Allwang") whenever it's set; both the nav brand and the browser tab
+  // get the same name.
+  const siteTitle = SITE_TITLE || plant?.title || 'SolarLog Viewer';
+  document.getElementById('app-title').textContent = siteTitle;
+  document.title = siteTitle;
 
   // Dynamically imported so the sky background never delays first render of the actual
   // PV-data dashboard; failures inside it are self-contained (FR-005) and don't affect

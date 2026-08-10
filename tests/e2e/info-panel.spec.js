@@ -66,12 +66,11 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     await expect(desktop).toBeVisible();
     await expect(mobile).toBeHidden();
 
-    // Shares the persistent nav row (not a separate row of its own), alongside the desktop
-    // transparency toggle.
-    await expect(page.locator('.app-nav [data-info-panel="desktop"]')).toHaveCount(1);
-    await expect(page.locator('.app-nav__end [data-info-panel="desktop"]')).toHaveCount(1);
-    await expect(page.locator('.app-nav__end #transparency-toggle-desktop')).toBeVisible();
-    await expect(page.locator('#transparency-toggle-mobile')).toBeHidden();
+    // Shares the single combined header+nav row (not a separate row of its own), alongside the
+    // nav links and the transparency toggle.
+    await expect(page.locator('.app-header [data-info-panel="desktop"]')).toHaveCount(1);
+    await expect(page.locator('.app-header #app-nav-list')).toHaveCount(1);
+    await expect(page.locator('.app-header #transparency-toggle')).toBeVisible();
 
     await expect(desktop.locator('[data-role="production-value"]')).toHaveText('3100 W');
     await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
@@ -145,26 +144,28 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     await expect(desktop.locator('[data-role="production-value"]')).toHaveText('500 W');
   });
 
-  test('clicking the weather area opens the expected wetteronline.de search URL in a new tab', async ({
+  test('the weather area is configured to open the wetteronline.de search URL in a new tab', async ({
     page,
-    context,
   }) => {
+    // Asserts on the link's own href/target rather than actually following it: wetteronline.de
+    // auto-redirects this exact query shape to a real forecast page (confirmed manually — see
+    // wetteronline-link.js's header comment), so a real click-through would depend on that
+    // live third-party redirect rather than anything this codebase controls, which is exactly
+    // what quickstart.md's "no dependency on real-world data at test run time" rules out.
     await mockProduction(page);
     await mockForecast(page);
     await page.goto('/');
 
-    const desktop = page.locator('[data-info-panel="desktop"]');
-    await expect(desktop.locator('[data-role="weather"]')).toHaveAttribute(
-      'data-available',
-      'true',
-    );
-
-    const [newPage] = await Promise.all([
-      context.waitForEvent('page'),
-      desktop.locator('[data-role="weather"]').click(),
-    ]);
-    expect(newPage.url()).toContain('https://www.wetteronline.de/suche?q=');
-    expect(decodeURIComponent(newPage.url())).toContain('92266 Ensdorf-Wolfsbach');
+    const weatherLink = page.locator('[data-info-panel="desktop"] [data-role="weather"]');
+    await expect(weatherLink).toHaveAttribute('data-available', 'true');
+    await expect(weatherLink).toHaveAttribute('target', '_blank');
+    await expect(weatherLink).toHaveAttribute('rel', 'noopener');
+    const href = await weatherLink.getAttribute('href');
+    expect(href).toContain('https://www.wetteronline.de/suche?searchstring=');
+    // Query-string encoding (URLSearchParams), not encodeURIComponent — spaces are '+', not
+    // '%20' — see wetteronline-link.js.
+    expect(href).toContain('92266+Ensdorf-Wolfsbach');
+    expect(href).toContain('searchpcid=pc_city_weather');
   });
 
   test('a near-zero reading renders the idle animation intensity and a gray pulse', async ({
@@ -219,33 +220,30 @@ test.describe('Global info panel — mobile placement (bar below the nav)', () =
     await expect(mobile).toBeVisible();
     await expect(desktop).toBeHidden();
 
-    // Lives right after .app-nav, not inside the header, and doesn't share its row with the
-    // transparency toggle (that stays in the header on mobile).
-    const navThenPanel = page.locator('.app-nav + [data-info-panel="mobile"]');
-    await expect(navThenPanel).toHaveCount(1);
+    // Lives right after .app-header as its own sub-navigation bar, not inside the header, and
+    // doesn't share its row with the transparency toggle (that stays in the header on mobile,
+    // where the nav links themselves have collapsed into the burger dropdown instead).
+    const headerThenPanel = page.locator('.app-header + [data-info-panel="mobile"]');
+    await expect(headerThenPanel).toHaveCount(1);
     await expect(mobile.locator('.transparency-toggle')).toHaveCount(0);
-    await expect(page.locator('#transparency-toggle-mobile')).toBeVisible();
-    await expect(page.locator('#transparency-toggle-desktop')).toBeHidden();
+    await expect(page.locator('#transparency-toggle')).toBeVisible();
+    await expect(page.locator('#app-nav-list')).toBeHidden();
 
     await expect(mobile.locator('[data-role="production-value"]')).toHaveText('2200 W');
   });
 
-  test('mobile weather click opens the wetteronline.de search URL in a new tab', async ({
+  test('the mobile weather area is configured to open the wetteronline.de search URL in a new tab', async ({
     page,
-    context,
   }) => {
     await mockProduction(page);
     await mockForecast(page);
     await page.goto('/');
 
-    const mobile = page.locator('[data-info-panel="mobile"]');
-    await expect(mobile.locator('[data-role="weather"]')).toHaveAttribute('data-available', 'true');
-
-    const [newPage] = await Promise.all([
-      context.waitForEvent('page'),
-      mobile.locator('[data-role="weather"]').click(),
-    ]);
-    expect(newPage.url()).toContain('https://www.wetteronline.de/suche?q=');
+    const weatherLink = page.locator('[data-info-panel="mobile"] [data-role="weather"]');
+    await expect(weatherLink).toHaveAttribute('data-available', 'true');
+    await expect(weatherLink).toHaveAttribute('target', '_blank');
+    const href = await weatherLink.getAttribute('href');
+    expect(href).toContain('https://www.wetteronline.de/suche?searchstring=');
   });
 
   test('renders without horizontal scroll at 375px with the info bar present', async ({ page }) => {

@@ -1,14 +1,15 @@
 /**
  * @file DOM-glue orchestrator for the global info panel. Resolves the installation's location,
  * fetches current production (`data/min_cur.js`, same path `dashboard.js`'s widget already
- * uses) and current weather + today's forecast (Open-Meteo) on mount and every ~10 minutes
- * (FR-004), renders both, drives the production-animation pulse's size/speed tier
- * (`data-intensity`) and its continuous red→orange→yellow→green color (`--pulse-color`, from
- * `productionColor()`), links the production value to today's day view (mirroring
- * `dashboard.js`'s widget), and
- * wires the weather/forecast area's wetteronline.com click-through (FR-007). Each data
- * source's "unavailable" state (FR-008) is fully independent — a production or weather/location
- * failure never blocks or resets the other.
+ * uses), today's/this month's yield-so-far (`data/days.js` + `months.js`, same figures the
+ * disabled dashboard used to show — see renderYield below), and current weather + today's
+ * forecast (Open-Meteo) on mount and every ~10 minutes (FR-004), renders all three, drives the
+ * production-animation pulse's size/speed tier (`data-intensity`) and its continuous
+ * red→orange→yellow→green color (`--pulse-color`, from `productionColor()`), links the
+ * production value to today's day view (mirroring `dashboard.js`'s widget), and wires the
+ * weather/forecast area's wetteronline.com click-through (FR-007). Each data source's
+ * "unavailable" state (FR-008) is fully independent — a production, yield, or weather/location
+ * failure never blocks or resets the others.
  *
  * The panel exists twice in the DOM (see index.html): `.info-panel--desktop` inside
  * `.app-nav__end`, sharing the persistent nav row with the nav links and the desktop
@@ -21,6 +22,14 @@
 
 import { fetchText } from '../data/fetch-text.js';
 import { parseMinFile } from '../data/min-file.js';
+import {
+  parseDailyTotalsFile,
+  parseMonthsFile,
+  mergeMonthlyTotals,
+  addTodayYield,
+} from '../data/aggregates.js';
+import { fetchFromBothSources } from '../data/data-source.js';
+import { formatKwh } from '../format.js';
 import { resolveInstallationLocation } from '../sky/location.js';
 import { formatRoute } from '../router.js';
 import { fetchWeatherAndForecast, weatherCodeToLabelKey } from './weather-forecast-client.js';
@@ -50,6 +59,53 @@ function todayParams() {
 function todayDdMmYy() {
   const now = new Date();
   return `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getFullYear()).slice(-2)}`;
+}
+
+/**
+ * @returns {string} Today's date as ISO 'YYYY-MM-DD', matching parseDailyTotalsFile's date shape.
+ */
+function todayIso() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function sumWh(perInverter) {
+  return Object.values(perInverter).reduce((s, v) => s + (v.yieldWh ?? v), 0);
+}
+
+/**
+ * Fetches today's and this month's yield-so-far, mirroring the (temporarily disabled) dashboard
+ * widget's own figures: today's total straight from `days.js`, and the current month's total
+ * from `months.js` with today's live entry folded in on top (months.js is only written at day
+ * rollover — see addTodayYield) so it always agrees with the month detail view.
+ * @returns {Promise<{ todayKwh: number, monthKwh: number, available: true } | { available: false }>}
+ */
+async function fetchYield() {
+  const { year, month } = todayParams();
+  const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+  const [daysResult, { hist, data }] = await Promise.all([
+    fetchText('data/days.js'),
+    fetchFromBothSources('months.js'),
+  ]);
+  if (!daysResult.ok) return { available: false };
+
+  const todayEntry = parseDailyTotalsFile(daysResult.text).find((d) => d.date === todayIso());
+  if (!todayEntry) return { available: false };
+
+  const months = mergeMonthlyTotals(
+    hist.ok ? parseMonthsFile(hist.text) : [],
+    data.ok ? parseMonthsFile(data.text) : [],
+  );
+  const thisMonth = addTodayYield(
+    months.find((m) => m.month === monthKey) ?? { month: monthKey, perInverter: {} },
+    todayEntry,
+  );
+
+  return {
+    todayKwh: sumWh(todayEntry.perInverter) / 1000,
+    monthKwh: sumWh(thisMonth.perInverter) / 1000,
+    available: true,
+  };
 }
 
 /**
@@ -108,6 +164,27 @@ function renderProduction({ pulseEls, valueEls, wrapperEls }, production, capaci
 }
 
 /**
+ * Renders the yield-so-far side of every panel variant (temporary stand-in for the disabled
+ * dashboard — see this file's top comment): plain text, not a link, so it's deliberately not
+ * wired up like `.info-panel__production`/`.info-panel__weather` above.
+ * @param {{ todayEls: NodeListOf<HTMLElement>, monthEls: NodeListOf<HTMLElement> }} elements
+ * @param {{ todayKwh: number, monthKwh: number, available: true } | { available: false }} yield_
+ */
+function renderYield({ todayEls, monthEls }, yield_) {
+  const todayText = yield_.available
+    ? `${t('widget.todayYield')}: ${formatKwh(yield_.todayKwh)}`
+    : t('infoPanel.unavailable');
+  const monthText = yield_.available ? `${t('widget.monthYield')}: ${formatKwh(yield_.monthKwh)}` : '';
+
+  todayEls.forEach((el) => {
+    el.textContent = todayText;
+  });
+  monthEls.forEach((el) => {
+    el.textContent = monthText;
+  });
+}
+
+/**
  * Renders the weather/forecast side of every panel variant.
  * @param {{ linkEls: NodeListOf<HTMLAnchorElement>, currentEls: NodeListOf<HTMLElement>,
  *   forecastEls: NodeListOf<HTMLElement> }} elements
@@ -116,7 +193,8 @@ function renderProduction({ pulseEls, valueEls, wrapperEls }, production, capaci
 function renderWeather({ linkEls, currentEls, forecastEls }, weather) {
   const available = Boolean(weather?.available);
   const currentText = available
-    ? `${t(weatherCodeToLabelKey(weather.weatherCode))} · ${Math.round(weather.temperatureC)}°C`
+    ? `${t('infoPanel.currentLabel')}: ${t(weatherCodeToLabelKey(weather.weatherCode))} · ` +
+      `${Math.round(weather.temperatureC)}°C`
     : t('infoPanel.unavailable');
   const forecastText = available
     ? `${t('infoPanel.todayLabel')}: ${t(weatherCodeToLabelKey(weather.todayWeatherCode))} · ` +
@@ -150,6 +228,8 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
     pulseEls: document.querySelectorAll('[data-role="pulse"]'),
     valueEls: document.querySelectorAll('[data-role="production-value"]'),
     wrapperEls: document.querySelectorAll('[data-role="production"]'),
+    todayYieldEls: document.querySelectorAll('[data-role="yield-today"]'),
+    monthYieldEls: document.querySelectorAll('[data-role="yield-month"]'),
     linkEls: document.querySelectorAll('[data-role="weather"]'),
     currentEls: document.querySelectorAll('[data-role="weather-current"]'),
     forecastEls: document.querySelectorAll('[data-role="weather-forecast"]'),
@@ -179,6 +259,11 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
     renderProduction(elements, production, capacityKwp);
   }
 
+  async function pollYield() {
+    const yield_ = await fetchYield();
+    renderYield({ todayEls: elements.todayYieldEls, monthEls: elements.monthYieldEls }, yield_);
+  }
+
   async function pollWeather() {
     const location = await resolveInstallationLocation(plant, locationOverride);
     if (!location) {
@@ -190,9 +275,11 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
   }
 
   pollProduction();
+  pollYield();
   pollWeather();
   const intervalId = setInterval(() => {
     pollProduction();
+    pollYield();
     pollWeather();
   }, POLL_INTERVAL_MS);
 

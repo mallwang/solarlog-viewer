@@ -1,3 +1,5 @@
+import { icon } from '../icons.js';
+
 /**
  * Shared prev/next date-stepping helpers for the day and month views (FR: period navigation).
  * All arithmetic goes through UTC-anchored Date objects so month/year rollovers (e.g.
@@ -114,9 +116,11 @@ export function periodNavMarkup({
   // from `.period-nav__link`'s `gap-xs` (a flex gap), not from any space character here — see
   // that class's comment for why an inline space wouldn't survive layout.
   const nextText = responsiveLabel(nextLabel, nextShortLabel);
+  const forwardIcon = icon('forward');
+  const backwardIcon = icon('backward');
   const nextMarkup = nextHref
-    ? `<a class="period-nav__link" href="${nextHref}">${nextText}<span aria-hidden="true">→</span></a>`
-    : `<span class="period-nav__link period-nav__link--disabled" aria-disabled="true">${nextText}<span aria-hidden="true">→</span></span>`;
+    ? `<a class="period-nav__link" href="${nextHref}">${nextText}${forwardIcon}</a>`
+    : `<span class="period-nav__link period-nav__link--disabled" aria-disabled="true">${nextText}${forwardIcon}</span>`;
   let todayMarkup = '';
   if (todayLabel) {
     todayMarkup = todayHref
@@ -127,7 +131,7 @@ export function periodNavMarkup({
     ? `<a class="period-nav__link period-nav__link--parent" href="${parentHref}">${parentLabel}</a>`
     : '';
   return `<nav class="period-nav flex items-center gap-sm" aria-label="${prevLabel} / ${nextLabel}">
-    <a class="period-nav__link" href="${prevHref}"><span aria-hidden="true">←</span>${responsiveLabel(prevLabel, prevShortLabel)}</a>
+    <a class="period-nav__link" href="${prevHref}">${backwardIcon}${responsiveLabel(prevLabel, prevShortLabel)}</a>
     ${nextMarkup}
     ${todayMarkup}
     ${parentMarkup}

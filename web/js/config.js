@@ -11,6 +11,16 @@ export const HIST_DIR = 'hist';
 export const SHOW_LANGUAGE_SWITCHER = false;
 
 /**
+ * Overrides the nav-bar brand text and the browser tab title (`<title>`). `null` (the default)
+ * falls back to the plant's `HPTitel` from `data/base_vars.js` (see `parseBaseVars` in
+ * `data/plant.js`), which is why this lives in config.js rather than being hardcoded in
+ * index.html: HPTitel is a device-generated string ("Photovoltaikanlage Allwang") that doesn't
+ * match the shorter name wanted in the UI chrome.
+ * @type {string | null}
+ */
+export const SITE_TITLE = 'PV Allwang';
+
+/**
  * Manual override for the dynamic sky background's weather/solar-time lookup coordinates
  * (`web/js/sky/location.js`). `HPStandort` addresses in this codebase are often small rural
  * hamlets that general-purpose geocoders resolve poorly, so this lets one person resolve the

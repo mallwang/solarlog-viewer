@@ -43,32 +43,18 @@
 
 @layer components {
   .app-nav {
-    /* Opaque (bg-bg) so the fixed cloud backdrop, offset to start right below the nav,
-       never shows through the nav bar itself. `relative` makes this the positioning context for
-       `.app-nav__list[data-open='true']` below, so the collapsed menu opens right under the
-       header/title instead of at the bottom of the document (the default containing block for
-       an absolutely-positioned element with no positioned ancestor).
-       Below md:, the toggle button lives in the header instead of here (see
-       `.app-header__actions`), so this bar carries no border/padding of its own there — otherwise
-       it would show as an empty strip under the title. From md: up it's the persistent,
-       always-visible row of nav links, so it gets its usual border/padding back; `md:justify-
-       between` pushes `.app-nav__end` (info panel + desktop transparency toggle) to the far
-       right of this same row instead of bunching it against the nav links. */
-    @apply relative flex items-center gap-xs bg-bg md:justify-between md:border-b
-      md:border-border md:px-md md:py-sm;
+    /* Nav is now just a wrapper around `.app-nav__list`, nested inside `.app-header` (a single
+       combined header+nav row, at the user's request) rather than its own bar below it —
+       `.app-header` owns the row's background/border. `relative` remains the positioning
+       context for `.app-nav__list[data-open='true']` below, so the collapsed menu still opens
+       right under the header instead of at the bottom of the document (the default containing
+       block for an absolutely-positioned element with no positioned ancestor). */
+    @apply relative flex items-center;
   }
 
   .app-nav__toggle {
     @apply md:hidden inline-flex items-center justify-center rounded-md border border-border
       bg-bg px-sm py-xs text-text;
-  }
-
-  /* Desktop-only group sharing the nav row with `.app-nav__list` — the info panel (production
-     + weather/forecast) and the desktop transparency toggle, per the user's request to combine
-     them into "one row, the navigation row" instead of a separate row under the header. Hidden
-     below `md:` in favor of the header's own transparency toggle and `.info-panel--mobile`. */
-  .app-nav__end {
-    @apply items-center gap-md;
   }
 
   .app-nav__list {
@@ -81,7 +67,7 @@
   }
 
   .app-nav__list a {
-    @apply block rounded-md px-sm py-xs text-text no-underline;
+    @apply inline-flex items-center gap-xs rounded-md px-sm py-xs text-text no-underline;
   }
 
   .app-nav__list a:hover {

@@ -45,47 +45,27 @@
          sky-controller.js; empty (and thus invisible) until the first object spawns. -->
     <div class="sky-flying-objects" aria-hidden="true"></div>
     <noscript>This site requires JavaScript to display your SolarLog production data.</noscript>
+    <!-- Single combined header+nav row (010-global-info-panel, at the user's request): brand,
+         nav links, the info panel (production + weather/forecast), and the transparency
+         toggle all live in one `.app-header` row on desktop, where there's room for all of it.
+         Below `md:`, `.app-nav__list` and `.info-panel--desktop` both collapse to nothing
+         (hidden/dropdown-only), leaving just brand + transparency toggle + burger — the
+         mobile-width row this always was. -->
     <header class="app-header">
-      <a class="app-header__brand" href="#/">
-        <img class="app-header__logo" src="favicon.ico" alt="" />
-        <h1 class="app-header__title" id="app-title">SolarLog Viewer</h1>
-      </a>
-      <div class="app-header__actions">
-        <div class="lang-switcher" id="lang-switcher"></div>
-        <!-- Mobile-only transparency toggle: on desktop the same control lives in the nav row
-             instead (`.app-nav__end`, below), alongside the info panel — see
-             `.transparency-toggle--desktop`. Both instances are kept in sync by
-             `initTransparencyToggle()` in main.js (a NodeList of `.transparency-toggle`, not a
-             single element). -->
-        <button
-          type="button"
-          class="transparency-toggle transparency-toggle--mobile md:hidden"
-          id="transparency-toggle-mobile"
-          aria-pressed="false"
-        >
-          ◐
-        </button>
-        <button
-          type="button"
-          class="app-nav__toggle"
-          id="app-nav-toggle"
-          aria-expanded="false"
-          aria-controls="app-nav-list"
-        >
-          ☰
-        </button>
+      <div class="app-header__start">
+        <a class="app-header__brand" href="#/">
+          <img class="app-header__logo" src="favicon.ico" alt="" />
+          <h1 class="app-header__title" id="app-title">SolarLog Viewer</h1>
+        </a>
+        <nav class="app-nav" id="app-nav">
+          <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
+        </nav>
       </div>
-    </header>
-    <nav class="app-nav" id="app-nav">
-      <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
-      <!-- Global desktop info panel (010-global-info-panel): production + weather/forecast,
-           plus the desktop transparency toggle, sharing the persistent nav row instead of a
-           separate row of their own. Hidden below `md:` in favor of `.info-panel--mobile`
-           further down. Populated by info-panel-controller.js, which updates every
-           `[data-role]` element matching both info-panel variants together (see
-           data-model.md's "Info Panel View State"). -->
-      <div class="app-nav__end hidden md:flex">
-        <div class="info-panel info-panel--desktop" data-info-panel="desktop">
+      <div class="app-header__actions">
+        <!-- Desktop-only info panel: production + weather/forecast, populated by
+             info-panel-controller.js (matches both this and `.info-panel--mobile` below via
+             `[data-role]`, see data-model.md's "Info Panel View State"). -->
+        <div class="info-panel info-panel--desktop hidden md:flex" data-info-panel="desktop">
           <a class="info-panel__production" data-role="production" data-available="false">
             <span
               class="info-panel__pulse"
@@ -95,6 +75,12 @@
             ></span>
             <span class="info-panel__value" data-role="production-value">—</span>
           </a>
+          <!-- Temporary stand-in for the disabled dashboard (see js/views/dashboard.js): plain
+               text, not a link, populated by info-panel-controller.js's pollYield/renderYield. -->
+          <div class="info-panel__yield" data-role="yield">
+            <span class="info-panel__yield-today" data-role="yield-today">—</span>
+            <span class="info-panel__yield-month" data-role="yield-month">—</span>
+          </div>
           <a
             class="info-panel__weather"
             data-role="weather"
@@ -107,19 +93,27 @@
             <span class="info-panel__weather-forecast" data-role="weather-forecast">—</span>
           </a>
         </div>
+        <div class="lang-switcher" id="lang-switcher"></div>
         <button
           type="button"
-          class="transparency-toggle transparency-toggle--desktop"
-          id="transparency-toggle-desktop"
+          class="transparency-toggle"
+          id="transparency-toggle"
           aria-pressed="false"
+        ></button>
+        <button
+          type="button"
+          class="app-nav__toggle"
+          id="app-nav-toggle"
+          aria-expanded="false"
+          aria-controls="app-nav-list"
         >
-          ◐
+          ☰
         </button>
       </div>
-    </nav>
-    <!-- Global desktop info panel, mobile variant: its own full-width bar directly below the
-         nav bar (not sharing a row with the transparency toggle, which stays in the header on
-         mobile). Hidden from `md:` up in favor of `.info-panel--desktop` above. -->
+    </header>
+    <!-- Mobile-only sub-navigation bar: production + weather/forecast, directly below the
+         header (the burger-collapsed nav list drops down from the header itself instead).
+         Hidden from `md:` up in favor of `.info-panel--desktop` above. -->
     <div class="info-panel info-panel--mobile flex md:hidden" data-info-panel="mobile">
       <a class="info-panel__production" data-role="production" data-available="false">
         <span
@@ -130,6 +124,10 @@
         ></span>
         <span class="info-panel__value" data-role="production-value">—</span>
       </a>
+      <div class="info-panel__yield" data-role="yield">
+        <span class="info-panel__yield-today" data-role="yield-today">—</span>
+        <span class="info-panel__yield-month" data-role="yield-month">—</span>
+      </div>
       <a
         class="info-panel__weather"
         data-role="weather"

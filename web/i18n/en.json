@@ -92,7 +92,6 @@
   },
   "widget": {
     "notProducing": "0 W — not producing",
-    "currentProduction": "Current Production",
     "todayYield": "Today's Yield",
     "monthYield": "Month's Yield",
     "yearYield": "Year's Yield",
@@ -106,6 +105,7 @@
   },
   "infoPanel": {
     "unavailable": "Unavailable",
+    "currentLabel": "Current",
     "todayLabel": "Today",
     "weatherCode": {
       "clear": "Clear",

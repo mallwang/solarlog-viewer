@@ -1,4 +1,17 @@
-const DASHBOARD_ROUTE = { view: 'dashboard', params: {} };
+/**
+ * The dashboard view is temporarily disabled pending a redesign (see dashboard.js) - empty/
+ * unrecognized hashes and the brand-logo link fall back to today's day view instead, so this
+ * builds a fresh Route each time (not a module-level constant) in case the date has rolled over
+ * since the page loaded.
+ * @returns {{ view: 'day', params: { year: number, month: number, day: number } }}
+ */
+function defaultRoute() {
+  const now = new Date();
+  return {
+    view: 'day',
+    params: { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() },
+  };
+}
 
 function pad2(n) {
   return String(n).padStart(2, '0');
@@ -15,12 +28,13 @@ function isValidDate(year, month, day) {
  * Parses the current location.hash into a Route.
  * @param {string} hash
  * @returns {{ view: string, params: { year?: number, month?: number, day?: number } }}
- *   Defaults to { view: 'dashboard', params: {} } for empty/unrecognized hashes.
+ *   Defaults to today's day view (see defaultRoute) for empty/unrecognized hashes, while the
+ *   dashboard view is disabled.
  */
 export function parseRoute(hash) {
   const path = (hash ?? '').replace(/^#\/?/, '');
   const segments = path.split('/').filter(Boolean);
-  if (segments.length === 0) return DASHBOARD_ROUTE;
+  if (segments.length === 0) return defaultRoute();
 
   const [kind, ...rest] = segments;
 
@@ -30,7 +44,7 @@ export function parseRoute(hash) {
     const year = Number.parseInt(rest[0], 10);
     if (Number.isInteger(year) && /^\d{4}$/.test(rest[0]))
       return { view: 'year', params: { year } };
-    return DASHBOARD_ROUTE;
+    return defaultRoute();
   }
 
   if (kind === 'month' && rest.length === 2) {
@@ -39,7 +53,7 @@ export function parseRoute(hash) {
     if (/^\d{4}$/.test(rest[0]) && /^\d{2}$/.test(rest[1]) && month >= 1 && month <= 12) {
       return { view: 'month', params: { year, month } };
     }
-    return DASHBOARD_ROUTE;
+    return defaultRoute();
   }
 
   if (kind === 'day' && rest.length === 3) {
@@ -58,10 +72,10 @@ export function parseRoute(hash) {
     ) {
       return { view: 'day', params: { year, month, day } };
     }
-    return DASHBOARD_ROUTE;
+    return defaultRoute();
   }
 
-  return DASHBOARD_ROUTE;
+  return defaultRoute();
 }
 
 /**

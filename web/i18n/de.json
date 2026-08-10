@@ -92,7 +92,6 @@
   },
   "widget": {
     "notProducing": "0 W — keine Einspeisung",
-    "currentProduction": "Aktuelle Leistung",
     "todayYield": "Tagesertrag",
     "monthYield": "Monatsertrag",
     "yearYield": "Jahresertrag",
@@ -106,6 +105,7 @@
   },
   "infoPanel": {
     "unavailable": "Nicht verfügbar",
+    "currentLabel": "Aktuell",
     "todayLabel": "Heute",
     "weatherCode": {
       "clear": "Klar",

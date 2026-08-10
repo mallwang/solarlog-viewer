@@ -6,6 +6,7 @@
     --font-sans: var(--font-family);
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
+    --spacing: 0.25rem;
     --text-sm: var(--font-size-sm);
     --text-sm--line-height: calc(1.25 / 0.875);
     --text-base: var(--font-size-base);
@@ -263,8 +264,19 @@
   .table {
     display: table;
   }
+  .size-4 {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+  }
+  .size-5 {
+    width: calc(var(--spacing) * 5);
+    height: calc(var(--spacing) * 5);
+  }
   .w-full {
     width: 100%;
+  }
+  .shrink-0 {
+    flex-shrink: 0;
   }
   .grow {
     flex-grow: 1;
@@ -471,24 +483,6 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
-    background-color: var(--color-bg);
-    @media (width >= 48rem) {
-      justify-content: space-between;
-    }
-    @media (width >= 48rem) {
-      border-bottom-style: var(--tw-border-style);
-      border-bottom-width: 1px;
-    }
-    @media (width >= 48rem) {
-      border-color: var(--color-border);
-    }
-    @media (width >= 48rem) {
-      padding-inline: var(--spacing-md);
-    }
-    @media (width >= 48rem) {
-      padding-block: var(--spacing-sm);
-    }
   }
   .app-nav__toggle {
     display: inline-flex;
@@ -505,10 +499,6 @@
     @media (width >= 48rem) {
       display: none;
     }
-  }
-  .app-nav__end {
-    align-items: center;
-    gap: var(--spacing-md);
   }
   .app-nav__list {
     display: none;
@@ -540,7 +530,9 @@
     padding-block: var(--spacing-sm);
   }
   .app-nav__list a {
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
     border-radius: var(--radius-md);
     padding-inline: var(--spacing-sm);
     padding-block: var(--spacing-xs);
