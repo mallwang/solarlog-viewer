@@ -38,10 +38,10 @@ Single existing web project, extended in place:
 
 **Purpose**: Scaffolding shared by every user story below; no behavior yet.
 
-- [ ] T001 Create the `web/js/sky/` directory (no files yet — populated starting in Phase 2)
-- [ ] T002 [P] Add the `SKY_LOCATION_OVERRIDE` constant (`{ lat, lon } | null`, default
+- [X] T001 Create the `web/js/sky/` directory (no files yet — populated starting in Phase 2)
+- [X] T002 [P] Add the `SKY_LOCATION_OVERRIDE` constant (`{ lat, lon } | null`, default
       `null`, with JSDoc explaining override vs. auto-geocode) to `web/js/config.js`
-- [ ] T003 [P] Confirm `npm run lint`, `npm run format:check`, `node --test`, and
+- [X] T003 [P] Confirm `npm run lint`, `npm run format:check`, `node --test`, and
       `npx playwright test --reporter=line` all currently pass on a clean checkout (baseline
       before any sky code lands), fixing nothing — just recording the starting state
 
@@ -58,36 +58,36 @@ story phase begins.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 [P] Write failing unit tests in `web/js/sky/location.test.js` for
+- [X] T004 [P] Write failing unit tests in `web/js/sky/location.test.js` for
       `resolveInstallationLocation(plant, override)`: override takes precedence over
       cache/geocode; `localStorage` cache hit (key `sky-geocode:<address>`) short-circuits
       geocoding; cache miss triggers a geocode call whose first result is cached and
       returned; out-of-range `lat`/`lon` (outside [-90,90]/[-180,180]) from override or
       cache is rejected as invalid; all-paths-fail returns `null` — per data-model.md
       §Installation Location
-- [ ] T005 [P] Write failing unit tests in `web/js/sky/geocode.test.js` for the Open-Meteo
+- [X] T005 [P] Write failing unit tests in `web/js/sky/geocode.test.js` for the Open-Meteo
       geocoding wrapper: successful response returns `{ lat, lon }` from the first result;
       zero-result response returns `null`; network/non-2xx/malformed-JSON failure returns
       `null` without throwing; successful lookups write to `localStorage` under
       `sky-geocode:<address>` (mocked `fetch` + mocked `localStorage`, no real network call)
-- [ ] T006 [P] Write failing unit tests in `web/js/sky/weather-client.test.js` for the
+- [X] T006 [P] Write failing unit tests in `web/js/sky/weather-client.test.js` for the
       Open-Meteo forecast wrapper: successful response parses into
       `{ cloudCoverPercent, tier, sunrise, sunset, nextSunrise, fetchedAt }`; failed/non-2xx/
       malformed response returns `null` (caller retains prior last-known-good state) without
       throwing (mocked `fetch`, no real network call) — per data-model.md §Weather Condition
-- [ ] T007 [US-shared] Implement `resolveInstallationLocation()` in `web/js/sky/location.js`
+- [X] T007 [US-shared] Implement `resolveInstallationLocation()` in `web/js/sky/location.js`
       per research.md §3 and data-model.md §Installation Location (override → cache →
       geocode → `null`), with file-level JSDoc and JSDoc on the exported function, to make
       T004 pass (depends on T004)
-- [ ] T008 [US-shared] Implement the geocoding wrapper in `web/js/sky/geocode.js` calling
+- [X] T008 [US-shared] Implement the geocoding wrapper in `web/js/sky/geocode.js` calling
       `geocoding-api.open-meteo.com/v1/search?name=...`, caching the first result in
       `localStorage`, with file-level JSDoc and JSDoc on the exported function, to make T005
       pass (depends on T005)
-- [ ] T009 [US-shared] Implement the forecast wrapper in `web/js/sky/weather-client.js`
+- [X] T009 [US-shared] Implement the forecast wrapper in `web/js/sky/weather-client.js`
       calling `api.open-meteo.com/v1/forecast?current=cloud_cover&daily=sunrise,sunset&forecast_days=2&timezone=auto`
       per research.md §1, with file-level JSDoc and JSDoc on the exported function, to make
       T006 pass (depends on T006)
-- [ ] T010 Run `node --test "web/js/sky/*.test.js"` and confirm T004–T006's tests now pass
+- [X] T010 Run `node --test "web/js/sky/*.test.js"` and confirm T004–T006's tests now pass
       against T007–T009's implementations (depends on T007, T008, T009)
 
 **Checkpoint**: Location resolution and weather fetching are fully implemented and
@@ -108,12 +108,12 @@ renders with no console errors.
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Write failing unit tests in `web/js/sky/cloud-density.test.js` for
+- [X] T011 [P] [US1] Write failing unit tests in `web/js/sky/cloud-density.test.js` for
       `cloudCoverToTier(cloudCoverPercent)` boundary values (0, 19, 20, 70, 71, 100) per
       data-model.md's `<20 → clear`, `20–70 → partly`, `>70 → overcast` thresholds, plus the
       per-tier cloud render config (opacity/animation-duration/hidden-count per tier) — per
       research.md §4
-- [ ] T012 [P] [US1] Add Playwright e2e scenarios to `tests/e2e/sky.spec.js` for User Story
+- [X] T012 [P] [US1] Add Playwright e2e scenarios to `tests/e2e/sky.spec.js` for User Story
       1: clear-sky mocked Open-Meteo response → sparse/no visible clouds; overcast mocked
       response → dense visible clouds; weather fetch failure (route abort) → default
       unchanged heavy-cloud appearance with zero console errors (route interception per
@@ -121,15 +121,15 @@ renders with no console errors.
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Implement `cloudCoverToTier()` and the per-tier cloud render config in
+- [X] T013 [US1] Implement `cloudCoverToTier()` and the per-tier cloud render config in
       `web/js/sky/cloud-density.js`, with file-level JSDoc and JSDoc on exported functions,
       to make T011 pass (depends on T011)
-- [ ] T014 [US1] Add `data-cloud-density="clear|partly|overcast"`-driven CSS rules to
+- [X] T014 [US1] Add `data-cloud-density="clear|partly|overcast"`-driven CSS rules to
       `web/css/app.css`: per-tier `.cloud` opacity and `animation-duration` adjustments
       (denser+slower for overcast, sparse for clear), reusing the existing gooey-blur
       `.sky-clouds`/`.cloud` markup unchanged, per research.md §4 (no dependency on other
       tasks — pure CSS addition keyed off an attribute the DOM-glue layer sets in T016)
-- [ ] T015 [US1] Create the DOM-glue orchestrator `web/js/sky/sky-controller.js`: on init,
+- [X] T015 [US1] Create the DOM-glue orchestrator `web/js/sky/sky-controller.js`: on init,
       resolve location (T007), fetch weather (T009), and on success set
       `data-cloud-density` on `.sky-clouds` (via cloud-density.js's tier + T013's render
       config, including hiding a subset of the six existing `.cloud` elements for the
@@ -138,11 +138,11 @@ renders with no console errors.
       static CSS appearance renders unchanged (FR-005); re-poll every 15 minutes
       (`setInterval`, cleared on `pagehide`); file-level JSDoc, JSDoc on exported functions
       (depends on T007, T009, T013, T014)
-- [ ] T016 [US1] Wire `sky-controller.js` into `web/js/main.js`: dynamically `import()` it
+- [X] T016 [US1] Wire `sky-controller.js` into `web/js/main.js`: dynamically `import()` it
       after the existing critical-path `base_vars.js`/plant/location resolution so it never
       blocks first render, passing the parsed `plant` and `SKY_LOCATION_OVERRIDE` from
       `config.js` (depends on T002, T015)
-- [ ] T017 [US1] Run `npx playwright test tests/e2e/sky.spec.js --reporter=line` and confirm
+- [X] T017 [US1] Run `npx playwright test tests/e2e/sky.spec.js --reporter=line` and confirm
       T012's User Story 1 scenarios pass (depends on T012, T016)
 
 **Checkpoint**: User Story 1 fully functional and independently testable — cloud density is
@@ -162,37 +162,37 @@ smooth (non-instant) crossfade across the sunrise/sunset boundary.
 
 ### Tests for User Story 2
 
-- [ ] T018 [P] [US2] Write failing unit tests in `web/js/sky/solar-arc.test.js` for
+- [X] T018 [P] [US2] Write failing unit tests in `web/js/sky/solar-arc.test.js` for
       `computeSkyBodyPosition(now, sunrise, sunset, nextSunrise)` per research.md §2 and
       data-model.md §Solar Time State: sun position/body at sunrise, solar-noon midpoint,
       and just-before-sunset; moon position/body at midnight; `crossfade` is `0` outside the
       transition window and >0 inside the few-minutes-either-side window around
       sunrise/sunset
-- [ ] T019 [P] [US2] Add Playwright e2e scenarios to `tests/e2e/sky.spec.js` for User Story
+- [X] T019 [P] [US2] Add Playwright e2e scenarios to `tests/e2e/sky.spec.js` for User Story
       2: clock set to solar noon → sun rendered near top-center; clock set to a nighttime
       hour → moon rendered in the sun's place (via Playwright's clock API + mocked
       sunrise/sunset response, per quickstart.md §6)
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Implement `computeSkyBodyPosition()` in `web/js/sky/solar-arc.js` per
+- [X] T020 [US2] Implement `computeSkyBodyPosition()` in `web/js/sky/solar-arc.js` per
       research.md §2's parabolic-arc formula, with file-level JSDoc and JSDoc on the
       exported function, to make T018 pass (depends on T018)
-- [ ] T021 [US2] Add `.sky-sun` / `.sky-moon` container markup inside `.sky-clouds` in
+- [X] T021 [US2] Add `.sky-sun` / `.sky-moon` container markup inside `.sky-clouds` in
       `web/index.html` (`aria-hidden="true"`, `pointer-events: none`, positioned via CSS
       custom properties consistent with the existing `.cloud` pattern)
-- [ ] T022 [US2] Add `.sky-sun` / `.sky-moon` styles to `web/css/app.css`: positioned via
+- [X] T022 [US2] Add `.sky-sun` / `.sky-moon` styles to `web/css/app.css`: positioned via
       `--x-percent`/`--y-percent` custom properties, a `transition` on position/opacity for
       the smooth crossfade (FR-008), and a reduced-opacity/blur treatment so the body stays
       at least partially visible behind dense cloud tiers (data-cloud-density="overcast")
       rather than disappearing (US2 Acceptance Scenario 4)
-- [ ] T023 [US2] Extend `sky-controller.js` (`web/js/sky/sky-controller.js`): on a 60-second
+- [X] T023 [US2] Extend `sky-controller.js` (`web/js/sky/sky-controller.js`): on a 60-second
       tick, call `computeSkyBodyPosition()` with the last-known-good sunrise/sunset/
       nextSunrise from the weather fetch (T015/T009) and update the sun/moon elements'
       custom properties and crossfade opacity; ticking is skipped/no-ops when location/
       weather resolution failed (same fallback path as US1) (depends on T009, T015, T020,
       T021, T022)
-- [ ] T024 [US2] Run `npx playwright test tests/e2e/sky.spec.js --reporter=line` and confirm
+- [X] T024 [US2] Run `npx playwright test tests/e2e/sky.spec.js --reporter=line` and confirm
       T019's User Story 2 scenarios pass (depends on T019, T023)
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — weather-driven clouds plus
@@ -214,36 +214,36 @@ content; confirm `prefers-reduced-motion: reduce` suppresses all spawning.
 
 ### Tests for User Story 3
 
-- [ ] T025 [P] [US3] Write failing unit tests in `web/js/sky/flying-objects.test.js` (using
+- [X] T025 [P] [US3] Write failing unit tests in `web/js/sky/flying-objects.test.js` (using
       an injectable clock and seeded/mocked RNG per research.md §5): bird next-spawn delay
       always falls within the ~3–8 min band; plane/balloon delay within the ~20–45 min band;
       rocket delay within the ~45–90 min band; rocket kind is never selected when
       `body !== 'moon'` at roll time (FR-011); scheduling is fully deterministic given a
       fixed RNG seed (no real `Math.random()`/`Date.now()` in the test)
-- [ ] T026 [P] [US3] Add Playwright e2e scenarios to `tests/e2e/sky.spec.js` for User Story
+- [X] T026 [P] [US3] Add Playwright e2e scenarios to `tests/e2e/sky.spec.js` for User Story
       3: with `prefers-reduced-motion: reduce` emulated, confirm zero `.sky-flying-object`
       elements appear over an observation window and the `.cloud` drift animation is
       disabled (`animation-name: none` or equivalent computed style) — per quickstart.md §5
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Implement the pure spawn-scheduling logic in `web/js/sky/flying-objects.js`
+- [X] T027 [US3] Implement the pure spawn-scheduling logic in `web/js/sky/flying-objects.js`
       per research.md §5 and data-model.md §Sky Flying Object (per-kind next-spawn timers,
       rocket gated on `Solar Time State.body === 'moon'`), with file-level JSDoc and JSDoc
       on exported functions, to make T025 pass (depends on T025)
-- [ ] T028 [P] [US3] Add `.sky-flying-object` base styles plus per-kind (`bird`, `plane`,
+- [X] T028 [P] [US3] Add `.sky-flying-object` base styles plus per-kind (`bird`, `plane`,
       `balloon`, `rocket`) CSS `@keyframes` cross-screen animations to `web/css/app.css`,
       confined to the upper sky band (never overlapping the header/nav/main content column,
       FR-012), plus a `[data-reduce-motion="true"]` override that disables all flying-object
       animation
-- [ ] T029 [US3] Extend `sky-controller.js` (`web/js/sky/sky-controller.js`): add a
+- [X] T029 [US3] Extend `sky-controller.js` (`web/js/sky/sky-controller.js`): add a
       `matchMedia('(prefers-reduced-motion: reduce)')` check (re-evaluated on its `change`
       event) that sets `data-reduce-motion` on `.sky-clouds` and, when not reduced, drives
       `flying-objects.js`'s scheduler to create short-lived absolutely-positioned
       `.sky-flying-object` elements matching the chosen kind/lane, removing each on its
       `animationend` event; when reduced-motion is active, scheduling is skipped entirely
       (FR-013) (depends on T021, T023, T027, T028)
-- [ ] T030 [US3] Run `npx playwright test tests/e2e/sky.spec.js --reporter=line` and confirm
+- [X] T030 [US3] Run `npx playwright test tests/e2e/sky.spec.js --reporter=line` and confirm
       T026's User Story 3 scenarios pass (depends on T026, T029)
 
 **Checkpoint**: All three user stories independently functional — the full dynamic sky
@@ -256,18 +256,18 @@ feature is complete.
 **Purpose**: Documentation, full regression, and final constitution-required checks that
 span all three stories.
 
-- [ ] T031 [P] Update `README.md` and `README.de.md` to describe the dynamic weather-driven
+- [X] T031 [P] Update `README.md` and `README.de.md` to describe the dynamic weather-driven
       sky background (weather source, sun/moon behavior, flying objects, reduced-motion
       behavior)
-- [ ] T032 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md` with a user-facing
+- [X] T032 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md` with a user-facing
       description of the new dynamic sky behavior
-- [ ] T033 Add JSDoc file-level blocks to any of `web/js/sky/*.js` still missing one, and
+- [X] T033 Add JSDoc file-level blocks to any of `web/js/sky/*.js` still missing one, and
       verify every exported function across `web/js/sky/` has JSDoc (constitution
       Documentation Standards)
-- [ ] T034 Run the full regression suite per quickstart.md §7: `npm run lint`,
+- [X] T034 Run the full regression suite per quickstart.md §7: `npm run lint`,
       `npm run format:check`, `npx playwright test --reporter=line`,
       `node --test scripts/*.test.js "web/js/**/*.test.js"` — all must pass
-- [ ] T035 Walk through quickstart.md §§2–5 manually (weather-driven density, sun/moon
+- [X] T035 Walk through quickstart.md §§2–5 manually (weather-driven density, sun/moon
       position, flying objects, reduced motion) in a real browser via `npm start`, per
       CLAUDE.md's dev-server guidance
 

@@ -9,3 +9,18 @@ export const HIST_DIR = 'hist';
 // Only German is maintained for this plant right now; flip to `true` to bring back the
 // DE/EN language switcher in the header without deleting its implementation.
 export const SHOW_LANGUAGE_SWITCHER = false;
+
+/**
+ * Manual override for the dynamic sky background's weather/solar-time lookup coordinates
+ * (`web/js/sky/location.js`). `HPStandort` addresses in this codebase are often small rural
+ * hamlets that general-purpose geocoders resolve poorly, so this lets one person resolve the
+ * installation's coordinates once (e.g. from its postal code) instead of relying on automatic
+ * geocoding every session. `null` (the default) falls back to automatic geocoding, cached in
+ * `localStorage` — see `web/js/sky/location.js` for the full resolution order.
+ * @type {{ lat: number, lon: number } | null}
+ */
+// Set explicitly: the automatic geocoder returns zero results for the full free-text
+// `HPStandort` value ("92266 Ensdorf-Wolfsbach") — its "-Wolfsbach" hamlet suffix isn't a
+// recognized place name on its own. Resolved instead from the postal code alone (92266 →
+// Ensdorf, Landkreis Amberg-Sulzbach, Bavaria), which is coarse enough for weather purposes.
+export const SKY_LOCATION_OVERRIDE = { lat: 49.34062, lon: 11.93587 };

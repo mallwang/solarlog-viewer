@@ -16,6 +16,30 @@ einschließlich 28.07.2026 vom alten Gerät) und `web/data/` (laufend überschri
 seit 29.07.2026 installierten neuen Geräts); die App führt beide zusammen, wenn eine Abfrage diese
 Grenze überschreitet — siehe `specs/001-website-modernization/data-model.md`.
 
+## Dynamischer Himmel-Hintergrund
+
+Die animierte Wolkenkulisse hinter dem Dashboard spiegelt das reale aktuelle Wetter und die
+Ortszeit der Anlage wider, statt immer gleich auszusehen. Die Koordinaten werden aus der
+konfigurierten Adresse der Anlage ermittelt (`SKY_LOCATION_OVERRIDE` in `web/js/config.js`, oder
+automatisches Geokodieren mit Zwischenspeicherung in `localStorage`, falls nicht gesetzt) und
+dienen dazu, alle 15 Minuten die kostenlose, schlüssellose [Open-Meteo](https://open-meteo.com)-
+API nach Bewölkung sowie Sonnenauf-/-untergang abzufragen:
+
+- **Wolkendichte** — spärliche, mäßige oder dichte Wolken je nach aktueller Bewölkungsstufe
+  (klar/teilweise/bedeckt).
+- **Sonne/Mond-Position** — Sonne oder Mond folgen einem vereinfachten Tag-/Nacht-Bogen zwischen
+  Sonnenauf- und -untergang, mit sanftem Überblenden am Übergang und gedämpfter Sichtbarkeit bei
+  dichter Bewölkung.
+- **Fliegende Objekte** — Vögel queren den Himmel in regelmäßigem, leichtem Takt; Flugzeuge,
+  Ballons und eine Raketen-Ostereier-Animation Richtung Mond erscheinen selten.
+
+Bei jedem Fehler (keine Position, kein Netzwerk, fehlgeschlagene Anfrage) fällt die Ansicht
+stillschweigend auf die ursprüngliche statische Kulisse zurück — es gibt keine Fehleranzeige und
+keine Auswirkung auf die PV-Datenfunktionen des Dashboards. `prefers-reduced-motion: reduce`
+unterdrückt jegliche Animation und das Spawnen fliegender Objekte, spiegelt die realen
+Bedingungen aber weiterhin über statische Hinweise wider. Siehe
+`specs/007-dynamic-sky-weather/` für die vollständige Spezifikation/Planung.
+
 ## Entwicklungsserver
 
 ```bash

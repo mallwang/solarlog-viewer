@@ -11,13 +11,39 @@
   </head>
   <body>
     <div class="sky-clouds" aria-hidden="true">
-      <div class="cloud" style="--top: 8%; --scale: 1.4; --duration: 75s; --delay: 0s; --rest-x: 5vw"></div>
-      <div class="cloud" style="--top: 18%; --scale: 0.8; --duration: 50s; --delay: -20s; --rest-x: 30vw"></div>
-      <div class="cloud" style="--top: 4%; --scale: 1; --duration: 65s; --delay: -45s; --rest-x: 60vw"></div>
-      <div class="cloud" style="--top: 24%; --scale: 1.6; --duration: 90s; --delay: -10s; --rest-x: 80vw"></div>
-      <div class="cloud" style="--top: 14%; --scale: 0.6; --duration: 40s; --delay: -30s; --rest-x: 45vw"></div>
-      <div class="cloud" style="--top: 30%; --scale: 1.1; --duration: 80s; --delay: -60s; --rest-x: 10vw"></div>
+      <div
+        class="cloud"
+        style="--top: 8%; --scale: 1.4; --duration: 75s; --delay: 0s; --rest-x: 5vw"
+      ></div>
+      <div
+        class="cloud"
+        style="--top: 18%; --scale: 0.8; --duration: 50s; --delay: -20s; --rest-x: 30vw"
+      ></div>
+      <div
+        class="cloud"
+        style="--top: 4%; --scale: 1; --duration: 65s; --delay: -45s; --rest-x: 60vw"
+      ></div>
+      <div
+        class="cloud"
+        style="--top: 24%; --scale: 1.6; --duration: 90s; --delay: -10s; --rest-x: 80vw"
+      ></div>
+      <div
+        class="cloud"
+        style="--top: 14%; --scale: 0.6; --duration: 40s; --delay: -30s; --rest-x: 45vw"
+      ></div>
+      <div
+        class="cloud"
+        style="--top: 30%; --scale: 1.1; --duration: 80s; --delay: -60s; --rest-x: 10vw"
+      ></div>
+      <!-- Positioned/shown by sky-controller.js (User Story 2): --x-percent/--y-percent custom
+           properties and opacity are set on a 60-second tick from computeSkyBodyPosition(). -->
+      <div class="sky-sun" aria-hidden="true" style="--x-percent: 50; --y-percent: 100"></div>
+      <div class="sky-moon" aria-hidden="true" style="--x-percent: 50; --y-percent: 100"></div>
     </div>
+    <!-- Sibling to .sky-clouds, not a descendant: flying-object sprites (User Story 3) need to
+         stay crisp, unlike .sky-clouds's blur+contrast-fused gooey clouds. Populated/emptied by
+         sky-controller.js; empty (and thus invisible) until the first object spawns. -->
+    <div class="sky-flying-objects" aria-hidden="true"></div>
     <noscript>This site requires JavaScript to display your SolarLog production data.</noscript>
     <header class="app-header">
       <div class="app-header__brand">

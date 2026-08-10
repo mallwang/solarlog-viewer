@@ -16,6 +16,20 @@ Einheit (W für die Tagesansicht, kWh in den übrigen). Diagramme passen sich de
 und das gesamte Layout — inklusive Navigation — bleibt von 320px breiten Smartphones bis zu
 2560px breiten Monitoren nutzbar, ohne horizontales Scrollen.
 
+## Dynamischer Himmel-Hintergrund
+
+Die Wolkenkulisse hinter dem Dashboard ändert sich mit dem realen aktuellen Wetter und der
+Ortszeit der Anlage, statt immer gleich auszusehen: Die Wolkendichte (spärlich/mäßig/dicht)
+spiegelt die aktuelle Bewölkung wider, Sonne oder Mond folgen einem vereinfachten Tag-/
+Nacht-Bogen und blenden am Sonnenauf-/-untergang sanft über, und gelegentlich queren Vögel,
+Flugzeuge, Ballons oder eine seltene Raketen-Animation Richtung Mond den Himmel. Das läuft
+automatisch — es gibt nichts zu konfigurieren — und aktualisiert sich alle 15 Minuten. Können
+keine Wetterdaten abgerufen werden (kein Netzwerk, keine konfigurierte Position), behält die
+Kulisse einfach ihr ursprüngliches statisches Aussehen bei; der Rest des Dashboards ist davon
+nicht betroffen. Ist in System/Browser "Bewegung reduzieren" aktiviert, werden sämtliche
+Himmel-Animationen und fliegenden Objekte unterdrückt, während Wolkendichte und Sonne-/
+Mond-Zustand weiterhin aktualisiert werden.
+
 ## Vermiedenes CO2
 
 Die Ansichten Tag, Monat, Jahr und Gesamt (Lebenszeit) zeigen im Statistikbereich neben dem
