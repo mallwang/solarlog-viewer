@@ -31,18 +31,38 @@ const KIND_DURATION_RANGES = {
   plane: [4, 8],
   balloon: [32, 48],
   rocket: [8, 12],
+  butterfly: [20, 30],
+  dragonfly: [8, 14],
+  goose: [14, 20],
 };
 
 /**
  * Maximum number of each kind that may be alive (animating) in the DOM at the same
  * time. `spawnFlyingObject` counts existing elements via a DOM query and skips
- * spawning if the cap is already reached.
+ * spawning if the cap is already reached. For grouped kinds the query selector in
+ * `KIND_GROUP_SELECTOR` is used so the cap applies to the whole group.
  */
 const KIND_MAX_CONCURRENT = {
-  bird: 10,
+  bird: 10, // grouped with goose
+  goose: 10, // grouped with bird
+  butterfly: 5, // grouped with dragonfly
+  dragonfly: 5, // grouped with butterfly
   plane: 1,
   balloon: 2,
   rocket: 1,
+};
+
+/**
+ * CSS selector used to count live elements for the concurrent cap. Kinds that share a
+ * pool override the default (`.sky-flying-object--<kind>`) with a multi-class selector
+ * so both kinds count against the same maximum.
+ * @type {Record<string, string>}
+ */
+const KIND_GROUP_SELECTOR = {
+  bird: '.sky-flying-object--bird, .sky-flying-object--goose',
+  goose: '.sky-flying-object--bird, .sky-flying-object--goose',
+  butterfly: '.sky-flying-object--butterfly, .sky-flying-object--dragonfly',
+  dragonfly: '.sky-flying-object--butterfly, .sky-flying-object--dragonfly',
 };
 
 /**
@@ -57,6 +77,9 @@ const KIND_LANE_RANGES = {
   plane: [5, 20],
   balloon: [35, 65],
   rocket: [10, 80],
+  butterfly: [55, 90],
+  dragonfly: [50, 85],
+  goose: [20, 55],
 };
 
 /**
@@ -108,10 +131,10 @@ function spawnFlyingObject(container, kind, { laneTopPct, durationS, direction }
   const renderer = FLYING_OBJECT_RENDERERS[kind];
   if (!renderer) return;
 
-  // Enforce concurrent cap: count live elements of this kind already in the DOM.
+  // Enforce concurrent cap: count live elements of this kind (or its group) in the DOM.
   const max = KIND_MAX_CONCURRENT[kind];
-  if (max !== undefined && container.querySelectorAll(`.sky-flying-object--${kind}`).length >= max)
-    return;
+  const groupSelector = KIND_GROUP_SELECTOR[kind] ?? `.sky-flying-object--${kind}`;
+  if (max !== undefined && container.querySelectorAll(groupSelector).length >= max) return;
 
   const [minS, maxS] = KIND_DURATION_RANGES[kind];
   const [minLane, maxLane] = KIND_LANE_RANGES[kind];
@@ -220,6 +243,28 @@ export async function initSkyController({ plant, locationOverride }) {
           );
           const durationS = baseDuration * (0.85 + Math.random() * 0.3);
           spawnFlyingObject(flyingObjectsEl, spawn.kind, { laneTopPct, durationS, direction });
+        }
+      } else if (spawn.kind === 'goose') {
+        // Geese often travel in multiple V-formations; spawn 1–2 formations sharing a direction.
+        const count = Math.random() < 0.65 ? 1 : 2;
+        const [minS, maxS] = KIND_DURATION_RANGES.goose;
+        const [minLane, maxLane] = KIND_LANE_RANGES.goose;
+        const baseLane = minLane + Math.random() * (maxLane - minLane);
+        const direction = Math.random() < 0.5 ? 'ltr' : 'rtl';
+        for (let i = 0; i < count; i++) {
+          const laneTopPct = Math.max(
+            minLane - 3,
+            Math.min(maxLane + 3, baseLane + (Math.random() * 8 - 4)),
+          );
+          const durationS = (minS + Math.random() * (maxS - minS)) * (0.9 + Math.random() * 0.2);
+          spawnFlyingObject(flyingObjectsEl, spawn.kind, { laneTopPct, durationS, direction });
+        }
+      } else if (spawn.kind === 'butterfly') {
+        // Butterflies occasionally travel in pairs; share a direction when paired.
+        const count = Math.random() < 0.65 ? 1 : 2;
+        const direction = Math.random() < 0.5 ? 'ltr' : 'rtl';
+        for (let i = 0; i < count; i++) {
+          spawnFlyingObject(flyingObjectsEl, spawn.kind, { direction });
         }
       } else {
         spawnFlyingObject(flyingObjectsEl, spawn.kind);

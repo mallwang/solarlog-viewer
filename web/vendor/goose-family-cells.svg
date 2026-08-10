@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 90" width="900" height="90">
+  <!--
+    goose-family-cells.svg — 10-frame horizontal sprite strip, 900×90 px (90×90 per frame).
+    Three Canada geese in V-formation flying LEFT. Leader is ahead (left); two followers
+    behind (right) at offset heights. Wings flap at staggered 2-frame phase offsets so
+    the formation looks alive. Brown bodies, black heads, white cheek patches.
+    Animate with: background-position-x 0 → -900px, steps(10).
+  -->
+  <defs>
+    <!-- Leader goose body (cx=28, cy=45) -->
+    <g id="gL">
+      <ellipse cx="28" cy="45" rx="9" ry="3.5" fill="#5c3d20"/>
+      <path d="M19,43 Q15,42 13,44 Q15,46 19,45Z" fill="#1a1a1a"/>
+      <ellipse cx="12" cy="44" rx="2" ry="1.5" fill="#1a1a1a"/>
+      <ellipse cx="11.5" cy="43.5" rx="1" ry="0.8" fill="#e8e0c0"/>
+      <path d="M36,44 L40,42 L40,48 L36,46Z" fill="#3a2810"/>
+    </g>
+    <!-- Follower 1 body (cx=52, cy=24) — upper right -->
+    <g id="gF1">
+      <ellipse cx="52" cy="24" rx="9" ry="3.5" fill="#5c3d20"/>
+      <path d="M43,22 Q39,21 37,23 Q39,25 43,24Z" fill="#1a1a1a"/>
+      <ellipse cx="36" cy="23" rx="2" ry="1.5" fill="#1a1a1a"/>
+      <ellipse cx="35.5" cy="22.5" rx="1" ry="0.8" fill="#e8e0c0"/>
+      <path d="M60,23 L64,21 L64,27 L60,25Z" fill="#3a2810"/>
+    </g>
+    <!-- Follower 2 body (cx=52, cy=66) — lower right -->
+    <g id="gF2">
+      <ellipse cx="52" cy="66" rx="9" ry="3.5" fill="#5c3d20"/>
+      <path d="M43,64 Q39,63 37,65 Q39,67 43,66Z" fill="#1a1a1a"/>
+      <ellipse cx="36" cy="65" rx="2" ry="1.5" fill="#1a1a1a"/>
+      <ellipse cx="35.5" cy="64.5" rx="1" ry="0.8" fill="#e8e0c0"/>
+      <path d="M60,65 L64,63 L64,69 L60,67Z" fill="#3a2810"/>
+    </g>
+  </defs>
+
+  <!-- Frame 0: L=-14, F1=-5, F2=+4 -->
+  <g transform="translate(0,0)">
+    <path d="M25,42 L17,31 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,19 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,70 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+
+  <!-- Frame 1: L=-10, F1=-1, F2=+7 -->
+  <g transform="translate(90,0)">
+    <path d="M25,42 L17,35 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,23 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,73 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+
+  <!-- Frame 2: L=-5, F1=+4, F2=+3 -->
+  <g transform="translate(180,0)">
+    <path d="M25,42 L17,40 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,28 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,69 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+
+  <!-- Frame 3: L=-1, F1=+7, F2=-3 -->
+  <g transform="translate(270,0)">
+    <path d="M25,42 L17,44 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,31 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,63 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+
+  <!-- Frame 4: L=+4, F1=+3, F2=-10 -->
+  <g transform="translate(360,0)">
+    <path d="M25,42 L17,49 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,27 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,56 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+
+  <!-- Frame 5: L=+7, F1=-3, F2=-13 -->
+  <g transform="translate(450,0)">
+    <path d="M25,42 L17,52 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,21 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,53 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+
+  <!-- Frame 6: L=+3, F1=-10, F2=-14 -->
+  <g transform="translate(540,0)">
+    <path d="M25,42 L17,48 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,14 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,52 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+
+  <!-- Frame 7: L=-3, F1=-13, F2=-10 -->
+  <g transform="translate(630,0)">
+    <path d="M25,42 L17,42 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,11 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,56 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+
+  <!-- Frame 8: L=-10, F1=-14, F2=-5 -->
+  <g transform="translate(720,0)">
+    <path d="M25,42 L17,35 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,10 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,61 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+
+  <!-- Frame 9: L=-13, F1=-10, F2=-1 -->
+  <g transform="translate(810,0)">
+    <path d="M25,42 L17,32 L33,47Z" fill="#3a2810"/>
+    <path d="M49,21 L41,14 L57,26Z" fill="#3a2810"/>
+    <path d="M49,63 L41,65 L57,68Z" fill="#3a2810"/>
+    <use href="#gL"/><use href="#gF1"/><use href="#gF2"/>
+  </g>
+</svg>

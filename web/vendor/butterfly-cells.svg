@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 90" width="900" height="90">
+  <!--
+    butterfly-cells.svg — 10-frame horizontal sprite strip, 900×90 px (90×90 per frame).
+    Monarch-style butterfly, side view, flying LEFT. Large orange forewings + smaller
+    hindwings cycle upward (frames 0→4) then back down (frames 4→9).
+    Leading edge: M40,44→(28,y_tip); trailing: Q44,y_trail→58,44.
+    Animate with: background-position-x 0 → -900px, steps(10).
+  -->
+  <defs>
+    <!-- Static body: dark oval + head + two clubbed antennae -->
+    <g id="bfly">
+      <ellipse cx="43" cy="45" rx="15" ry="3" fill="#1a1a1a"/>
+      <circle cx="26" cy="45" r="3" fill="#1a1a1a"/>
+      <line x1="26" y1="43" x2="14" y2="33" stroke="#1a1a1a" stroke-width="1"/>
+      <circle cx="14" cy="33" r="1.5" fill="#1a1a1a"/>
+      <line x1="26" y1="43" x2="17" y2="34" stroke="#1a1a1a" stroke-width="1"/>
+      <circle cx="17" cy="34" r="1.5" fill="#1a1a1a"/>
+    </g>
+  </defs>
+
+  <!-- Frame 0: wings at h=10 (moderate) — tip y=34 -->
+  <g transform="translate(0,0)">
+    <path d="M40,44 L28,34 Q44,36 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,52 Q44,51 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="34" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+
+  <!-- Frame 1: wings rising — tip y=28 -->
+  <g transform="translate(90,0)">
+    <path d="M40,44 L28,28 Q44,31 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,56 Q44,54 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="28" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+
+  <!-- Frame 2: wings rising — tip y=22 -->
+  <g transform="translate(180,0)">
+    <path d="M40,44 L28,22 Q44,26 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,59 Q44,56 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="22" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+
+  <!-- Frame 3: wings near top — tip y=18 -->
+  <g transform="translate(270,0)">
+    <path d="M40,44 L28,18 Q44,23 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,62 Q44,59 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="18" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+
+  <!-- Frame 4: wings at peak — tip y=16 -->
+  <g transform="translate(360,0)">
+    <path d="M40,44 L28,16 Q44,22 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,63 Q44,60 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="16" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+
+  <!-- Frame 5: wings descending — tip y=20 -->
+  <g transform="translate(450,0)">
+    <path d="M40,44 L28,20 Q44,25 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,60 Q44,57 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="20" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+
+  <!-- Frame 6: wings descending — tip y=26 -->
+  <g transform="translate(540,0)">
+    <path d="M40,44 L28,26 Q44,30 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,57 Q44,55 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="26" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+
+  <!-- Frame 7: wings descending — tip y=32 -->
+  <g transform="translate(630,0)">
+    <path d="M40,44 L28,32 Q44,35 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,53 Q44,52 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="32" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+
+  <!-- Frame 8: wings near low — tip y=38 -->
+  <g transform="translate(720,0)">
+    <path d="M40,44 L28,38 Q44,39 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,50 Q44,49 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="38" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+
+  <!-- Frame 9: wings starting up again — tip y=35 -->
+  <g transform="translate(810,0)">
+    <path d="M40,44 L28,35 Q44,37 58,44Z" fill="#e07012" stroke="#3a1005" stroke-width="0.8"/>
+    <path d="M40,46 L28,51 Q44,50 58,46Z" fill="#d06010" stroke="#3a1005" stroke-width="0.8"/>
+    <circle cx="28" cy="35" r="1.5" fill="rgba(255,245,200,0.8)"/>
+    <use href="#bfly"/>
+  </g>
+</svg>

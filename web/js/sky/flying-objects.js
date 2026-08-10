@@ -11,14 +11,18 @@
  * Per-tier next-spawn delay bands in milliseconds. Birds recur at a light, regular cadence
  * (FR-009), multiple times a minute; planes every 45–60 seconds; balloons every 25–35 seconds;
  * the rocket easter egg is rarer still (around every 5 minutes) and additionally gated on the
- * moon being currently shown (FR-011).
- * @type {{ bird: [number, number], plane: [number, number], balloon: [number, number], rocket: [number, number] }}
+ * moon being currently shown (FR-011). Butterflies and dragonflies are grouped (shared cap of 5);
+ * geese are grouped with birds (shared cap of 10).
+ * @type {{ bird: [number, number], plane: [number, number], balloon: [number, number], rocket: [number, number], butterfly: [number, number], dragonfly: [number, number], goose: [number, number] }}
  */
 export const SPAWN_DELAY_BANDS_MS = {
   bird: [5 * 1000, 15 * 1000],
   plane: [45 * 1000, 60 * 1000],
   balloon: [25 * 1000, 35 * 1000],
   rocket: [60 * 1000, 120 * 1000],
+  butterfly: [15 * 1000, 30 * 1000],
+  dragonfly: [20 * 1000, 40 * 1000],
+  goose: [30 * 1000, 60 * 1000],
 };
 
 /**
@@ -32,25 +36,28 @@ export function randomDelayMs([min, max], rng = Math.random) {
 }
 
 /**
- * Creates a scheduler with four independent per-kind timers (bird, plane, balloon,
- * rocket), each starting at a random offset from `now()`.
+ * Creates a scheduler with independent per-kind timers (bird, plane, balloon,
+ * rocket, butterfly, dragonfly, goose), each starting at a random offset from `now()`.
  * @param {{ now?: () => number, rng?: () => number }} [deps] - Injectable clock (ms epoch)
  *   and RNG, overridable for tests.
- * @returns {{ poll: (body: 'sun' | 'moon') => { kind: 'bird' | 'plane' | 'balloon' | 'rocket', spawnedAt: Date }[] }}
+ * @returns {{ poll: (body: 'sun' | 'moon') => { kind: 'bird' | 'plane' | 'balloon' | 'rocket' | 'butterfly' | 'dragonfly' | 'goose', spawnedAt: Date }[] }}
  */
 export function createFlyingObjectScheduler({ now = () => Date.now(), rng = Math.random } = {}) {
   let birdAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.bird, rng);
   let planeAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.plane, rng);
   let balloonAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.balloon, rng);
   let rocketAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.rocket, rng);
+  let butterflyAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.butterfly, rng);
+  let dragonflyAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.dragonfly, rng);
+  let gooseAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.goose, rng);
 
   /**
-   * Checks all three timers against the current time. Any timer at or past its scheduled
+   * Checks all timers against the current time. Any timer at or past its scheduled
    * time fires, is added to the returned list, and is rescheduled to a new random delay
    * from now. (The body parameter is accepted for API compatibility but no longer gates
    * any kind.)
    * @param {'sun' | 'moon'} _body - Current Solar Time State body, from `solar-arc.js`.
-   * @returns {{ kind: 'bird' | 'plane' | 'balloon' | 'rocket', spawnedAt: Date }[]}
+   * @returns {{ kind: 'bird' | 'plane' | 'balloon' | 'rocket' | 'butterfly' | 'dragonfly' | 'goose', spawnedAt: Date }[]}
    */
   function poll(_body) {
     const spawned = [];
@@ -74,6 +81,21 @@ export function createFlyingObjectScheduler({ now = () => Date.now(), rng = Math
     if (t >= rocketAt) {
       spawned.push({ kind: 'rocket', spawnedAt: new Date(t) });
       rocketAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.rocket, rng);
+    }
+
+    if (t >= butterflyAt) {
+      spawned.push({ kind: 'butterfly', spawnedAt: new Date(t) });
+      butterflyAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.butterfly, rng);
+    }
+
+    if (t >= dragonflyAt) {
+      spawned.push({ kind: 'dragonfly', spawnedAt: new Date(t) });
+      dragonflyAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.dragonfly, rng);
+    }
+
+    if (t >= gooseAt) {
+      spawned.push({ kind: 'goose', spawnedAt: new Date(t) });
+      gooseAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.goose, rng);
     }
 
     return spawned;

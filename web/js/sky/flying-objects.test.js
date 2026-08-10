@@ -44,6 +44,30 @@ test('rocket next-spawn delay always falls within its ~4-6 min band', () => {
   }
 });
 
+test('butterfly next-spawn delay always falls within its 15-30s band', () => {
+  for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.butterfly, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.butterfly[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.butterfly[1]);
+  }
+});
+
+test('dragonfly next-spawn delay always falls within its 20-40s band', () => {
+  for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.dragonfly, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.dragonfly[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.dragonfly[1]);
+  }
+});
+
+test('goose next-spawn delay always falls within its 30-60s band', () => {
+  for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.goose, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.goose[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.goose[1]);
+  }
+});
+
 test('the bird timer fires and reschedules within its band', () => {
   let clockMs = 0;
   const rng = seededRng([0, 0.5, 0.5, 0.5, 0.5]);

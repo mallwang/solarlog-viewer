@@ -423,6 +423,140 @@ body {
   animation: rocket-exhaust 0.2s steps(10) infinite;
 }
 
+/* ─── Butterfly ──────────────────────────────────────────────────────────────
+   10-frame wingbeat sprite, 900×90 px, faces LEFT. LTR is flipped via scaleX(-1)
+   so the butterfly always faces the direction of travel.
+   Uses the same wavy-profile flight keyframes as birds (fly-wavy-a / fly-wavy-b). */
+.sky-flying-object--butterfly[data-wavy-profile='a'][data-direction='ltr'] {
+  animation: fly-wavy-a var(--flight-duration, 25s) linear forwards;
+}
+
+.sky-flying-object--butterfly[data-wavy-profile='a'][data-direction='rtl'] {
+  animation: fly-wavy-a-rtl var(--flight-duration, 25s) linear forwards;
+}
+
+.sky-flying-object--butterfly[data-wavy-profile='b'][data-direction='ltr'] {
+  animation: fly-wavy-b var(--flight-duration, 25s) linear forwards;
+}
+
+.sky-flying-object--butterfly[data-wavy-profile='b'][data-direction='rtl'] {
+  animation: fly-wavy-b-rtl var(--flight-duration, 25s) linear forwards;
+}
+
+.sky-butterfly-sprite {
+  width: 90px;
+  height: 90px;
+  background-image: url('/vendor/butterfly-cells.svg');
+  background-size: 900px 90px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  /* Sprite faces LEFT — flip for LTR so butterfly faces the direction of travel. */
+  transform: scaleX(-1) scale(var(--butterfly-scale, 0.45));
+  transform-origin: center;
+  animation: butterfly-wingbeat var(--wingbeat-duration, 0.45s) steps(10) infinite;
+  animation-delay: var(--wingbeat-phase, 0s);
+}
+
+.sky-flying-object--butterfly[data-direction='rtl'] .sky-butterfly-sprite {
+  transform: scale(var(--butterfly-scale, 0.45));
+}
+
+@keyframes butterfly-wingbeat {
+  from {
+    background-position-x: 0;
+  }
+
+  to {
+    background-position-x: -900px;
+  }
+}
+
+/* ─── Dragonfly ──────────────────────────────────────────────────────────────
+   10-frame wing-shimmer sprite (top-down view), 900×90 px, faces LEFT. Uses
+   the direct fly-across keyframes (dragonflies dart in straight lines). */
+.sky-flying-object--dragonfly[data-direction='ltr'] {
+  animation: fly-across var(--flight-duration, 11s) linear forwards;
+}
+
+.sky-flying-object--dragonfly[data-direction='rtl'] {
+  animation: fly-across-rtl var(--flight-duration, 11s) linear forwards;
+}
+
+.sky-dragonfly-sprite {
+  width: 90px;
+  height: 90px;
+  background-image: url('/vendor/dragonfly-cells.svg');
+  background-size: 900px 90px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  /* Sprite faces LEFT — flip for LTR so dragonfly faces the direction of travel. */
+  transform: scaleX(-1) scale(var(--dragonfly-scale, 0.45));
+  transform-origin: center;
+  animation: dragonfly-shimmer var(--wingbeat-duration, 0.1s) steps(10) infinite;
+  animation-delay: var(--wingbeat-phase, 0s);
+}
+
+.sky-flying-object--dragonfly[data-direction='rtl'] .sky-dragonfly-sprite {
+  transform: scale(var(--dragonfly-scale, 0.45));
+}
+
+@keyframes dragonfly-shimmer {
+  from {
+    background-position-x: 0;
+  }
+
+  to {
+    background-position-x: -900px;
+  }
+}
+
+/* ─── Goose V-formation ──────────────────────────────────────────────────────
+   10-frame wingbeat sprite (3 geese in V-formation), 900×90 px, faces LEFT.
+   Uses the same wavy-profile flight keyframes as birds (fly-wavy-a / fly-wavy-b). */
+.sky-flying-object--goose[data-wavy-profile='a'][data-direction='ltr'] {
+  animation: fly-wavy-a var(--flight-duration, 17s) linear forwards;
+}
+
+.sky-flying-object--goose[data-wavy-profile='a'][data-direction='rtl'] {
+  animation: fly-wavy-a-rtl var(--flight-duration, 17s) linear forwards;
+}
+
+.sky-flying-object--goose[data-wavy-profile='b'][data-direction='ltr'] {
+  animation: fly-wavy-b var(--flight-duration, 17s) linear forwards;
+}
+
+.sky-flying-object--goose[data-wavy-profile='b'][data-direction='rtl'] {
+  animation: fly-wavy-b-rtl var(--flight-duration, 17s) linear forwards;
+}
+
+.sky-goose-sprite {
+  width: 90px;
+  height: 90px;
+  background-image: url('/vendor/goose-family-cells.svg');
+  background-size: 900px 90px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  /* Sprite faces LEFT — flip for LTR so geese face the direction of travel. */
+  transform: scaleX(-1) scale(var(--goose-scale, 0.9));
+  transform-origin: center;
+  animation: goose-wingbeat var(--wingbeat-duration, 0.7s) steps(10) infinite;
+  animation-delay: var(--wingbeat-phase, 0s);
+}
+
+.sky-flying-object--goose[data-direction='rtl'] .sky-goose-sprite {
+  transform: scale(var(--goose-scale, 0.9));
+}
+
+@keyframes goose-wingbeat {
+  from {
+    background-position-x: 0;
+  }
+
+  to {
+    background-position-x: -900px;
+  }
+}
+
 @keyframes plane-exhaust {
   from {
     background-position-x: 0;
