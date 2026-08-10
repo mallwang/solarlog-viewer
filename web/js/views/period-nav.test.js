@@ -70,6 +70,32 @@ test('periodNavMarkup renders both links when nextHref is set', () => {
   assert.doesNotMatch(html, /aria-disabled/);
 });
 
+test('periodNavMarkup falls back to the full label on both breakpoints when no short label is given', () => {
+  const html = periodNavMarkup({
+    prevHref: '#/day/2026/08/05',
+    prevLabel: 'Previous day',
+    nextHref: '#/day/2026/08/07',
+    nextLabel: 'Next day',
+  });
+  assert.match(html, /<span class="hidden md:inline">Previous day<\/span>/);
+  assert.match(html, /<span class="md:hidden">Previous day<\/span>/);
+  assert.match(html, /<span class="hidden md:inline">Next day<\/span>/);
+  assert.match(html, /<span class="md:hidden">Next day<\/span>/);
+});
+
+test('periodNavMarkup shows the short label below md: and the full label from md: up', () => {
+  const html = periodNavMarkup({
+    prevHref: '#/day/2026/08/05',
+    prevLabel: 'Previous day',
+    prevShortLabel: 'Previous',
+    nextHref: '#/day/2026/08/07',
+    nextLabel: 'Next day',
+    nextShortLabel: 'Next',
+  });
+  assert.match(html, /<span class="hidden md:inline">Previous day<\/span><span class="md:hidden">Previous<\/span>/);
+  assert.match(html, /<span class="hidden md:inline">Next day<\/span><span class="md:hidden">Next<\/span>/);
+});
+
 test('periodNavMarkup disables next when nextHref is null', () => {
   const html = periodNavMarkup({
     prevHref: '#/day/2026/08/06',

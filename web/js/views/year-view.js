@@ -113,10 +113,15 @@ export async function render(container, { route, plant }) {
   const nav = periodNavMarkup({
     prevHref: formatRoute({ view: 'year', params: addYears({ year }, -1) }),
     prevLabel: t('year.prev'),
+    // "Jahr" is neuter, so it takes "Vorheriges"/"Nächstes", not the masculine
+    // "Vorheriger"/"Nächster" that day/month use (shared via common.prev/common.next) —
+    // a year-specific short label instead of the generic one.
+    prevShortLabel: t('year.prevShort'),
     nextHref: isFutureYear(nextParams)
       ? null
       : formatRoute({ view: 'year', params: nextParams }),
     nextLabel: t('year.next'),
+    nextShortLabel: t('year.nextShort'),
     todayHref: isCurrentYear ? null : formatRoute({ view: 'year', params: { year: currentYear() } }),
     todayLabel: t('year.thisYear'),
     parentHref: formatRoute({ view: 'total', params: parentOfYear({ year }) }),

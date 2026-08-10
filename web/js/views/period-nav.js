@@ -68,6 +68,21 @@ export function parentOfYear() {
 }
 
 /**
+ * Wraps a label in two responsive spans so narrow (below md:) viewports show a shorter generic
+ * form (e.g. "Vorheriger") while md: and up show the full, period-specific form (e.g.
+ * "Vorheriger Monat") — the noun is what makes these labels wrap onto two lines and go ragged
+ * on mobile buttons; the arrow already carries the direction, and the period itself stays
+ * visible in the view's own title above the nav. Falls back to `label` on both sizes when no
+ * `shortLabel` is given, so callers that don't pass one keep today's single-length behavior.
+ * @param {string} label - Full label, shown from md: up.
+ * @param {string} [shortLabel] - Abbreviated label, shown below md:.
+ * @returns {string} HTML markup for the two spans.
+ */
+function responsiveLabel(label, shortLabel) {
+  return `<span class="hidden md:inline">${label}</span><span class="md:hidden">${shortLabel ?? label}</span>`;
+}
+
+/**
  * Renders the prev/next stepper row. `next` is omitted (rendered disabled) when `nextHref`
  * is null, so callers can't link into dates with no data yet (e.g. tomorrow). When `todayLabel`
  * is given, an extra "jump to current period" link (e.g. "Heute" / "Dieser Monat") is appended,
@@ -75,7 +90,10 @@ export function parentOfYear() {
  * already *is* the current one. When `parentLabel` is given, an extra "zoom out to parent
  * period" link (e.g. "Monat" / "Jahr" / "Gesamt") is appended, always enabled — a parent period
  * always exists, so unlike `todayHref`/`nextHref` there is no disabled state for it.
- * @param {{ prevHref: string, prevLabel: string, nextHref: string | null, nextLabel: string,
+ * `prevShortLabel`/`nextShortLabel` are optional shorter forms (e.g. "Vorheriger" instead of
+ * "Vorheriger Monat") shown below the md: breakpoint — see `responsiveLabel`.
+ * @param {{ prevHref: string, prevLabel: string, prevShortLabel?: string,
+ *   nextHref: string | null, nextLabel: string, nextShortLabel?: string,
  *   todayHref?: string | null, todayLabel?: string,
  *   parentHref?: string, parentLabel?: string }} opts
  * @returns {string} HTML markup.
@@ -83,16 +101,22 @@ export function parentOfYear() {
 export function periodNavMarkup({
   prevHref,
   prevLabel,
+  prevShortLabel,
   nextHref,
   nextLabel,
+  nextShortLabel,
   todayHref,
   todayLabel,
   parentHref,
   parentLabel,
 }) {
+  // The arrow and label are separate text/element nodes, so the visible gap between them comes
+  // from `.period-nav__link`'s `gap-xs` (a flex gap), not from any space character here — see
+  // that class's comment for why an inline space wouldn't survive layout.
+  const nextText = responsiveLabel(nextLabel, nextShortLabel);
   const nextMarkup = nextHref
-    ? `<a class="period-nav__link" href="${nextHref}">${nextLabel} →</a>`
-    : `<span class="period-nav__link period-nav__link--disabled" aria-disabled="true">${nextLabel} →</span>`;
+    ? `<a class="period-nav__link" href="${nextHref}">${nextText}<span aria-hidden="true">→</span></a>`
+    : `<span class="period-nav__link period-nav__link--disabled" aria-disabled="true">${nextText}<span aria-hidden="true">→</span></span>`;
   let todayMarkup = '';
   if (todayLabel) {
     todayMarkup = todayHref
@@ -103,7 +127,7 @@ export function periodNavMarkup({
     ? `<a class="period-nav__link period-nav__link--parent" href="${parentHref}">${parentLabel}</a>`
     : '';
   return `<nav class="period-nav flex items-center gap-sm" aria-label="${prevLabel} / ${nextLabel}">
-    <a class="period-nav__link" href="${prevHref}">← ${prevLabel}</a>
+    <a class="period-nav__link" href="${prevHref}"><span aria-hidden="true">←</span>${responsiveLabel(prevLabel, prevShortLabel)}</a>
     ${nextMarkup}
     ${todayMarkup}
     ${parentMarkup}
