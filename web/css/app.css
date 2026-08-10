@@ -269,7 +269,26 @@ a {
   color: #000;
 }
 
+/* This is an <a href="#/"> (links to the dashboard/overview route), not a <div> — reset the
+   global `a { color: ... }` rule above so the title still reads as plain header text, and only
+   hint at its clickability on hover instead of always looking like a link. */
 .app-header__brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-sm);
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-header__brand:hover .app-header__title {
+  text-decoration: underline;
+}
+
+/* Groups the language switcher and the mobile nav toggle on the header's right side, so the
+   burger icon sits inline with the title instead of in its own bar below it (see .app-nav /
+   .app-nav__toggle in tailwind.css). */
+.app-header__actions {
   display: flex;
   flex-direction: row;
   align-items: center;

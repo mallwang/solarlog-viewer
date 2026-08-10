@@ -44,8 +44,16 @@
 @layer components {
   .app-nav {
     /* Opaque (bg-bg) so the fixed cloud backdrop, offset to start right below the nav,
-       never shows through the nav bar itself. */
-    @apply flex items-center gap-xs border-b border-border bg-bg px-md py-sm;
+       never shows through the nav bar itself. `relative` makes this the positioning context for
+       `.app-nav__list[data-open='true']` below, so the collapsed menu opens right under the
+       header/title instead of at the bottom of the document (the default containing block for
+       an absolutely-positioned element with no positioned ancestor).
+       Below md:, the toggle button lives in the header instead of here (see
+       `.app-header__actions`), so this bar carries no border/padding of its own there — otherwise
+       it would show as an empty strip under the title. From md: up it's the persistent,
+       always-visible row of nav links, so it gets its usual border/padding back. */
+    @apply relative flex items-center gap-xs bg-bg md:border-b md:border-border md:px-md
+      md:py-sm;
   }
 
   .app-nav__toggle {
@@ -78,8 +86,16 @@
   }
 
   .period-nav__link {
-    @apply rounded-md border border-border bg-bg px-sm py-xs text-sm text-text no-underline
-      hover:bg-bg-elevated;
+    /* inline-flex + justify-center/text-center: on mobile these buttons shrink enough that
+       their label wraps onto two lines (while the shorter "today"/parent label stays on one),
+       which without centering reads as ragged/left-aligned text next to fully-filled buttons.
+       gap-xs is the actual space between the arrow and the label — the plain space character
+       in period-nav.js's "← ${...}" markup looks like it should do that, but flexbox trims
+       whitespace-only text at a flex item's edges, so that space collapses to nothing once the
+       label became its own flex item (see responsiveLabel's spans); gap is the reliable way to
+       size that space instead. */
+    @apply inline-flex items-center justify-center gap-xs rounded-md border border-border bg-bg
+      px-sm py-xs text-center text-sm text-text no-underline hover:bg-bg-elevated;
   }
 
   .period-nav__link--disabled {

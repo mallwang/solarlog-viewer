@@ -126,10 +126,12 @@ export async function render(container, { route, plant }) {
   const nav = periodNavMarkup({
     prevHref: formatRoute({ view: 'month', params: addMonths(params, -1) }),
     prevLabel: t('month.prev'),
+    prevShortLabel: t('common.prev'),
     nextHref: isFutureMonth(nextParams)
       ? null
       : formatRoute({ view: 'month', params: nextParams }),
     nextLabel: t('month.next'),
+    nextShortLabel: t('common.next'),
     todayHref: isCurrentMonth ? null : formatRoute({ view: 'month', params: todayParams() }),
     todayLabel: t('month.thisMonth'),
     parentHref: formatRoute({ view: 'year', params: parentOfMonth(params) }),

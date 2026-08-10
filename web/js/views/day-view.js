@@ -90,8 +90,10 @@ export async function render(container, { route, plant }) {
   const nav = periodNavMarkup({
     prevHref: formatRoute({ view: 'day', params: addDays(params, -1) }),
     prevLabel: t('day.prev'),
+    prevShortLabel: t('common.prev'),
     nextHref: isFutureDay(nextParams) ? null : formatRoute({ view: 'day', params: nextParams }),
     nextLabel: t('day.next'),
+    nextShortLabel: t('common.next'),
     todayHref: isToday ? null : formatRoute({ view: 'day', params: todayParams() }),
     todayLabel: t('day.today'),
     parentHref: formatRoute({ view: 'month', params: parentOfDay(params) }),

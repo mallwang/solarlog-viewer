@@ -8,6 +8,10 @@
     "ariaLabel": "Main navigation",
     "toggleLabel": "Toggle navigation"
   },
+  "common": {
+    "prev": "Previous",
+    "next": "Next"
+  },
   "day": {
     "noData": "Data not available for today.",
     "prev": "Previous day",
@@ -55,7 +59,9 @@
   "year": {
     "noData": "No data available for this year.",
     "prev": "Previous year",
+    "prevShort": "Previous",
     "next": "Next year",
+    "nextShort": "Next",
     "thisYear": "This year",
     "parentLink": "Total",
     "stats": {

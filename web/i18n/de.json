@@ -8,6 +8,10 @@
     "ariaLabel": "Hauptnavigation",
     "toggleLabel": "Navigation ein-/ausblenden"
   },
+  "common": {
+    "prev": "Vorheriger",
+    "next": "Nächster"
+  },
   "day": {
     "noData": "Für diesen Tag liegen keine Daten vor.",
     "prev": "Vorheriger Tag",
@@ -55,7 +59,9 @@
   "year": {
     "noData": "Für dieses Jahr liegen keine Daten vor.",
     "prev": "Vorheriges Jahr",
+    "prevShort": "Vorheriges",
     "next": "Nächstes Jahr",
+    "nextShort": "Nächstes",
     "thisYear": "Dieses Jahr",
     "parentLink": "Gesamt",
     "stats": {

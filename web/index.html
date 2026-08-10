@@ -46,22 +46,24 @@
     <div class="sky-flying-objects" aria-hidden="true"></div>
     <noscript>This site requires JavaScript to display your SolarLog production data.</noscript>
     <header class="app-header">
-      <div class="app-header__brand">
+      <a class="app-header__brand" href="#/">
         <img class="app-header__logo" src="favicon.ico" alt="" />
         <h1 class="app-header__title" id="app-title">SolarLog Viewer</h1>
+      </a>
+      <div class="app-header__actions">
+        <div class="lang-switcher" id="lang-switcher"></div>
+        <button
+          type="button"
+          class="app-nav__toggle"
+          id="app-nav-toggle"
+          aria-expanded="false"
+          aria-controls="app-nav-list"
+        >
+          ☰
+        </button>
       </div>
-      <div class="lang-switcher" id="lang-switcher"></div>
     </header>
     <nav class="app-nav" id="app-nav">
-      <button
-        type="button"
-        class="app-nav__toggle"
-        id="app-nav-toggle"
-        aria-expanded="false"
-        aria-controls="app-nav-list"
-      >
-        ☰
-      </button>
       <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
     </nav>
     <main class="app-main" id="app-main"></main>

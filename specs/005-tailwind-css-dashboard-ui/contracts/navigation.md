@@ -10,10 +10,18 @@ not replace `router.js`'s route parsing/formatting contract, which is unchanged.
 ## Markup contract
 
 ```html
+<header class="app-header">
+  <div class="app-header__brand">…</div>
+  <div class="app-header__actions">
+    <div class="lang-switcher" id="lang-switcher"></div>
+    <button type="button" class="app-nav__toggle" id="app-nav-toggle" aria-expanded="false" aria-controls="app-nav-list">
+      <!-- visible only below the md: breakpoint; hamburger icon + accessible label.
+           Lives in the header (inline, right of the title) rather than inside <nav>, so it
+           opens right where the user's eye already is on mobile. -->
+    </button>
+  </div>
+</header>
 <nav class="app-nav" id="app-nav" aria-label="[nav.ariaLabel i18n]">
-  <button type="button" class="app-nav__toggle" aria-expanded="false" aria-controls="app-nav-list">
-    <!-- visible only below the md: breakpoint; hamburger icon + accessible label -->
-  </button>
   <ul id="app-nav-list" class="app-nav__list" data-open="false">
     <li><a href="#/" aria-current="page">…</a></li>
     <li><a href="#/total">…</a></li>
@@ -22,6 +30,9 @@ not replace `router.js`'s route parsing/formatting contract, which is unchanged.
   </ul>
 </nav>
 ```
+
+The toggle button references the list purely via `aria-controls`/`id` — it does not need to be a
+DOM descendant of `<nav>` for that relationship to hold for assistive tech.
 
 ## Behavioral requirements
 
@@ -37,9 +48,12 @@ not replace `router.js`'s route parsing/formatting contract, which is unchanged.
 - **Responsive layout (FR-004, User Story 3)**:
   - At viewport width `>= 768px` (Tailwind `md:`): `app-nav__toggle` is hidden (Tailwind `md:hidden`
     or equivalent) and `app-nav__list` is always visible/persistent — no `isOpen` state needed.
-  - At viewport width `< 768px`: `app-nav__toggle` is visible; `app-nav__list`'s visibility is
-    controlled by `aria-expanded` on the toggle button (and a matching `data-open`/utility-class
-    toggle on the list) — collapsed by default, expanded on toggle click.
+  - At viewport width `< 768px`: `app-nav__toggle` is visible, sitting inline in the header on the
+    title's right side; `app-nav__list`'s visibility is controlled by `aria-expanded` on the
+    toggle button (and a matching `data-open`/utility-class toggle on the list) — collapsed by
+    default, expanded on toggle click. When expanded, the list is positioned absolutely and opens
+    downward starting right below the header/title (`.app-nav`'s `position: relative` is its
+    containing block), not at the bottom of the document.
   - At no width in [320px, 2560px] does the nav cause horizontal scrolling or clip any item
     (SC-002).
 - **Keyboard/a11y**: the toggle button MUST be a real `<button>` (not a `<div>` with a click
