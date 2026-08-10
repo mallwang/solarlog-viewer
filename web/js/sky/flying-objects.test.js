@@ -20,11 +20,19 @@ test('bird next-spawn delay always falls within its ~10-25s band', () => {
   }
 });
 
-test('plane/balloon next-spawn delay always falls within its ~2-3 min band', () => {
+test('plane next-spawn delay always falls within its 45-60s band', () => {
   for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
-    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.rare, () => roll);
-    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.rare[0]);
-    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.rare[1]);
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.plane, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.plane[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.plane[1]);
+  }
+});
+
+test('balloon next-spawn delay always falls within its 25-35s band', () => {
+  for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.balloon, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.balloon[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.balloon[1]);
   }
 });
 
@@ -33,6 +41,30 @@ test('rocket next-spawn delay always falls within its ~4-6 min band', () => {
     const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.rocket, () => roll);
     assert.ok(delay >= SPAWN_DELAY_BANDS_MS.rocket[0]);
     assert.ok(delay <= SPAWN_DELAY_BANDS_MS.rocket[1]);
+  }
+});
+
+test('butterfly next-spawn delay always falls within its 15-30s band', () => {
+  for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.butterfly, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.butterfly[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.butterfly[1]);
+  }
+});
+
+test('dragonfly next-spawn delay always falls within its 20-40s band', () => {
+  for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.dragonfly, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.dragonfly[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.dragonfly[1]);
+  }
+});
+
+test('goose next-spawn delay always falls within its 30-60s band', () => {
+  for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.goose, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.goose[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.goose[1]);
   }
 });
 
@@ -49,41 +81,18 @@ test('the bird timer fires and reschedules within its band', () => {
   assert.equal(spawned[0].kind, 'bird');
 });
 
-test('rocket kind is never selected when body !== "moon" at roll time', () => {
-  let clockMs = 0;
-  // rng=0 puts every timer (bird/rare/rocket) at its band minimum.
-  const rng = seededRng([0]);
-  const scheduler = createFlyingObjectScheduler({ now: () => clockMs, rng });
-
-  clockMs = SPAWN_DELAY_BANDS_MS.rocket[0];
-  const spawnedDuringDay = scheduler.poll('sun');
-
-  assert.ok(!spawnedDuringDay.some((obj) => obj.kind === 'rocket'));
-});
-
-test('rocket kind is selected when body === "moon" at roll time', () => {
-  let clockMs = 0;
-  const rng = seededRng([0]);
-  const scheduler = createFlyingObjectScheduler({ now: () => clockMs, rng });
-
-  clockMs = SPAWN_DELAY_BANDS_MS.rocket[0];
-  const spawnedAtNight = scheduler.poll('moon');
-
-  assert.ok(spawnedAtNight.some((obj) => obj.kind === 'rocket'));
-});
-
-test('a rocket timer that fires while body === "sun" is rescheduled, not dropped forever', () => {
-  let clockMs = 0;
-  const rng = seededRng([0]);
-  const scheduler = createFlyingObjectScheduler({ now: () => clockMs, rng });
-
-  clockMs = SPAWN_DELAY_BANDS_MS.rocket[0];
-  scheduler.poll('sun'); // rocket timer fires but body is sun: rescheduled, not spawned
-
-  clockMs += SPAWN_DELAY_BANDS_MS.rocket[0];
-  const spawned = scheduler.poll('moon');
-
-  assert.ok(spawned.some((obj) => obj.kind === 'rocket'));
+test('rocket kind is selected regardless of body value', () => {
+  for (const body of ['sun', 'moon']) {
+    let clockMs = 0;
+    const rng = seededRng([0]);
+    const scheduler = createFlyingObjectScheduler({ now: () => clockMs, rng });
+    clockMs = SPAWN_DELAY_BANDS_MS.rocket[0];
+    const spawned = scheduler.poll(body);
+    assert.ok(
+      spawned.some((obj) => obj.kind === 'rocket'),
+      `rocket should fire during '${body}'`,
+    );
+  }
 });
 
 test('scheduling is fully deterministic given a fixed RNG seed', () => {
@@ -94,7 +103,7 @@ test('scheduling is fully deterministic given a fixed RNG seed', () => {
     const allSpawned = [];
     for (let i = 0; i < 200; i++) {
       clockMs += 60_000; // advance one minute per poll
-      allSpawned.push(...scheduler.poll('moon').map((obj) => obj.kind));
+      allSpawned.push(...scheduler.poll('sun').map((obj) => obj.kind));
     }
     return allSpawned;
   }

@@ -16,6 +16,7 @@ import { fetchWeather } from './weather-client.js';
 import { CLOUD_TIER_RENDER_CONFIG } from './cloud-density.js';
 import { computeSkyBodyPosition } from './solar-arc.js';
 import { createFlyingObjectScheduler } from './flying-objects.js';
+import { FLYING_OBJECT_RENDERERS } from './flying-object-renderers.js';
 
 const POLL_INTERVAL_MS = 15 * 60 * 1000;
 const TICK_INTERVAL_MS = 60 * 1000;
@@ -24,12 +25,61 @@ const TICK_INTERVAL_MS = 60 * 1000;
 const SPAWN_POLL_INTERVAL_MS = 5 * 1000;
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
-/** Glyph and flight-duration range per flying-object kind. */
-const FLYING_OBJECT_KIND_CONFIG = {
-  bird: { glyph: '🐦', durationRangeS: [10, 16] },
-  plane: { glyph: '✈️', durationRangeS: [18, 26] },
-  balloon: { glyph: '🎈', durationRangeS: [22, 32] },
-  rocket: { glyph: '🚀', durationRangeS: [8, 12] },
+/** Flight-duration ranges (seconds) per flying-object kind. */
+const KIND_DURATION_RANGES = {
+  bird: [16, 24],
+  plane: [4, 8],
+  balloon: [32, 48],
+  rocket: [8, 12],
+  butterfly: [20, 30],
+  dragonfly: [8, 14],
+  goose: [14, 20],
+};
+
+/**
+ * Maximum number of each kind that may be alive (animating) in the DOM at the same
+ * time. `spawnFlyingObject` counts existing elements via a DOM query and skips
+ * spawning if the cap is already reached. For grouped kinds the query selector in
+ * `KIND_GROUP_SELECTOR` is used so the cap applies to the whole group.
+ */
+const KIND_MAX_CONCURRENT = {
+  bird: 10, // grouped with goose
+  goose: 10, // grouped with bird
+  butterfly: 5, // grouped with dragonfly
+  dragonfly: 5, // grouped with butterfly
+  plane: 1,
+  balloon: 2,
+  rocket: 1,
+};
+
+/**
+ * CSS selector used to count live elements for the concurrent cap. Kinds that share a
+ * pool override the default (`.sky-flying-object--<kind>`) with a multi-class selector
+ * so both kinds count against the same maximum.
+ * @type {Record<string, string>}
+ */
+const KIND_GROUP_SELECTOR = {
+  bird: '.sky-flying-object--bird, .sky-flying-object--goose',
+  goose: '.sky-flying-object--bird, .sky-flying-object--goose',
+  butterfly: '.sky-flying-object--butterfly, .sky-flying-object--dragonfly',
+  dragonfly: '.sky-flying-object--butterfly, .sky-flying-object--dragonfly',
+};
+
+/**
+ * Vertical lane band (top %) within `.sky-flying-objects` for each kind.
+ * 0 % = top of the sky band, 100 % = bottom. Birds occupy the lower-middle band;
+ * planes/rockets stay near the top to simulate higher altitude.
+ * For the rocket (vertical flight), this range maps to the HORIZONTAL left position
+ * instead, giving it spread across the full sky width.
+ */
+const KIND_LANE_RANGES = {
+  bird: [40, 80],
+  plane: [5, 20],
+  balloon: [35, 65],
+  rocket: [10, 80],
+  butterfly: [55, 90],
+  dragonfly: [50, 85],
+  goose: [20, 55],
 };
 
 /**
@@ -67,26 +117,51 @@ function applySkyBodyPosition(sunEl, moonEl, position) {
 }
 
 /**
- * Creates and appends one `.sky-flying-object` element for a scheduler spawn, in a random
- * lane within the upper sky band, and removes it from the DOM once its flight animation ends.
+ * Kind-specific logic MUST NOT be added to this function — new kinds extend only via the
+ * renderer registry in `flying-object-renderers.js`.
+ *
+ * Looks up the renderer for `kind` in {@link FLYING_OBJECT_RENDERERS}; returns immediately
+ * if the renderer is `null` (kind is disabled). Otherwise creates the element via the
+ * renderer and appends it to `container`, attaching an `animationend` cleanup listener.
  * @param {HTMLElement} container
  * @param {'bird' | 'plane' | 'balloon' | 'rocket'} kind
+ * @param {{ laneTopPct?: number, durationS?: number, direction?: 'ltr' | 'rtl' }} [overrides]
  */
-function spawnFlyingObject(container, kind) {
-  const { glyph, durationRangeS } = FLYING_OBJECT_KIND_CONFIG[kind];
-  const [minS, maxS] = durationRangeS;
+function spawnFlyingObject(container, kind, { laneTopPct, durationS, direction } = {}) {
+  const renderer = FLYING_OBJECT_RENDERERS[kind];
+  if (!renderer) return;
 
-  const el = document.createElement('div');
-  el.className = `sky-flying-object sky-flying-object--${kind}`;
-  el.textContent = glyph;
-  el.style.setProperty('--lane-top', `${5 + Math.random() * 25}%`);
-  el.style.setProperty(
-    '--flight-duration',
-    `${(minS + Math.random() * (maxS - minS)).toFixed(1)}s`,
-  );
+  // Enforce concurrent cap: count live elements of this kind (or its group) in the DOM.
+  const max = KIND_MAX_CONCURRENT[kind];
+  const groupSelector = KIND_GROUP_SELECTOR[kind] ?? `.sky-flying-object--${kind}`;
+  if (max !== undefined && container.querySelectorAll(groupSelector).length >= max) return;
+
+  const [minS, maxS] = KIND_DURATION_RANGES[kind];
+  const [minLane, maxLane] = KIND_LANE_RANGES[kind];
+  const resolvedDuration = durationS ?? minS + Math.random() * (maxS - minS);
+  const resolvedLane = laneTopPct ?? minLane + Math.random() * (maxLane - minLane);
+  const resolvedDirection = direction ?? (Math.random() < 0.5 ? 'ltr' : 'rtl');
+
+  const el = renderer({
+    durationS: resolvedDuration,
+    laneTopPct: resolvedLane,
+    direction: resolvedDirection,
+  });
   el.addEventListener('animationend', () => el.remove());
-
   container.append(el);
+}
+
+/**
+ * Returns a random flock size biased towards solo flight.
+ * Distribution: ~60 % solo, ~25 % pair, ~12 % trio, ~3 % quartet.
+ * @returns {1|2|3|4}
+ */
+function pickFlockSize() {
+  const r = Math.random();
+  if (r < 0.6) return 1;
+  if (r < 0.85) return 2;
+  if (r < 0.97) return 3;
+  return 4;
 }
 
 /**
@@ -106,7 +181,7 @@ export async function initSkyController({ plant, locationOverride }) {
   const sunEl = skyClouds.querySelector('.sky-sun');
   const moonEl = skyClouds.querySelector('.sky-moon');
   const flyingObjectsEl = document.querySelector('.sky-flying-objects');
-  const scheduler = createFlyingObjectScheduler();
+  let scheduler = createFlyingObjectScheduler();
 
   /** Last-known-good weather reading; a failed poll leaves this untouched (FR-005). */
   let lastWeather = null;
@@ -151,7 +226,49 @@ export async function initSkyController({ plant, locationOverride }) {
   function spawnPoll() {
     if (reducedMotion || !flyingObjectsEl || !lastWeather) return;
     for (const spawn of scheduler.poll(currentBody)) {
-      spawnFlyingObject(flyingObjectsEl, spawn.kind);
+      if (spawn.kind === 'bird') {
+        // Spawn 1–4 birds per event to simulate solo fliers and loose flocks.
+        // The whole flock shares one direction so they don't fly through each other.
+        const count = pickFlockSize();
+        const [minS, maxS] = KIND_DURATION_RANGES.bird;
+        const [minLane, maxLane] = KIND_LANE_RANGES.bird;
+        const baseDuration = minS + Math.random() * (maxS - minS);
+        const baseLane = minLane + Math.random() * (maxLane - minLane);
+        const direction = Math.random() < 0.5 ? 'ltr' : 'rtl';
+        for (let i = 0; i < count; i++) {
+          // Flock members fly close together vertically; each gets its own speed variation.
+          const laneTopPct = Math.max(
+            minLane - 3,
+            Math.min(maxLane + 3, baseLane + (Math.random() * 6 - 3)),
+          );
+          const durationS = baseDuration * (0.85 + Math.random() * 0.3);
+          spawnFlyingObject(flyingObjectsEl, spawn.kind, { laneTopPct, durationS, direction });
+        }
+      } else if (spawn.kind === 'goose') {
+        // Geese often travel in multiple V-formations; spawn 1–2 formations sharing a direction.
+        const count = Math.random() < 0.65 ? 1 : 2;
+        const [minS, maxS] = KIND_DURATION_RANGES.goose;
+        const [minLane, maxLane] = KIND_LANE_RANGES.goose;
+        const baseLane = minLane + Math.random() * (maxLane - minLane);
+        const direction = Math.random() < 0.5 ? 'ltr' : 'rtl';
+        for (let i = 0; i < count; i++) {
+          const laneTopPct = Math.max(
+            minLane - 3,
+            Math.min(maxLane + 3, baseLane + (Math.random() * 8 - 4)),
+          );
+          const durationS = (minS + Math.random() * (maxS - minS)) * (0.9 + Math.random() * 0.2);
+          spawnFlyingObject(flyingObjectsEl, spawn.kind, { laneTopPct, durationS, direction });
+        }
+      } else if (spawn.kind === 'butterfly') {
+        // Butterflies occasionally travel in pairs; share a direction when paired.
+        const count = Math.random() < 0.65 ? 1 : 2;
+        const direction = Math.random() < 0.5 ? 'ltr' : 'rtl';
+        for (let i = 0; i < count; i++) {
+          spawnFlyingObject(flyingObjectsEl, spawn.kind, { direction });
+        }
+      } else {
+        spawnFlyingObject(flyingObjectsEl, spawn.kind);
+      }
     }
   }
 
@@ -161,7 +278,22 @@ export async function initSkyController({ plant, locationOverride }) {
 
   const pollTimer = setInterval(poll, POLL_INTERVAL_MS);
   const tickTimer = setInterval(tick, TICK_INTERVAL_MS);
-  const spawnPollTimer = setInterval(spawnPoll, SPAWN_POLL_INTERVAL_MS);
+  let spawnPollTimer = setInterval(spawnPoll, SPAWN_POLL_INTERVAL_MS);
+
+  // When the tab/window goes to the background the browser throttles setInterval heavily.
+  // On return, deferred ticks would fire in a burst AND the scheduler's internal next-spawn
+  // timestamps would all be in the past — both combine to flood the sky with objects.
+  // Fix: stop the spawn poll while hidden; on return, recreate the scheduler (resets all
+  // next-fire times to now + a fresh random delay) then restart the interval cleanly.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(spawnPollTimer);
+    } else {
+      scheduler = createFlyingObjectScheduler();
+      spawnPollTimer = setInterval(spawnPoll, SPAWN_POLL_INTERVAL_MS);
+    }
+  });
+
   window.addEventListener('pagehide', () => {
     clearInterval(pollTimer);
     clearInterval(tickTimer);

@@ -43,13 +43,13 @@
 
 @layer components {
   .app-nav {
-    /* Nav is now just a wrapper around `.app-nav__list`, nested inside `.app-header` (a single
+    /* Nav is a wrapper around `.app-nav__list`, nested inside `.app-header` (a single
        combined header+nav row, at the user's request) rather than its own bar below it —
-       `.app-header` owns the row's background/border. `relative` remains the positioning
-       context for `.app-nav__list[data-open='true']` below, so the collapsed menu still opens
-       right under the header instead of at the bottom of the document (the default containing
-       block for an absolutely-positioned element with no positioned ancestor). */
-    @apply relative flex items-center;
+       `.app-header` owns the row's background/border and is the positioning context for
+       `.app-nav__list[data-open='true']` below (see `position: relative` on `.app-header`
+       in app.css), so the collapsed menu opens full-width below the entire header instead
+       of being clipped to the `.app-header__start` half. */
+    @apply flex items-center;
   }
 
   .app-nav__toggle {
@@ -62,7 +62,7 @@
   }
 
   .app-nav__list[data-open='true'] {
-    @apply flex flex-col absolute left-0 right-0 top-full z-10 bg-bg border-b border-border
+    @apply flex flex-col absolute left-0 right-0 top-full z-10 bg-bg border-y border-border
       px-md py-sm;
   }
 

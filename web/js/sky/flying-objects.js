@@ -9,15 +9,20 @@
 
 /**
  * Per-tier next-spawn delay bands in milliseconds. Birds recur at a light, regular cadence
- * (FR-009), multiple times a minute; planes/balloons ("rare") every couple of minutes; the
- * rocket easter egg is rarer still (around every 5 minutes) and additionally gated on the
- * moon being currently shown (FR-011).
- * @type {{ bird: [number, number], rare: [number, number], rocket: [number, number] }}
+ * (FR-009), multiple times a minute; planes every 45–60 seconds; balloons every 25–35 seconds;
+ * the rocket easter egg is rarer still (around every 5 minutes) and additionally gated on the
+ * moon being currently shown (FR-011). Butterflies and dragonflies are grouped (shared cap of 5);
+ * geese are grouped with birds (shared cap of 10).
+ * @type {{ bird: [number, number], plane: [number, number], balloon: [number, number], rocket: [number, number], butterfly: [number, number], dragonfly: [number, number], goose: [number, number] }}
  */
 export const SPAWN_DELAY_BANDS_MS = {
-  bird: [10 * 1000, 25 * 1000],
-  rare: [2 * 60_000, 3 * 60_000],
-  rocket: [4 * 60_000, 6 * 60_000],
+  bird: [5 * 1000, 15 * 1000],
+  plane: [45 * 1000, 60 * 1000],
+  balloon: [25 * 1000, 35 * 1000],
+  rocket: [60 * 1000, 120 * 1000],
+  butterfly: [15 * 1000, 30 * 1000],
+  dragonfly: [20 * 1000, 40 * 1000],
+  goose: [30 * 1000, 60 * 1000],
 };
 
 /**
@@ -31,35 +36,30 @@ export function randomDelayMs([min, max], rng = Math.random) {
 }
 
 /**
- * Picks which "rare" kind to spawn — plane or balloon, equally likely.
- * @param {() => number} [rng]
- * @returns {'plane' | 'balloon'}
- */
-export function pickRareKind(rng = Math.random) {
-  return rng() < 0.5 ? 'plane' : 'balloon';
-}
-
-/**
- * Creates a scheduler with three independent per-kind timers (bird, rare[plane/balloon],
- * rocket), each starting at a random offset from `now()`.
+ * Creates a scheduler with independent per-kind timers (bird, plane, balloon,
+ * rocket, butterfly, dragonfly, goose), each starting at a random offset from `now()`.
  * @param {{ now?: () => number, rng?: () => number }} [deps] - Injectable clock (ms epoch)
  *   and RNG, overridable for tests.
- * @returns {{ poll: (body: 'sun' | 'moon') => { kind: 'bird' | 'plane' | 'balloon' | 'rocket', spawnedAt: Date }[] }}
+ * @returns {{ poll: (body: 'sun' | 'moon') => { kind: 'bird' | 'plane' | 'balloon' | 'rocket' | 'butterfly' | 'dragonfly' | 'goose', spawnedAt: Date }[] }}
  */
 export function createFlyingObjectScheduler({ now = () => Date.now(), rng = Math.random } = {}) {
   let birdAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.bird, rng);
-  let rareAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.rare, rng);
+  let planeAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.plane, rng);
+  let balloonAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.balloon, rng);
   let rocketAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.rocket, rng);
+  let butterflyAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.butterfly, rng);
+  let dragonflyAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.dragonfly, rng);
+  let gooseAt = now() + randomDelayMs(SPAWN_DELAY_BANDS_MS.goose, rng);
 
   /**
-   * Checks all three timers against the current time. Any timer at or past its scheduled
-   * time fires: it's added to the returned list (except the rocket timer when `body` isn't
-   * `'moon'`, which is silently rescheduled without spawning — FR-011) and rescheduled to a
-   * new random delay from now.
-   * @param {'sun' | 'moon'} body - Current Solar Time State body, from `solar-arc.js`.
-   * @returns {{ kind: 'bird' | 'plane' | 'balloon' | 'rocket', spawnedAt: Date }[]}
+   * Checks all timers against the current time. Any timer at or past its scheduled
+   * time fires, is added to the returned list, and is rescheduled to a new random delay
+   * from now. (The body parameter is accepted for API compatibility but no longer gates
+   * any kind.)
+   * @param {'sun' | 'moon'} _body - Current Solar Time State body, from `solar-arc.js`.
+   * @returns {{ kind: 'bird' | 'plane' | 'balloon' | 'rocket' | 'butterfly' | 'dragonfly' | 'goose', spawnedAt: Date }[]}
    */
-  function poll(body) {
+  function poll(_body) {
     const spawned = [];
     const t = now();
 
@@ -68,16 +68,34 @@ export function createFlyingObjectScheduler({ now = () => Date.now(), rng = Math
       birdAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.bird, rng);
     }
 
-    if (t >= rareAt) {
-      spawned.push({ kind: pickRareKind(rng), spawnedAt: new Date(t) });
-      rareAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.rare, rng);
+    if (t >= planeAt) {
+      spawned.push({ kind: 'plane', spawnedAt: new Date(t) });
+      planeAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.plane, rng);
+    }
+
+    if (t >= balloonAt) {
+      spawned.push({ kind: 'balloon', spawnedAt: new Date(t) });
+      balloonAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.balloon, rng);
     }
 
     if (t >= rocketAt) {
-      if (body === 'moon') {
-        spawned.push({ kind: 'rocket', spawnedAt: new Date(t) });
-      }
+      spawned.push({ kind: 'rocket', spawnedAt: new Date(t) });
       rocketAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.rocket, rng);
+    }
+
+    if (t >= butterflyAt) {
+      spawned.push({ kind: 'butterfly', spawnedAt: new Date(t) });
+      butterflyAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.butterfly, rng);
+    }
+
+    if (t >= dragonflyAt) {
+      spawned.push({ kind: 'dragonfly', spawnedAt: new Date(t) });
+      dragonflyAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.dragonfly, rng);
+    }
+
+    if (t >= gooseAt) {
+      spawned.push({ kind: 'goose', spawnedAt: new Date(t) });
+      gooseAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.goose, rng);
     }
 
     return spawned;

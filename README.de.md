@@ -32,8 +32,9 @@ API nach Bewölkung sowie Sonnenauf-/-untergang abzufragen:
 - **Sonne/Mond-Position** — Sonne oder Mond folgen einem vereinfachten Tag-/Nacht-Bogen zwischen
   Sonnenauf- und -untergang, mit sanftem Überblenden am Übergang und gedämpfter Sichtbarkeit bei
   dichter Bewölkung.
-- **Fliegende Objekte** — Vögel queren den Himmel in regelmäßigem, leichtem Takt; Flugzeuge,
-  Ballons und eine Raketen-Ostereier-Animation Richtung Mond erscheinen selten.
+- **Fliegende Objekte** — Vögel, Schmetterlinge, Libellen und Gänse-Formationen queren den
+  Himmel als animierte SVG-Sprite-Sheets (realistische Silhouetten, keine Emojis); Flugzeuge,
+  Ballons und ein Raketen-Osterei Richtung Mond erscheinen selten.
 
 Bei jedem Fehler (keine Position, kein Netzwerk, fehlgeschlagene Anfrage) fällt die Ansicht
 stillschweigend auf die ursprüngliche statische Kulisse zurück — es gibt keine Fehleranzeige und
