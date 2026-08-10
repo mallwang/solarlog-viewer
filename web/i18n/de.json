@@ -6,7 +6,8 @@
     "yearView": "Jahreserträge",
     "totalView": "Gesamterträge",
     "ariaLabel": "Hauptnavigation",
-    "toggleLabel": "Navigation ein-/ausblenden"
+    "toggleLabel": "Navigation ein-/ausblenden",
+    "transparencyToggleLabel": "Transparenzmodus umschalten"
   },
   "common": {
     "prev": "Vorheriger",

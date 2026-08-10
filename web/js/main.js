@@ -2,6 +2,7 @@ import { fetchText } from './data/fetch-text.js';
 import { parseBaseVars } from './data/plant.js';
 import { onRouteChange, formatRoute } from './router.js';
 import { initI18n, getLanguage, t } from './i18n.js';
+import { initTransparencyMode, isTransparencyEnabled, setTransparencyEnabled } from './settings.js';
 import { SHOW_LANGUAGE_SWITCHER, SKY_LOCATION_OVERRIDE } from './config.js';
 
 function todayParams() {
@@ -39,10 +40,12 @@ const viewNav = document.getElementById('app-nav');
 const viewNavList = document.getElementById('app-nav-list');
 const navToggle = document.getElementById('app-nav-toggle');
 const langSwitcher = document.getElementById('lang-switcher');
+const transparencyToggle = document.getElementById('transparency-toggle');
 
 function applyNavLabels() {
   viewNav.setAttribute('aria-label', t('nav.ariaLabel'));
   navToggle.setAttribute('aria-label', t('nav.toggleLabel'));
+  transparencyToggle.setAttribute('aria-label', t('nav.transparencyToggleLabel'));
 }
 
 function closeNav() {
@@ -101,6 +104,18 @@ function initNavToggle() {
   });
 }
 
+function renderTransparencyToggle() {
+  transparencyToggle.setAttribute('aria-pressed', String(isTransparencyEnabled()));
+}
+
+function initTransparencyToggle() {
+  renderTransparencyToggle();
+  transparencyToggle.addEventListener('click', () => {
+    setTransparencyEnabled(!isTransparencyEnabled());
+    renderTransparencyToggle();
+  });
+}
+
 function renderLangSwitcher() {
   langSwitcher.innerHTML = '';
   if (!SHOW_LANGUAGE_SWITCHER) {
@@ -149,9 +164,11 @@ async function dispatch(route) {
 }
 
 async function bootstrap() {
+  initTransparencyMode();
   await initI18n();
   renderLangSwitcher();
   initNavToggle();
+  initTransparencyToggle();
   updateChromeHeight();
   window.addEventListener('resize', updateChromeHeight);
 
