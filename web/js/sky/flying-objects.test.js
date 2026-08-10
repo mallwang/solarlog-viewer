@@ -20,11 +20,19 @@ test('bird next-spawn delay always falls within its ~10-25s band', () => {
   }
 });
 
-test('plane/balloon next-spawn delay always falls within its ~2-3 min band', () => {
+test('plane next-spawn delay always falls within its 45-60s band', () => {
   for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
-    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.rare, () => roll);
-    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.rare[0]);
-    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.rare[1]);
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.plane, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.plane[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.plane[1]);
+  }
+});
+
+test('balloon next-spawn delay always falls within its 25-35s band', () => {
+  for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const delay = randomDelayMs(SPAWN_DELAY_BANDS_MS.balloon, () => roll);
+    assert.ok(delay >= SPAWN_DELAY_BANDS_MS.balloon[0]);
+    assert.ok(delay <= SPAWN_DELAY_BANDS_MS.balloon[1]);
   }
 });
 
