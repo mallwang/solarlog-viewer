@@ -53,24 +53,27 @@ async function mockForecast(page, { aborted = false } = {}) {
   );
 }
 
-test.describe('Global desktop info panel — User Story 1 (production)', () => {
-  test('desktop viewport shows the panel populated with the current production reading', async ({
+test.describe('Global info panel — desktop placement (beneath the header icons)', () => {
+  test('the desktop variant is visible, right-aligned in the header, and populated', async ({
     page,
   }) => {
     await mockProduction(page, { pacW: 3100 });
     await mockForecast(page);
     await page.goto('/');
-    await expect(page.locator('#info-panel')).toBeVisible();
-    await expect(page.locator('#info-panel-production-value')).toHaveText('3100 W');
-    await expect(page.locator('#info-panel-production')).toHaveAttribute('data-available', 'true');
-  });
 
-  test('mobile viewport hides the panel entirely', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 812 });
-    await mockProduction(page);
-    await mockForecast(page);
-    await page.goto('/');
-    await expect(page.locator('#info-panel')).toBeHidden();
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    const mobile = page.locator('[data-info-panel="mobile"]');
+    await expect(desktop).toBeVisible();
+    await expect(mobile).toBeHidden();
+
+    // Lives inside app-header, not as a separate bar below the nav.
+    await expect(page.locator('.app-header [data-info-panel="desktop"]')).toHaveCount(1);
+
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('3100 W');
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
   });
 
   test('a production fetch failure shows an unavailable state without blocking weather', async ({
@@ -79,20 +82,31 @@ test.describe('Global desktop info panel — User Story 1 (production)', () => {
     await mockProduction(page, { aborted: true });
     await mockForecast(page);
     await page.goto('/');
-    await expect(page.locator('#info-panel-production')).toHaveAttribute('data-available', 'false');
-    await expect(page.locator('#info-panel-weather')).toHaveAttribute('data-available', 'true');
-  });
-});
 
-test.describe("Global desktop info panel — User Story 2 (weather + today's forecast)", () => {
-  test("desktop viewport shows current weather and today's forecast summary", async ({ page }) => {
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'data-available',
+      'false',
+    );
+    await expect(desktop.locator('[data-role="weather"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
+  });
+
+  test("shows current weather and today's forecast summary", async ({ page }) => {
     await mockProduction(page);
     await mockForecast(page);
     await page.goto('/');
-    await expect(page.locator('#info-panel-weather')).toHaveAttribute('data-available', 'true');
-    await expect(page.locator('#info-panel-weather-current')).toContainText('18°C');
-    await expect(page.locator('#info-panel-weather-forecast')).toContainText('22°C');
-    await expect(page.locator('#info-panel-weather-forecast')).toContainText('12°C');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="weather"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
+    await expect(desktop.locator('[data-role="weather-current"]')).toContainText('18°C');
+    await expect(desktop.locator('[data-role="weather-forecast"]')).toContainText('22°C');
+    await expect(desktop.locator('[data-role="weather-forecast"]')).toContainText('12°C');
   });
 
   test('a weather fetch failure shows an unavailable state without blocking production', async ({
@@ -101,13 +115,19 @@ test.describe("Global desktop info panel — User Story 2 (weather + today's for
     await mockProduction(page, { pacW: 500 });
     await mockForecast(page, { aborted: true });
     await page.goto('/');
-    await expect(page.locator('#info-panel-weather')).toHaveAttribute('data-available', 'false');
-    await expect(page.locator('#info-panel-production')).toHaveAttribute('data-available', 'true');
-    await expect(page.locator('#info-panel-production-value')).toHaveText('500 W');
-  });
-});
 
-test.describe('Global desktop info panel — User Story 3 (wetteronline.com link)', () => {
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="weather"]')).toHaveAttribute(
+      'data-available',
+      'false',
+    );
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('500 W');
+  });
+
   test('clicking the weather area opens the expected wetteronline.de search URL in a new tab', async ({
     page,
     context,
@@ -115,23 +135,29 @@ test.describe('Global desktop info panel — User Story 3 (wetteronline.com link
     await mockProduction(page);
     await mockForecast(page);
     await page.goto('/');
-    await expect(page.locator('#info-panel-weather')).toHaveAttribute('data-available', 'true');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="weather"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
 
     const [newPage] = await Promise.all([
       context.waitForEvent('page'),
-      page.locator('#info-panel-weather').click(),
+      desktop.locator('[data-role="weather"]').click(),
     ]);
     expect(newPage.url()).toContain('https://www.wetteronline.de/suche?q=');
     expect(decodeURIComponent(newPage.url())).toContain('92266 Ensdorf-Wolfsbach');
   });
-});
 
-test.describe('Global desktop info panel — User Story 4 (production animation)', () => {
   test('a near-zero reading renders the idle animation intensity', async ({ page }) => {
     await mockProduction(page, { pacW: 0 });
     await mockForecast(page);
     await page.goto('/');
-    await expect(page.locator('#info-panel-pulse')).toHaveAttribute('data-intensity', 'idle');
+    await expect(page.locator('[data-info-panel="desktop"] [data-role="pulse"]')).toHaveAttribute(
+      'data-intensity',
+      'idle',
+    );
   });
 
   test('a near-peak reading renders the peak animation intensity', async ({ page }) => {
@@ -140,6 +166,62 @@ test.describe('Global desktop info panel — User Story 4 (production animation)
     await mockProduction(page, { pacW: 5900 });
     await mockForecast(page);
     await page.goto('/');
-    await expect(page.locator('#info-panel-pulse')).toHaveAttribute('data-intensity', 'peak');
+    await expect(page.locator('[data-info-panel="desktop"] [data-role="pulse"]')).toHaveAttribute(
+      'data-intensity',
+      'peak',
+    );
+  });
+});
+
+test.describe('Global info panel — mobile placement (bar below the nav)', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test('the mobile variant is visible as a bar below the nav, desktop variant hidden', async ({
+    page,
+  }) => {
+    await mockProduction(page, { pacW: 2200 });
+    await mockForecast(page);
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    const mobile = page.locator('[data-info-panel="mobile"]');
+    await expect(mobile).toBeVisible();
+    await expect(desktop).toBeHidden();
+
+    // Lives right after .app-nav, not inside the header.
+    const navThenPanel = page.locator('.app-nav + [data-info-panel="mobile"]');
+    await expect(navThenPanel).toHaveCount(1);
+
+    await expect(mobile.locator('[data-role="production-value"]')).toHaveText('2200 W');
+  });
+
+  test('mobile weather click opens the wetteronline.de search URL in a new tab', async ({
+    page,
+    context,
+  }) => {
+    await mockProduction(page);
+    await mockForecast(page);
+    await page.goto('/');
+
+    const mobile = page.locator('[data-info-panel="mobile"]');
+    await expect(mobile.locator('[data-role="weather"]')).toHaveAttribute('data-available', 'true');
+
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      mobile.locator('[data-role="weather"]').click(),
+    ]);
+    expect(newPage.url()).toContain('https://www.wetteronline.de/suche?q=');
+  });
+
+  test('renders without horizontal scroll at 375px with the info bar present', async ({ page }) => {
+    await mockProduction(page);
+    await mockForecast(page);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
   });
 });

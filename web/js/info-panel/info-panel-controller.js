@@ -1,13 +1,17 @@
 /**
- * @file DOM-glue orchestrator for the global desktop info panel. Resolves the installation's
- * location, fetches current production (`data/min_cur.js`, same path `dashboard.js`'s widget
- * already uses) and current weather + today's forecast (Open-Meteo) on mount and every ~10
- * minutes (FR-004), renders both into `#info-panel`, drives the production-animation
- * `--intensity`/`data-intensity` tier, and wires the weather/forecast area's wetteronline.com
- * click-through (FR-007). Each data source's "unavailable" state (FR-008) is fully
- * independent — a production or weather/location failure never blocks or resets the other.
- * Visibility below the `md:` breakpoint is CSS-only (index.html's `hidden md:flex`), so this
- * module never needs to know the viewport width. Not unit-tested directly — covered by
+ * @file DOM-glue orchestrator for the global info panel. Resolves the installation's location,
+ * fetches current production (`data/min_cur.js`, same path `dashboard.js`'s widget already
+ * uses) and current weather + today's forecast (Open-Meteo) on mount and every ~10 minutes
+ * (FR-004), renders both, drives the production-animation `--intensity`/`data-intensity` tier,
+ * and wires the weather/forecast area's wetteronline.com click-through (FR-007). Each data
+ * source's "unavailable" state (FR-008) is fully independent — a production or weather/location
+ * failure never blocks or resets the other.
+ *
+ * The panel exists twice in the DOM (see index.html): `.info-panel--desktop` tucked under the
+ * header's icon row (visible from `md:` up), and `.info-panel--mobile` as a full-width bar
+ * below the nav (visible below `md:`) — CSS alone decides which one is actually shown per
+ * viewport width, so this module treats them identically and just updates every element
+ * matching a given `[data-role]` in both at once. Not unit-tested directly — covered by
  * tests/e2e/info-panel.spec.js, mirroring the sky feature's controller/pure-logic split.
  */
 
@@ -45,74 +49,98 @@ async function fetchCurrentProduction() {
 }
 
 /**
- * Renders the production side of the panel, including the animation intensity tier. Keeps
- * whatever was last rendered when the fetch reports unavailable, except for flipping the
+ * @param {{ totalPacW: number, available: true } | { available: false }} production
+ * @returns {string} Display text for the production value, per the "0 W is real, idle" and
+ *   "unavailable" states.
+ */
+function productionValueText(production) {
+  if (!production.available) return t('infoPanel.unavailable');
+  return production.totalPacW === 0 ? t('widget.notProducing') : `${production.totalPacW} W`;
+}
+
+/**
+ * Renders the production side of every panel variant, including the animation intensity tier.
+ * Keeps whatever was last rendered when the fetch reports unavailable, except for flipping the
  * `data-available` flag and the pulse to idle — a genuinely missing reading should not keep
  * animating at a stale intensity.
- * @param {{ pulseEl: HTMLElement, valueEl: HTMLElement, wrapperEl: HTMLElement }} elements
+ * @param {{ pulseEls: NodeListOf<HTMLElement>, valueEls: NodeListOf<HTMLElement>,
+ *   wrapperEls: NodeListOf<HTMLElement> }} elements
  * @param {{ totalPacW: number, available: true } | { available: false }} production
  * @param {number} capacityKwp
  */
-function renderProduction({ pulseEl, valueEl, wrapperEl }, production, capacityKwp) {
-  if (!production.available) {
-    wrapperEl.dataset.available = 'false';
-    valueEl.textContent = t('infoPanel.unavailable');
-    pulseEl.dataset.intensity = 'idle';
-    return;
-  }
-  wrapperEl.dataset.available = 'true';
-  valueEl.textContent =
-    production.totalPacW === 0 ? t('widget.notProducing') : `${production.totalPacW} W`;
-  pulseEl.dataset.intensity = productionIntensity(production.totalPacW, capacityKwp);
+function renderProduction({ pulseEls, valueEls, wrapperEls }, production, capacityKwp) {
+  const intensity = production.available
+    ? productionIntensity(production.totalPacW, capacityKwp)
+    : 'idle';
+  const valueText = productionValueText(production);
+
+  wrapperEls.forEach((el) => {
+    el.dataset.available = String(production.available);
+  });
+  valueEls.forEach((el) => {
+    el.textContent = valueText;
+  });
+  pulseEls.forEach((el) => {
+    el.dataset.intensity = intensity;
+  });
 }
 
 /**
- * Renders the weather/forecast side of the panel.
- * @param {{ linkEl: HTMLAnchorElement, currentEl: HTMLElement, forecastEl: HTMLElement }} elements
+ * Renders the weather/forecast side of every panel variant.
+ * @param {{ linkEls: NodeListOf<HTMLAnchorElement>, currentEls: NodeListOf<HTMLElement>,
+ *   forecastEls: NodeListOf<HTMLElement> }} elements
  * @param {Awaited<ReturnType<typeof fetchWeatherAndForecast>> | { available: false }} weather
  */
-function renderWeather({ linkEl, currentEl, forecastEl }, weather) {
-  linkEl.hidden = false;
-  if (!weather?.available) {
-    linkEl.dataset.available = 'false';
-    currentEl.textContent = t('infoPanel.unavailable');
-    forecastEl.textContent = '';
-    return;
-  }
-  linkEl.dataset.available = 'true';
-  currentEl.textContent = `${t(weatherCodeToLabelKey(weather.weatherCode))} · ${Math.round(weather.temperatureC)}°C`;
-  forecastEl.textContent =
-    `${t('infoPanel.todayLabel')}: ${t(weatherCodeToLabelKey(weather.todayWeatherCode))} · ` +
-    `${Math.round(weather.todayMaxC)}°C / ${Math.round(weather.todayMinC)}°C`;
+function renderWeather({ linkEls, currentEls, forecastEls }, weather) {
+  const available = Boolean(weather?.available);
+  const currentText = available
+    ? `${t(weatherCodeToLabelKey(weather.weatherCode))} · ${Math.round(weather.temperatureC)}°C`
+    : t('infoPanel.unavailable');
+  const forecastText = available
+    ? `${t('infoPanel.todayLabel')}: ${t(weatherCodeToLabelKey(weather.todayWeatherCode))} · ` +
+      `${Math.round(weather.todayMaxC)}°C / ${Math.round(weather.todayMinC)}°C`
+    : '';
+
+  linkEls.forEach((el) => {
+    el.hidden = false;
+    el.dataset.available = String(available);
+  });
+  currentEls.forEach((el) => {
+    el.textContent = currentText;
+  });
+  forecastEls.forEach((el) => {
+    el.textContent = forecastText;
+  });
 }
 
 /**
- * Mounts the global desktop info panel: fetches production + weather/forecast immediately,
- * then every `POLL_INTERVAL_MS`. Call once, after `bootstrap()`'s initial render, per
- * plan.md's dynamic-import wiring in `main.js`.
+ * Mounts the global info panel: fetches production + weather/forecast immediately, then every
+ * `POLL_INTERVAL_MS`. Call once, after `bootstrap()`'s initial render, per plan.md's
+ * dynamic-import wiring in `main.js`.
  * @param {{ plant: { location?: string, capacityKwp?: number } | null,
  *   locationOverride?: { lat: number, lon: number } | null }} ctx
  * @returns {() => void} Cleanup function that stops the poll interval.
  */
 export async function initInfoPanelController({ plant, locationOverride } = {}) {
-  const panel = document.getElementById('info-panel');
-  if (!panel) return () => {};
+  if (document.querySelectorAll('[data-info-panel]').length === 0) return () => {};
 
   const elements = {
-    pulseEl: document.getElementById('info-panel-pulse'),
-    valueEl: document.getElementById('info-panel-production-value'),
-    wrapperEl: document.getElementById('info-panel-production'),
-    linkEl: document.getElementById('info-panel-weather'),
-    currentEl: document.getElementById('info-panel-weather-current'),
-    forecastEl: document.getElementById('info-panel-weather-forecast'),
+    pulseEls: document.querySelectorAll('[data-role="pulse"]'),
+    valueEls: document.querySelectorAll('[data-role="production-value"]'),
+    wrapperEls: document.querySelectorAll('[data-role="production"]'),
+    linkEls: document.querySelectorAll('[data-role="weather"]'),
+    currentEls: document.querySelectorAll('[data-role="weather-current"]'),
+    forecastEls: document.querySelectorAll('[data-role="weather-forecast"]'),
   };
 
   const wetteronlineUrl = buildWetteronlineSearchUrl(plant?.location);
-  if (wetteronlineUrl) {
-    elements.linkEl.href = wetteronlineUrl;
-  } else {
-    elements.linkEl.removeAttribute('href');
-  }
+  elements.linkEls.forEach((el) => {
+    if (wetteronlineUrl) {
+      el.href = wetteronlineUrl;
+    } else {
+      el.removeAttribute('href');
+    }
+  });
 
   const capacityKwp = plant?.capacityKwp ?? 0;
 

@@ -253,9 +253,12 @@ a {
 
 .app-header {
   /* Opaque so the fixed cloud layer behind it (`.sky-clouds`, offset to start below the nav)
-     never shows through the header. */
+     never shows through the header. `flex-wrap` lets `.info-panel--desktop` (a
+     `flex-basis: 100%` item, see below) drop onto its own row beneath the brand/icons row
+     instead of squeezing into the same line. */
   background: var(--color-bg);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
@@ -305,20 +308,34 @@ a {
   height: 28px;
 }
 
-/* Global desktop info panel (010-global-info-panel): production + weather/forecast, always
-   part of `app-header` so it persists across in-app route changes (FR-011). Visibility below
-   the `md:` breakpoint is handled by the `hidden md:flex` Tailwind utilities on the element
-   itself (see index.html) — this file only owns layout/appearance once visible. Opaque
-   background for the same reason as `.app-header` above: the fixed cloud backdrop must never
-   show through it. */
+/* Global desktop info panel (010-global-info-panel): production + weather/forecast. Two
+   variants of the same markup exist (see index.html) — `.info-panel--desktop` inside
+   `app-header`, `.info-panel--mobile` as a full-width bar right after `.app-nav` — and
+   `info-panel-controller.js` updates every matching `[data-role]` element in both at once, so
+   only one is ever visible per viewport width (Tailwind's `hidden md:flex` / `flex md:hidden`
+   utilities on each root element in index.html). This rule holds the styles shared by both. */
 .info-panel {
   align-items: center;
   gap: var(--space-md);
+  font-size: var(--font-size-sm);
+}
+
+/* Desktop variant: wraps onto its own row beneath the icon buttons (`.app-header` is
+   `flex-wrap`, `flex-basis: 100%` forces this item onto a new line) while staying
+   right-aligned rather than stretching full-width, so it reads as tucked under the
+   transparency toggle rather than as a separate bar. */
+.info-panel--desktop {
+  flex-basis: 100%;
+  justify-content: flex-end;
+  padding-top: var(--space-xs);
+}
+
+/* Mobile variant: a full-width bar directly below `.app-nav`, opaque for the same reason as
+   `.app-header` above — the fixed cloud backdrop must never show through it. */
+.info-panel--mobile {
   padding: var(--space-xs) var(--space-md);
   background: var(--color-bg-elevated);
-  border-top: 1px solid var(--color-border);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  font-size: var(--font-size-sm);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .info-panel__production {

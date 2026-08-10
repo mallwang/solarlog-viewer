@@ -28,8 +28,8 @@ Single existing project, `web/` tree (see plan.md's Project Structure) — no ne
 
 **Purpose**: Prepare the new module directory and shared i18n scaffolding used by every story.
 
-- [X] T001 Create `web/js/info-panel/` directory (no file yet — placeholder for Phase 2/3 modules)
-- [X] T002 [P] Add empty `info-panel` string sections to `web/i18n/en.json` and `web/i18n/de.json` (keys to be filled in per-story tasks below)
+- [x] T001 Create `web/js/info-panel/` directory (no file yet — placeholder for Phase 2/3 modules)
+- [x] T002 [P] Add empty `info-panel` string sections to `web/i18n/en.json` and `web/i18n/de.json` (keys to be filled in per-story tasks below)
 
 **Checkpoint**: Directory and i18n scaffolding exist; no behavior yet.
 
@@ -41,10 +41,10 @@ Single existing project, `web/` tree (see plan.md's Project Structure) — no ne
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [X] T003 Add `<div id="info-panel" class="info-panel" hidden>` markup (with `data-*` placeholder slots for production, weather, and today's-forecast sections) inside `app-header` in `web/index.html`, gated by the existing `md:` breakpoint per research.md §5 (e.g. `hidden md:flex` equivalent class)
-- [X] T004 [P] Add `.info-panel` layout rules (flex layout inside `app-header`, `md:`-only visibility, no overlap/displacement of nav or `app-main` per SC-004) to `web/css/app.css`
-- [X] T005 [P] Add production-animation `@keyframes` and `--intensity` tier custom-property scaffolding (idle/low/medium/high/peak, per research.md §4) to `web/css/app.css` — no JS wiring yet, just the CSS tiers
-- [X] T006 Wire a dynamic `import('./info-panel/info-panel-controller.js')` call after `bootstrap()`'s existing sky-controller import in `web/js/main.js`, mirroring the sky-controller lazy-init pattern (no controller module exists yet — this call is added now so T014 only has to fill in the module)
+- [x] T003 Add `<div id="info-panel" class="info-panel" hidden>` markup (with `data-*` placeholder slots for production, weather, and today's-forecast sections) inside `app-header` in `web/index.html`, gated by the existing `md:` breakpoint per research.md §5 (e.g. `hidden md:flex` equivalent class)
+- [x] T004 [P] Add `.info-panel` layout rules (flex layout inside `app-header`, `md:`-only visibility, no overlap/displacement of nav or `app-main` per SC-004) to `web/css/app.css`
+- [x] T005 [P] Add production-animation `@keyframes` and `--intensity` tier custom-property scaffolding (idle/low/medium/high/peak, per research.md §4) to `web/css/app.css` — no JS wiring yet, just the CSS tiers
+- [x] T006 Wire a dynamic `import('./info-panel/info-panel-controller.js')` call after `bootstrap()`'s existing sky-controller import in `web/js/main.js`, mirroring the sky-controller lazy-init pattern (no controller module exists yet — this call is added now so T014 only has to fill in the module)
 
 **Checkpoint**: Header has a hidden/desktop-gated panel shell and CSS tiers exist; `main.js` is ready to hand off to a controller module. Foundation ready — user story implementation can now begin.
 
@@ -58,15 +58,15 @@ Single existing project, `web/` tree (see plan.md's Project Structure) — no ne
 
 ### Tests for User Story 1
 
-- [X] T007 [P] [US1] Unit tests for `productionIntensity()` boundary/tiering behavior in `web/js/info-panel/production-animation.test.js` (0 W → idle; each tier threshold; ≥~90% capacity → peak; above-nameplate clamps rather than overflows) — write first, confirm failing
-- [X] T008 [P] [US1] Playwright scenarios for desktop-visible + populated panel, mobile-absent panel, and production "unavailable" state (mocked `data/min_cur.js` route failure) in `tests/e2e/info-panel.spec.js` — write first, confirm failing
+- [x] T007 [P] [US1] Unit tests for `productionIntensity()` boundary/tiering behavior in `web/js/info-panel/production-animation.test.js` (0 W → idle; each tier threshold; ≥~90% capacity → peak; above-nameplate clamps rather than overflows) — write first, confirm failing
+- [x] T008 [P] [US1] Playwright scenarios for desktop-visible + populated panel, mobile-absent panel, and production "unavailable" state (mocked `data/min_cur.js` route failure) in `tests/e2e/info-panel.spec.js` — write first, confirm failing
 
 ### Implementation for User Story 1
 
-- [X] T009 [P] [US1] Implement `productionIntensity(currentPacW, capacityKwp)` pure function in `web/js/info-panel/production-animation.js` (clamp ratio to `[0, 1]`, map to discrete tier per research.md §4), with file-level and function JSDoc — makes T007 pass
-- [X] T010 [US1] Implement `web/js/info-panel/info-panel-controller.js`: on mount, fetch `data/min_cur.js` via existing `fetchText` + `parseMinFile` (same path as `dashboard.js`), sum `perInverter[*].pacW` into `totalPacW`, render into the `#info-panel` production slot, apply the `--intensity` custom property from `productionIntensity()`, set an "unavailable" state on fetch/parse failure without touching other panel sections, and start a `10 * 60 * 1000` ms `setInterval` re-fetch (FR-004) — keeps last good value on a tick with no newer reading (per spec's Edge Cases)
-- [X] T011 [US1] Add `info-panel.production.*` / `info-panel.unavailable` display strings to `web/i18n/en.json` and `web/i18n/de.json`, and consume them from `info-panel-controller.js`
-- [X] T012 [US1] Verify T008's Playwright scenarios pass against the new controller; run `node --test web/js/info-panel/production-animation.test.js` and confirm T007 passes
+- [x] T009 [P] [US1] Implement `productionIntensity(currentPacW, capacityKwp)` pure function in `web/js/info-panel/production-animation.js` (clamp ratio to `[0, 1]`, map to discrete tier per research.md §4), with file-level and function JSDoc — makes T007 pass
+- [x] T010 [US1] Implement `web/js/info-panel/info-panel-controller.js`: on mount, fetch `data/min_cur.js` via existing `fetchText` + `parseMinFile` (same path as `dashboard.js`), sum `perInverter[*].pacW` into `totalPacW`, render into the `#info-panel` production slot, apply the `--intensity` custom property from `productionIntensity()`, set an "unavailable" state on fetch/parse failure without touching other panel sections, and start a `10 * 60 * 1000` ms `setInterval` re-fetch (FR-004) — keeps last good value on a tick with no newer reading (per spec's Edge Cases)
+- [x] T011 [US1] Add `info-panel.production.*` / `info-panel.unavailable` display strings to `web/i18n/en.json` and `web/i18n/de.json`, and consume them from `info-panel-controller.js`
+- [x] T012 [US1] Verify T008's Playwright scenarios pass against the new controller; run `node --test web/js/info-panel/production-animation.test.js` and confirm T007 passes
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — panel shows live production on desktop, hidden on mobile, degrades to "unavailable" cleanly.
 
@@ -80,16 +80,16 @@ Single existing project, `web/` tree (see plan.md's Project Structure) — no ne
 
 ### Tests for User Story 2
 
-- [X] T013 [P] [US2] Unit tests for the weather/forecast fetch+parse function in `web/js/info-panel/weather-forecast-client.test.js` (mocked `fetch`: successful response → `{ weatherCode, temperatureC, todayWeatherCode, todayMaxC, todayMinC, available: true }`; network failure/non-2xx/malformed response → `available: false`; no real network calls) — write first, confirm failing
-- [X] T014 [P] [US2] Extend `tests/e2e/info-panel.spec.js` with desktop weather/forecast population from a mocked Open-Meteo response, and a weather-side "unavailable" scenario (mocked failure) that leaves the production side unaffected — write first, confirm failing
+- [x] T013 [P] [US2] Unit tests for the weather/forecast fetch+parse function in `web/js/info-panel/weather-forecast-client.test.js` (mocked `fetch`: successful response → `{ weatherCode, temperatureC, todayWeatherCode, todayMaxC, todayMinC, available: true }`; network failure/non-2xx/malformed response → `available: false`; no real network calls) — write first, confirm failing
+- [x] T014 [P] [US2] Extend `tests/e2e/info-panel.spec.js` with desktop weather/forecast population from a mocked Open-Meteo response, and a weather-side "unavailable" scenario (mocked failure) that leaves the production side unaffected — write first, confirm failing
 
 ### Implementation for User Story 2
 
-- [X] T015 [US2] Implement the Open-Meteo fetch+parse function in `web/js/info-panel/weather-forecast-client.js` per research.md §1's request shape (`current=weather_code,temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=auto`), returning the shape from data-model.md's "Current Weather Condition"/"Today's Forecast Summary", never throwing (mirrors `sky/weather-client.js`'s convention) — makes T013 pass
-- [X] T016 [P] [US2] Add a WMO `weather_code` → short i18n label key mapping table alongside `weather-forecast-client.js` (or as a small exported map within it), covering at minimum clear/cloudy/rain/snow/storm groupings
-- [X] T017 [US2] In `web/js/info-panel/info-panel-controller.js`, resolve the installation location via `resolveInstallationLocation()` (reused from `web/js/sky/location.js`), call the new weather-forecast client on mount and every ~10 minutes (same cadence as production, per research.md §6), render current condition + today's min/max/condition into the panel's weather slot, and set the weather-area's own independent "unavailable" state on failure or unresolved location — must not affect the production slot's rendering
-- [X] T018 [US2] Add `info-panel.weather.*` / `info-panel.forecast.*` display strings (condition labels, today's forecast summary phrasing) to `web/i18n/en.json` and `web/i18n/de.json`, and consume them from the controller
-- [X] T019 [US2] Verify T014's new Playwright scenarios pass; run `node --test web/js/info-panel/weather-forecast-client.test.js` and confirm T013 passes
+- [x] T015 [US2] Implement the Open-Meteo fetch+parse function in `web/js/info-panel/weather-forecast-client.js` per research.md §1's request shape (`current=weather_code,temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=auto`), returning the shape from data-model.md's "Current Weather Condition"/"Today's Forecast Summary", never throwing (mirrors `sky/weather-client.js`'s convention) — makes T013 pass
+- [x] T016 [P] [US2] Add a WMO `weather_code` → short i18n label key mapping table alongside `weather-forecast-client.js` (or as a small exported map within it), covering at minimum clear/cloudy/rain/snow/storm groupings
+- [x] T017 [US2] In `web/js/info-panel/info-panel-controller.js`, resolve the installation location via `resolveInstallationLocation()` (reused from `web/js/sky/location.js`), call the new weather-forecast client on mount and every ~10 minutes (same cadence as production, per research.md §6), render current condition + today's min/max/condition into the panel's weather slot, and set the weather-area's own independent "unavailable" state on failure or unresolved location — must not affect the production slot's rendering
+- [x] T018 [US2] Add `info-panel.weather.*` / `info-panel.forecast.*` display strings (condition labels, today's forecast summary phrasing) to `web/i18n/en.json` and `web/i18n/de.json`, and consume them from the controller
+- [x] T019 [US2] Verify T014's new Playwright scenarios pass; run `node --test web/js/info-panel/weather-forecast-client.test.js` and confirm T013 passes
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — production and weather/forecast render side by side, each with its own failure isolation.
 
@@ -103,14 +103,14 @@ Single existing project, `web/` tree (see plan.md's Project Structure) — no ne
 
 ### Tests for User Story 3
 
-- [X] T020 [P] [US3] Unit tests for the URL builder in `web/js/info-panel/wetteronline-link.test.js` (address correctly `encodeURIComponent`-ed into `https://www.wetteronline.de/suche?q=...`; empty/missing address → `null`) — write first, confirm failing
-- [X] T021 [P] [US3] Extend `tests/e2e/info-panel.spec.js` with a scenario asserting a click on the weather/forecast area opens a new tab/page to the expected wetteronline.de search URL (`page.context().waitForEvent('page')` or `target="_blank"` assertion) — write first, confirm failing
+- [x] T020 [P] [US3] Unit tests for the URL builder in `web/js/info-panel/wetteronline-link.test.js` (address correctly `encodeURIComponent`-ed into `https://www.wetteronline.de/suche?q=...`; empty/missing address → `null`) — write first, confirm failing
+- [x] T021 [P] [US3] Extend `tests/e2e/info-panel.spec.js` with a scenario asserting a click on the weather/forecast area opens a new tab/page to the expected wetteronline.de search URL (`page.context().waitForEvent('page')` or `target="_blank"` assertion) — write first, confirm failing
 
 ### Implementation for User Story 3
 
-- [X] T022 [US3] Implement `buildWetteronlineSearchUrl(address)` pure function in `web/js/info-panel/wetteronline-link.js` per research.md §3 — makes T020 pass
-- [X] T023 [US3] In `web/index.html`, wrap the panel's weather/forecast slot in an `<a target="_blank" rel="noopener">` (or add an equivalent click handler in the controller) whose `href`/target is set from `buildWetteronlineSearchUrl(plant.location)`; when the builder returns `null`, leave the area non-clickable rather than a broken link
-- [X] T024 [US3] Verify T021's Playwright scenario passes; run `node --test web/js/info-panel/wetteronline-link.test.js` and confirm T020 passes
+- [x] T022 [US3] Implement `buildWetteronlineSearchUrl(address)` pure function in `web/js/info-panel/wetteronline-link.js` per research.md §3 — makes T020 pass
+- [x] T023 [US3] In `web/index.html`, wrap the panel's weather/forecast slot in an `<a target="_blank" rel="noopener">` (or add an equivalent click handler in the controller) whose `href`/target is set from `buildWetteronlineSearchUrl(plant.location)`; when the builder returns `null`, leave the area non-clickable rather than a broken link
+- [x] T024 [US3] Verify T021's Playwright scenario passes; run `node --test web/js/info-panel/wetteronline-link.test.js` and confirm T020 passes
 
 **Checkpoint**: All P1/P2 user stories (US1, US2, US3) are independently functional — production, weather/forecast, and the wetteronline.com link all work together and in isolation.
 
@@ -124,14 +124,14 @@ Single existing project, `web/` tree (see plan.md's Project Structure) — no ne
 
 ### Tests for User Story 4
 
-- [X] T025 [P] [US4] Extend `tests/e2e/info-panel.spec.js` (or add a dedicated visual-state assertion) verifying the panel's animation element carries the expected `data-intensity`/`--intensity` value for a mocked idle-tier production reading and a mocked peak-tier reading — write first, confirm failing
+- [x] T025 [P] [US4] Extend `tests/e2e/info-panel.spec.js` (or add a dedicated visual-state assertion) verifying the panel's animation element carries the expected `data-intensity`/`--intensity` value for a mocked idle-tier production reading and a mocked peak-tier reading — write first, confirm failing
 
 ### Implementation for User Story 4
 
-- [X] T026 [US4] Add the animation markup (e.g. an `.info-panel__pulse` element) next to the production value in `web/index.html`'s `#info-panel` panel shell, driven purely by the `--intensity` custom property already scaffolded in T005
-- [X] T027 [US4] Add a CSS transition on the `--intensity`-driven animation properties (duration/scale/opacity) in `web/css/app.css` so tier changes between polls animate smoothly rather than snapping (FR-010)
-- [X] T028 [US4] Confirm `info-panel-controller.js` (from T010) sets `--intensity` from `productionIntensity()` on every poll tick, including on the "unavailable" transition (falls back to idle tier rather than leaving a stale peak animation running)
-- [X] T029 [US4] Verify T025's Playwright scenario passes
+- [x] T026 [US4] Add the animation markup (e.g. an `.info-panel__pulse` element) next to the production value in `web/index.html`'s `#info-panel` panel shell, driven purely by the `--intensity` custom property already scaffolded in T005
+- [x] T027 [US4] Add a CSS transition on the `--intensity`-driven animation properties (duration/scale/opacity) in `web/css/app.css` so tier changes between polls animate smoothly rather than snapping (FR-010)
+- [x] T028 [US4] Confirm `info-panel-controller.js` (from T010) sets `--intensity` from `productionIntensity()` on every poll tick, including on the "unavailable" transition (falls back to idle tier rather than leaving a stale peak animation running)
+- [x] T029 [US4] Verify T025's Playwright scenario passes
 
 **Checkpoint**: All four user stories are independently functional — full feature scope complete.
 
@@ -141,12 +141,12 @@ Single existing project, `web/` tree (see plan.md's Project Structure) — no ne
 
 **Purpose**: Documentation, linting, and final full-suite validation across all stories.
 
-- [X] T030 [P] Update `README.md` and `README.de.md` to describe the new global desktop info panel (production, weather/forecast, wetteronline.com link, animation, desktop-only visibility)
-- [X] T031 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md` with the same description, screenshots/description of the panel's location and behavior
-- [X] T032 Run `npx eslint web/js/info-panel/*.js web/js/info-panel/*.test.js` and fix all errors; resolve any SonarLint warnings surfaced in the IDE
-- [X] T033 Run `npm run format:check` (and `format` if needed) across all modified/new files
-- [X] T034 Run the full unit suite (`node --test "web/js/info-panel/*.test.js"`) and the full e2e suite (`npx playwright test tests/e2e/info-panel.spec.js --reporter=line`) together and confirm all pass
-- [X] T035 Execute every manual smoke-test section in [quickstart.md](./quickstart.md) end-to-end against `npm start` and confirm each expected result
+- [x] T030 [P] Update `README.md` and `README.de.md` to describe the new global desktop info panel (production, weather/forecast, wetteronline.com link, animation, desktop-only visibility)
+- [x] T031 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md` with the same description, screenshots/description of the panel's location and behavior
+- [x] T032 Run `npx eslint web/js/info-panel/*.js web/js/info-panel/*.test.js` and fix all errors; resolve any SonarLint warnings surfaced in the IDE
+- [x] T033 Run `npm run format:check` (and `format` if needed) across all modified/new files
+- [x] T034 Run the full unit suite (`node --test "web/js/info-panel/*.test.js"`) and the full e2e suite (`npx playwright test tests/e2e/info-panel.spec.js --reporter=line`) together and confirm all pass
+- [x] T035 Execute every manual smoke-test section in [quickstart.md](./quickstart.md) end-to-end against `npm start` and confirm each expected result
 
 ---
 

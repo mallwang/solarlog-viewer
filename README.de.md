@@ -1,5 +1,7 @@
 # SolarLog Viewer
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mallwang/solarlog-viewer)
+
 Statischer Viewer für SolarLog-Datenexporte (HTML/JS/CSS). `web/` ist das einzige Verzeichnis, das
 per FTP auf die Synology DiskStation übertragen wird — `web/index.html` ist ein Single-Page-
 Dashboard (vanilla ES-Module, Tailwind CSS als statische Build-Datei, ApexCharts) mit aktueller

@@ -70,36 +70,63 @@
           ☰
         </button>
       </div>
+      <!-- Global desktop info panel (010-global-info-panel), desktop variant: wraps onto its
+           own row beneath the icon buttons above (`.app-header` is `flex-wrap`, this item is
+           `flex-basis: 100%` — see app.css), staying right-aligned rather than full-width.
+           Hidden below `md:` in favor of `.info-panel--mobile` further down. Populated by
+           info-panel-controller.js, which updates every `[data-role]` element matching both
+           variants together (see data-model.md's "Info Panel View State"). -->
+      <div class="info-panel info-panel--desktop hidden md:flex" data-info-panel="desktop">
+        <div class="info-panel__production" data-role="production" data-available="false">
+          <span
+            class="info-panel__pulse"
+            data-role="pulse"
+            data-intensity="idle"
+            aria-hidden="true"
+          ></span>
+          <span class="info-panel__value" data-role="production-value">—</span>
+        </div>
+        <a
+          class="info-panel__weather"
+          data-role="weather"
+          data-available="false"
+          rel="noopener"
+          target="_blank"
+          hidden
+        >
+          <span class="info-panel__weather-current" data-role="weather-current">—</span>
+          <span class="info-panel__weather-forecast" data-role="weather-forecast">—</span>
+        </a>
+      </div>
     </header>
-    <!-- Global desktop info panel (010-global-info-panel): production + weather/forecast,
-         populated and shown/hidden by info-panel-controller.js. Hidden by default and only
-         ever unhidden on desktop widths (`md:flex`, the same breakpoint gating .app-nav's
-         mobile/desktop split) — see app.css's `.info-panel` rules. -->
-    <div class="info-panel hidden md:flex" id="info-panel">
-      <div class="info-panel__production" id="info-panel-production" data-available="false">
+    <nav class="app-nav" id="app-nav">
+      <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
+    </nav>
+    <!-- Global desktop info panel, mobile variant: a full-width bar directly below the nav
+         bar, at the user's explicit request — mobile now shows the same panel content instead
+         of hiding it entirely. Hidden from `md:` up in favor of `.info-panel--desktop` above. -->
+    <div class="info-panel info-panel--mobile flex md:hidden" data-info-panel="mobile">
+      <div class="info-panel__production" data-role="production" data-available="false">
         <span
           class="info-panel__pulse"
-          id="info-panel-pulse"
+          data-role="pulse"
           data-intensity="idle"
           aria-hidden="true"
         ></span>
-        <span class="info-panel__value" id="info-panel-production-value">—</span>
+        <span class="info-panel__value" data-role="production-value">—</span>
       </div>
       <a
         class="info-panel__weather"
-        id="info-panel-weather"
+        data-role="weather"
         data-available="false"
         rel="noopener"
         target="_blank"
         hidden
       >
-        <span class="info-panel__weather-current" id="info-panel-weather-current">—</span>
-        <span class="info-panel__weather-forecast" id="info-panel-weather-forecast">—</span>
+        <span class="info-panel__weather-current" data-role="weather-current">—</span>
+        <span class="info-panel__weather-forecast" data-role="weather-forecast">—</span>
       </a>
     </div>
-    <nav class="app-nav" id="app-nav">
-      <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
-    </nav>
     <main class="app-main" id="app-main"></main>
     <script type="module" src="js/main.js"></script>
   </body>
