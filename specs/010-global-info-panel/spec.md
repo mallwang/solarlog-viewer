@@ -95,6 +95,7 @@ A visitor watching the info panel sees a visual animation next to the current pr
 - How does the panel behave while a page navigation (e.g. switching from day to month view) occurs? → The panel persists across in-app navigation rather than disappearing and re-appearing, since it is a global element.
 - What happens if the visitor resizes the browser window from desktop to mobile width while the panel is visible? → The panel hides once the viewport crosses into the mobile breakpoint, consistent with it being a desktop-only element.
 - What happens when the plant has multiple inverters/strings? → The current produced energy value represents the plant's total current output, not a single inverter.
+- What happens if the panel polls before the SolarLog device has written its next update (device updates only every 10 minutes)? → The panel keeps showing the last retrieved value rather than flickering to "no data"; a value is only replaced once a genuinely newer reading is available.
 
 ## Requirements *(mandatory)*
 
@@ -103,7 +104,7 @@ A visitor watching the info panel sees a visual animation next to the current pr
 - **FR-001**: System MUST display a persistent information panel on desktop-width screens, visible across all dashboard views (day/month/year/overview).
 - **FR-002**: System MUST hide the info panel on mobile-width screens.
 - **FR-003**: The info panel MUST show the plant's current total produced energy (power output), using the most recent available reading.
-- **FR-004**: System MUST refresh the displayed production value periodically without requiring a full page reload, at a cadence consistent with how other live data on the dashboard already refreshes.
+- **FR-004**: System MUST refresh the displayed production value periodically without requiring a full page reload, polling no more often than every 10 minutes — the SolarLog device's own data-file update interval (its minimum configurable interval), so more frequent polling would not surface newer data.
 - **FR-005**: The info panel MUST show the current weather condition for the installation's configured location.
 - **FR-006**: The info panel MUST show a forecast summary for the remainder of the current day for the installation's configured location.
 - **FR-007**: The weather/forecast area of the panel MUST be clickable and open, in a new browser tab, the corresponding forecast page on wetteronline.com for the installation's configured location.
@@ -138,4 +139,4 @@ A visitor watching the info panel sees a visual animation next to the current pr
 - The wetteronline.com link opens in a new tab so visitors do not lose their place on the dashboard.
 - "Typical peak output" for scaling the animation is derived from the installation's known/configured plant capacity, consistent with how peak output is referenced elsewhere in the dashboard (e.g. existing charts), rather than a newly invented threshold.
 - The forecast summary is a lightweight, glanceable summary (not a full multi-day or hourly breakdown) — visitors wanting more detail are expected to use the wetteronline.com link.
-- Refresh cadence for the production value follows the same polling/refresh interval already used by other live data on the dashboard, rather than introducing a new interval.
+- Refresh cadence for the production value is tied to the SolarLog device's own update behavior: the device writes fresh data to the data folder every 10 minutes (the shortest interval the device supports), so the panel polls on a matching ~10-minute cadence rather than a shorter interval that would only re-read the same unchanged file.
