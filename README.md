@@ -30,7 +30,8 @@ geocoding cached in `localStorage` if unset), then used to poll the free, keyles
   tier (clear/partly/overcast).
 - **Sun/moon position** — a sun or moon tracks a simplified day/night arc between sunrise and
   sunset, crossfading smoothly at the boundary and staying dimly visible through dense cloud.
-- **Flying objects** — birds cross the sky at a light, regular cadence; planes, balloons, and a
+- **Flying objects** — birds, butterflies, dragonflies, and goose V-formations cross the sky
+  using animated SVG sprite sheets (realistic silhouettes, not emoji); planes, balloons, and a
   moon-bound rocket easter egg appear rarely.
 
 Any failure (no location, no network, a failed request) falls back silently to the original
