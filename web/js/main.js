@@ -2,7 +2,7 @@ import { fetchText } from './data/fetch-text.js';
 import { parseBaseVars } from './data/plant.js';
 import { onRouteChange, formatRoute } from './router.js';
 import { initI18n, getLanguage, t } from './i18n.js';
-import { SHOW_LANGUAGE_SWITCHER } from './config.js';
+import { SHOW_LANGUAGE_SWITCHER, SKY_LOCATION_OVERRIDE } from './config.js';
 
 function todayParams() {
   const now = new Date();
@@ -161,6 +161,13 @@ async function bootstrap() {
     document.getElementById('app-title').textContent = plant.title || 'SolarLog Viewer';
     updateChromeHeight();
   }
+
+  // Dynamically imported so the sky background never delays first render of the actual
+  // PV-data dashboard; failures inside it are self-contained (FR-005) and don't affect
+  // navigation/dispatch below.
+  import('./sky/sky-controller.js').then(({ initSkyController }) =>
+    initSkyController({ plant, locationOverride: SKY_LOCATION_OVERRIDE }),
+  );
 
   onRouteChange((route) => {
     dispatch(route);

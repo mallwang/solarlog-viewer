@@ -95,6 +95,153 @@ body {
   }
 }
 
+/* Same effect as the media query above, driven by `sky-controller.js`'s own
+   `matchMedia('(prefers-reduced-motion: reduce)')` check (re-evaluated on the query's
+   `change` event) instead of the browser's live media query — kept in sync with it so the
+   sun/moon crossfade transition (a JS-driven inline style, not a CSS animation the media
+   query alone could target) and flying-object scheduling honor the same signal. */
+.sky-clouds[data-reduce-motion='true'] .cloud {
+  animation: none;
+  transform: scale(var(--scale, 1)) translateX(var(--rest-x, 20vw));
+}
+
+.sky-clouds[data-reduce-motion='true'] .sky-sun,
+.sky-clouds[data-reduce-motion='true'] .sky-moon {
+  transition: none;
+}
+
+/* Weather-driven cloud density (User Story 1): `sky-controller.js` sets
+   `data-cloud-density="clear|partly|overcast"` on `.sky-clouds` from the polled Open-Meteo
+   cloud-cover reading (see web/js/sky/cloud-density.js's CLOUD_TIER_RENDER_CONFIG, mirrored
+   here). No attribute (JS never ran, or location/weather resolution failed) keeps today's
+   existing static `.cloud` opacity/duration — the correct FR-005 fallback appearance, for
+   free. `sky-controller.js` also sets `hidden` on a subset of the six `.cloud` elements for
+   the `clear` tier; the browser's default `[hidden] { display: none }` handles that without
+   any CSS here. */
+.sky-clouds[data-cloud-density='clear'] .cloud {
+  opacity: 0.35;
+  animation-duration: calc(var(--duration, 60s) * 0.85);
+}
+
+.sky-clouds[data-cloud-density='partly'] .cloud {
+  opacity: 0.7;
+}
+
+.sky-clouds[data-cloud-density='overcast'] .cloud {
+  opacity: 0.95;
+  animation-duration: calc(var(--duration, 60s) * 1.3);
+}
+
+/* Sun/moon arc (User Story 2): `sky-controller.js` positions these via `--x-percent`/
+   `--y-percent` custom properties (set from computeSkyBodyPosition(), 0–100, left→right /
+   top→horizon) and their inline `opacity` (1 for the current body, `crossfade` for the other,
+   0 for neither) on a 60-second tick. The `transition` is what makes the sunrise/sunset swap
+   read as a smooth crossfade (FR-008) rather than an instant flip; disabled under reduced
+   motion below, matching `.cloud`'s drift animation. */
+.sky-sun,
+.sky-moon {
+  position: absolute;
+  top: calc(var(--y-percent, 0) * 0.7%);
+  left: calc(var(--x-percent, 50) * 1%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  transform: translate(-50%, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    top 2s linear,
+    left 2s linear,
+    opacity 4s ease;
+}
+
+.sky-sun {
+  background: radial-gradient(circle, #fff6c8 0%, #ffd54a 70%, #ffb200 100%);
+}
+
+.sky-moon {
+  background: radial-gradient(circle, #f4f6fb 0%, #d8dee9 70%, #aab2c0 100%);
+}
+
+/* Dense cloud cover dims and softens the sun/moon rather than hiding them entirely, so the
+   body stays at least partially visible behind overcast skies. */
+.sky-clouds[data-cloud-density='overcast'] .sky-sun,
+.sky-clouds[data-cloud-density='overcast'] .sky-moon {
+  filter: blur(3px) brightness(0.75);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-sun,
+  .sky-moon {
+    transition: none;
+  }
+}
+
+/* Flying objects (User Story 3): a separate fixed layer, sibling to `.sky-clouds` (markup in
+   index.html), positioned/clipped the same way but *without* `.sky-clouds`'s blur/contrast
+   filter — these are small sprites (bird/plane/balloon/rocket glyphs) that would turn into
+   shapeless blobs under that filter. `sky-controller.js` appends short-lived
+   `.sky-flying-object` elements (one per spawn from `flying-objects.js`'s scheduler),
+   positioned in a lane within the upper sky band so they never cross the header/nav/main
+   content column (FR-012), and removes each on its `animationend` event. */
+.sky-flying-objects {
+  position: fixed;
+  top: var(--chrome-height, 120px);
+  right: 0;
+  height: 35%;
+  left: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sky-flying-object {
+  position: absolute;
+  top: var(--lane-top, 10%);
+  left: 0;
+  font-size: 1.75rem;
+  line-height: 1;
+  transform: translateX(-10vw);
+  will-change: transform;
+}
+
+.sky-flying-object--bird,
+.sky-flying-object--plane,
+.sky-flying-object--balloon {
+  animation: fly-across var(--flight-duration, 16s) linear forwards;
+}
+
+.sky-flying-object--rocket {
+  animation: fly-to-moon var(--flight-duration, 10s) ease-in forwards;
+}
+
+@keyframes fly-across {
+  from {
+    transform: translateX(-10vw);
+  }
+
+  to {
+    transform: translateX(110vw);
+  }
+}
+
+@keyframes fly-to-moon {
+  from {
+    transform: translate(-10vw, 0) rotate(35deg);
+  }
+
+  to {
+    transform: translate(110vw, -60vh) rotate(35deg);
+  }
+}
+
+/* Reduced motion (FR-013): sky-controller.js skips flying-object scheduling entirely and sets
+   this on `.sky-clouds`/`.sky-flying-objects`, which also stops the `.cloud` drift animation
+   above — real weather/solar-time state still updates, just without animated movement. */
+[data-reduce-motion='true'].sky-flying-objects {
+  display: none;
+}
+
 img {
   max-width: 100%;
   display: block;

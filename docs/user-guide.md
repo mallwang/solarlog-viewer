@@ -14,6 +14,18 @@ line to see a tooltip with the exact value and its unit (W for the day view, kWh
 Charts resize with the browser window, and the whole layout — nav included — stays usable from
 320px-wide phones up to 2560px-wide monitors with no horizontal scrolling.
 
+## Dynamic sky background
+
+The cloud backdrop behind the dashboard changes with the installation's real current weather
+and local time of day instead of always looking the same: cloud density (sparse/moderate/dense)
+reflects the current cloud cover, a sun or moon tracks a simplified day/night arc and crossfades
+smoothly around sunrise/sunset, and birds/planes/balloons/a rare moon-bound rocket occasionally
+cross the sky. This runs automatically — there is nothing to configure — and refreshes every 15
+minutes. If weather data can't be fetched (no network, no configured location), the backdrop
+simply keeps its original static appearance; nothing else on the dashboard is affected. If your
+system/browser has "reduce motion" enabled, all sky animation and flying objects are suppressed
+while the cloud density/sun-moon state still updates.
+
 ## CO2 avoidance figures
 
 The day, month, year, and total (lifetime) views each show a "CO2 avoided" figure in the stats

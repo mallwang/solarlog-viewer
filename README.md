@@ -16,6 +16,27 @@ original device) and `web/data/` (the current device's live, continuously-overwr
 since its 2026-07-29 installation); the app merges the two wherever a query spans that boundary
 — see `specs/001-website-modernization/data-model.md`.
 
+## Dynamic sky background
+
+The animated cloud backdrop behind the dashboard reflects the installation's real current
+weather and local time of day rather than always looking the same. Coordinates are resolved
+from the plant's configured address (`SKY_LOCATION_OVERRIDE` in `web/js/config.js`, or automatic
+geocoding cached in `localStorage` if unset), then used to poll the free, keyless
+[Open-Meteo](https://open-meteo.com) API every 15 minutes for cloud cover and sunrise/sunset:
+
+- **Cloud density** — sparse, moderate, or dense clouds depending on the current cloud-cover
+  tier (clear/partly/overcast).
+- **Sun/moon position** — a sun or moon tracks a simplified day/night arc between sunrise and
+  sunset, crossfading smoothly at the boundary and staying dimly visible through dense cloud.
+- **Flying objects** — birds cross the sky at a light, regular cadence; planes, balloons, and a
+  moon-bound rocket easter egg appear rarely.
+
+Any failure (no location, no network, a failed request) falls back silently to the original
+static backdrop — there is no error UI and no impact on the dashboard's PV-data functionality.
+`prefers-reduced-motion: reduce` suppresses all animation and flying-object spawning while still
+reflecting real conditions through static cues. See
+`specs/007-dynamic-sky-weather/` for the full spec/plan.
+
 ## Dev server
 
 ```bash
