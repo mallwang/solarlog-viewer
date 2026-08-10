@@ -253,12 +253,9 @@ a {
 
 .app-header {
   /* Opaque so the fixed cloud layer behind it (`.sky-clouds`, offset to start below the nav)
-     never shows through the header. `flex-wrap` lets `.info-panel--desktop` (a
-     `flex-basis: 100%` item, see below) drop onto its own row beneath the brand/icons row
-     instead of squeezing into the same line. */
+     never shows through the header. */
   background: var(--color-bg);
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
@@ -288,9 +285,10 @@ a {
   text-decoration: underline;
 }
 
-/* Groups the language switcher and the mobile nav toggle on the header's right side, so the
-   burger icon sits inline with the title instead of in its own bar below it (see .app-nav /
-   .app-nav__toggle in tailwind.css). */
+/* Groups the language switcher, the mobile-only transparency toggle, and the mobile nav
+   toggle on the header's right side, so the burger icon sits inline with the title instead of
+   in its own bar below it (see .app-nav / .app-nav__toggle in tailwind.css). The desktop
+   transparency toggle lives in `.app-nav__end` instead — see index.html. */
 .app-header__actions {
   display: flex;
   flex-direction: row;
@@ -308,26 +306,18 @@ a {
   height: 28px;
 }
 
-/* Global desktop info panel (010-global-info-panel): production + weather/forecast. Two
-   variants of the same markup exist (see index.html) — `.info-panel--desktop` inside
-   `app-header`, `.info-panel--mobile` as a full-width bar right after `.app-nav` — and
+/* Global info panel (010-global-info-panel): production + weather/forecast. Two variants of
+   the same markup exist (see index.html) — `.info-panel--desktop` inside `.app-nav__end`,
+   sharing the persistent nav row with the nav links and the desktop transparency toggle;
+   `.info-panel--mobile` as its own full-width bar right after `.app-nav` — and
    `info-panel-controller.js` updates every matching `[data-role]` element in both at once, so
    only one is ever visible per viewport width (Tailwind's `hidden md:flex` / `flex md:hidden`
-   utilities on each root element in index.html). This rule holds the styles shared by both. */
+   utilities on the relevant elements in index.html). This rule holds the styles shared by
+   both. */
 .info-panel {
   align-items: center;
   gap: var(--space-md);
   font-size: var(--font-size-sm);
-}
-
-/* Desktop variant: wraps onto its own row beneath the icon buttons (`.app-header` is
-   `flex-wrap`, `flex-basis: 100%` forces this item onto a new line) while staying
-   right-aligned rather than stretching full-width, so it reads as tucked under the
-   transparency toggle rather than as a separate bar. */
-.info-panel--desktop {
-  flex-basis: 100%;
-  justify-content: flex-end;
-  padding-top: var(--space-xs);
 }
 
 /* Mobile variant: a full-width bar directly below `.app-nav`, opaque for the same reason as
@@ -338,33 +328,53 @@ a {
   border-bottom: 1px solid var(--color-border);
 }
 
+/* An <a> (links to today's day view, mirroring the dashboard's own current-production widget
+   — see web/js/views/dashboard.js), not a plain <div> — reset the global `a { color: ... }`
+   rule so it reads as ordinary panel text until hovered. `gap` here is deliberately larger
+   than `.info-panel`'s own gap between production/weather — more breathing room between the
+   pulse and the value it belongs to. */
 .info-panel__production {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.info-panel__production:hover {
+  background: var(--color-border);
 }
 
 .info-panel__value {
   font-weight: 600;
 }
 
+.info-panel__production[data-available='false'] {
+  pointer-events: none;
+}
+
 .info-panel__production[data-available='false'] .info-panel__value {
   color: var(--color-text-muted);
 }
 
-/* Production-animation pulse (User Story 4, FR-009/FR-010): a plain circular dot whose size/
-   glow/animation-speed scale with `data-intensity`, set from
-   `web/js/info-panel/production-animation.js`'s `productionIntensity()` on every poll tick.
-   Discrete tiers (not continuous interpolation) mirror the sky feature's
-   `cloud-density.js` → CSS-custom-property precedent (research.md §4). The `transition` here
-   (not just the `@keyframes` below) is what makes a tier *change* between polls smooth rather
-   than an abrupt jump (FR-010) — only the pulsing itself is keyframe-driven. */
+/* Production-animation pulse (User Story 4, FR-009/FR-010): a plain circular dot whose
+   size/glow/animation-speed scale with `data-intensity` (from
+   `web/js/info-panel/production-animation.js`'s `productionIntensity()`, discrete tiers
+   mirroring the sky feature's `cloud-density.js` → CSS-custom-property precedent, research.md
+   §4) and whose *color* scales continuously with `--pulse-color` (from that module's
+   `productionColor()` — gray for no production, otherwise a red→orange→yellow→green
+   interpolation of how close current output is to the plant's capacity). The `transition`
+   here (not just the `@keyframes` below) is what makes both a tier *and* a color change
+   between polls smooth rather than an abrupt jump (FR-010) — only the pulsing itself is
+   keyframe-driven. */
 .info-panel__pulse {
   display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: var(--pulse-color, var(--color-text-muted));
   transition:
     width 0.6s ease,
     height 0.6s ease,
@@ -375,36 +385,34 @@ a {
 .info-panel__pulse[data-intensity='idle'] {
   width: 8px;
   height: 8px;
-  background: var(--color-text-muted);
   animation: none;
   box-shadow: none;
 }
 
 .info-panel__pulse[data-intensity='low'] {
   animation: info-panel-pulse 3s ease-in-out infinite;
-  box-shadow: 0 0 4px var(--color-primary);
+  box-shadow: 0 0 4px var(--pulse-color, var(--color-text-muted));
 }
 
 .info-panel__pulse[data-intensity='medium'] {
   width: 12px;
   height: 12px;
   animation: info-panel-pulse 2s ease-in-out infinite;
-  box-shadow: 0 0 8px var(--color-primary);
+  box-shadow: 0 0 8px var(--pulse-color, var(--color-text-muted));
 }
 
 .info-panel__pulse[data-intensity='high'] {
   width: 14px;
   height: 14px;
   animation: info-panel-pulse 1.2s ease-in-out infinite;
-  box-shadow: 0 0 12px var(--color-primary);
+  box-shadow: 0 0 12px var(--pulse-color, var(--color-text-muted));
 }
 
 .info-panel__pulse[data-intensity='peak'] {
   width: 16px;
   height: 16px;
-  background: var(--color-primary-dark);
   animation: info-panel-pulse 0.7s ease-in-out infinite;
-  box-shadow: 0 0 16px var(--color-primary-dark);
+  box-shadow: 0 0 16px var(--pulse-color, var(--color-text-muted));
 }
 
 @keyframes info-panel-pulse {

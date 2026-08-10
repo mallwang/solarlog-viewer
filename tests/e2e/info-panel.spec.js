@@ -66,13 +66,30 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     await expect(desktop).toBeVisible();
     await expect(mobile).toBeHidden();
 
-    // Lives inside app-header, not as a separate bar below the nav.
-    await expect(page.locator('.app-header [data-info-panel="desktop"]')).toHaveCount(1);
+    // Shares the persistent nav row (not a separate row of its own), alongside the desktop
+    // transparency toggle.
+    await expect(page.locator('.app-nav [data-info-panel="desktop"]')).toHaveCount(1);
+    await expect(page.locator('.app-nav__end [data-info-panel="desktop"]')).toHaveCount(1);
+    await expect(page.locator('.app-nav__end #transparency-toggle-desktop')).toBeVisible();
+    await expect(page.locator('#transparency-toggle-mobile')).toBeHidden();
 
     await expect(desktop.locator('[data-role="production-value"]')).toHaveText('3100 W');
     await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
       'data-available',
       'true',
+    );
+  });
+
+  test("the production value links to today's day view", async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-08-10T14:00:00') });
+    await mockProduction(page, { pacW: 1800 });
+    await mockForecast(page);
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'href',
+      '#/day/2026/08/10',
     );
   });
 
@@ -150,26 +167,40 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     expect(decodeURIComponent(newPage.url())).toContain('92266 Ensdorf-Wolfsbach');
   });
 
-  test('a near-zero reading renders the idle animation intensity', async ({ page }) => {
+  test('a near-zero reading renders the idle animation intensity and a gray pulse', async ({
+    page,
+  }) => {
     await mockProduction(page, { pacW: 0 });
     await mockForecast(page);
     await page.goto('/');
-    await expect(page.locator('[data-info-panel="desktop"] [data-role="pulse"]')).toHaveAttribute(
-      'data-intensity',
-      'idle',
-    );
+    const pulse = page.locator('[data-info-panel="desktop"] [data-role="pulse"]');
+    await expect(pulse).toHaveAttribute('data-intensity', 'idle');
+    await expect(pulse).toHaveCSS('background-color', 'rgb(91, 100, 112)');
   });
 
-  test('a near-peak reading renders the peak animation intensity', async ({ page }) => {
-    // AnlagenKWP fixture value is 6200 (data/base_vars.js) — 95% of that is well within the
-    // peak tier (>= 90%, see production-animation.js).
+  test('a near-peak reading renders the peak animation intensity and a green pulse', async ({
+    page,
+  }) => {
+    // AnlagenKWP fixture value is 6200 (data/base_vars.js) — 95% of that is well within both
+    // the peak tier (>= 90%, see production-animation.js) and the green color band (>= 75%).
     await mockProduction(page, { pacW: 5900 });
     await mockForecast(page);
     await page.goto('/');
-    await expect(page.locator('[data-info-panel="desktop"] [data-role="pulse"]')).toHaveAttribute(
-      'data-intensity',
-      'peak',
-    );
+    const pulse = page.locator('[data-info-panel="desktop"] [data-role="pulse"]');
+    await expect(pulse).toHaveAttribute('data-intensity', 'peak');
+    await expect(pulse).toHaveCSS('background-color', 'rgb(46, 125, 50)');
+  });
+
+  test('a mid-range reading renders an interpolated yellow-to-green pulse color', async ({
+    page,
+  }) => {
+    // 4000 W of the 6200 W fixture capacity is ~64.5% — the exact worked example from the
+    // user's request, landing between the yellow (50%) and green (75%) stops.
+    await mockProduction(page, { pacW: 4000 });
+    await mockForecast(page);
+    await page.goto('/');
+    const pulse = page.locator('[data-info-panel="desktop"] [data-role="pulse"]');
+    await expect(pulse).toHaveCSS('background-color', 'rgb(132, 153, 48)');
   });
 });
 
@@ -188,9 +219,13 @@ test.describe('Global info panel — mobile placement (bar below the nav)', () =
     await expect(mobile).toBeVisible();
     await expect(desktop).toBeHidden();
 
-    // Lives right after .app-nav, not inside the header.
+    // Lives right after .app-nav, not inside the header, and doesn't share its row with the
+    // transparency toggle (that stays in the header on mobile).
     const navThenPanel = page.locator('.app-nav + [data-info-panel="mobile"]');
     await expect(navThenPanel).toHaveCount(1);
+    await expect(mobile.locator('.transparency-toggle')).toHaveCount(0);
+    await expect(page.locator('#transparency-toggle-mobile')).toBeVisible();
+    await expect(page.locator('#transparency-toggle-desktop')).toBeHidden();
 
     await expect(mobile.locator('[data-role="production-value"]')).toHaveText('2200 W');
   });

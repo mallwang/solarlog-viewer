@@ -52,10 +52,15 @@
       </a>
       <div class="app-header__actions">
         <div class="lang-switcher" id="lang-switcher"></div>
+        <!-- Mobile-only transparency toggle: on desktop the same control lives in the nav row
+             instead (`.app-nav__end`, below), alongside the info panel — see
+             `.transparency-toggle--desktop`. Both instances are kept in sync by
+             `initTransparencyToggle()` in main.js (a NodeList of `.transparency-toggle`, not a
+             single element). -->
         <button
           type="button"
-          class="transparency-toggle"
-          id="transparency-toggle"
+          class="transparency-toggle transparency-toggle--mobile md:hidden"
+          id="transparency-toggle-mobile"
           aria-pressed="false"
         >
           ◐
@@ -70,43 +75,53 @@
           ☰
         </button>
       </div>
-      <!-- Global desktop info panel (010-global-info-panel), desktop variant: wraps onto its
-           own row beneath the icon buttons above (`.app-header` is `flex-wrap`, this item is
-           `flex-basis: 100%` — see app.css), staying right-aligned rather than full-width.
-           Hidden below `md:` in favor of `.info-panel--mobile` further down. Populated by
-           info-panel-controller.js, which updates every `[data-role]` element matching both
-           variants together (see data-model.md's "Info Panel View State"). -->
-      <div class="info-panel info-panel--desktop hidden md:flex" data-info-panel="desktop">
-        <div class="info-panel__production" data-role="production" data-available="false">
-          <span
-            class="info-panel__pulse"
-            data-role="pulse"
-            data-intensity="idle"
-            aria-hidden="true"
-          ></span>
-          <span class="info-panel__value" data-role="production-value">—</span>
-        </div>
-        <a
-          class="info-panel__weather"
-          data-role="weather"
-          data-available="false"
-          rel="noopener"
-          target="_blank"
-          hidden
-        >
-          <span class="info-panel__weather-current" data-role="weather-current">—</span>
-          <span class="info-panel__weather-forecast" data-role="weather-forecast">—</span>
-        </a>
-      </div>
     </header>
     <nav class="app-nav" id="app-nav">
       <ul id="app-nav-list" class="app-nav__list" data-open="false"></ul>
+      <!-- Global desktop info panel (010-global-info-panel): production + weather/forecast,
+           plus the desktop transparency toggle, sharing the persistent nav row instead of a
+           separate row of their own. Hidden below `md:` in favor of `.info-panel--mobile`
+           further down. Populated by info-panel-controller.js, which updates every
+           `[data-role]` element matching both info-panel variants together (see
+           data-model.md's "Info Panel View State"). -->
+      <div class="app-nav__end hidden md:flex">
+        <div class="info-panel info-panel--desktop" data-info-panel="desktop">
+          <a class="info-panel__production" data-role="production" data-available="false">
+            <span
+              class="info-panel__pulse"
+              data-role="pulse"
+              data-intensity="idle"
+              aria-hidden="true"
+            ></span>
+            <span class="info-panel__value" data-role="production-value">—</span>
+          </a>
+          <a
+            class="info-panel__weather"
+            data-role="weather"
+            data-available="false"
+            rel="noopener"
+            target="_blank"
+            hidden
+          >
+            <span class="info-panel__weather-current" data-role="weather-current">—</span>
+            <span class="info-panel__weather-forecast" data-role="weather-forecast">—</span>
+          </a>
+        </div>
+        <button
+          type="button"
+          class="transparency-toggle transparency-toggle--desktop"
+          id="transparency-toggle-desktop"
+          aria-pressed="false"
+        >
+          ◐
+        </button>
+      </div>
     </nav>
-    <!-- Global desktop info panel, mobile variant: a full-width bar directly below the nav
-         bar, at the user's explicit request — mobile now shows the same panel content instead
-         of hiding it entirely. Hidden from `md:` up in favor of `.info-panel--desktop` above. -->
+    <!-- Global desktop info panel, mobile variant: its own full-width bar directly below the
+         nav bar (not sharing a row with the transparency toggle, which stays in the header on
+         mobile). Hidden from `md:` up in favor of `.info-panel--desktop` above. -->
     <div class="info-panel info-panel--mobile flex md:hidden" data-info-panel="mobile">
-      <div class="info-panel__production" data-role="production" data-available="false">
+      <a class="info-panel__production" data-role="production" data-available="false">
         <span
           class="info-panel__pulse"
           data-role="pulse"
@@ -114,7 +129,7 @@
           aria-hidden="true"
         ></span>
         <span class="info-panel__value" data-role="production-value">—</span>
-      </div>
+      </a>
       <a
         class="info-panel__weather"
         data-role="weather"

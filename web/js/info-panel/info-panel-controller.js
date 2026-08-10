@@ -2,14 +2,18 @@
  * @file DOM-glue orchestrator for the global info panel. Resolves the installation's location,
  * fetches current production (`data/min_cur.js`, same path `dashboard.js`'s widget already
  * uses) and current weather + today's forecast (Open-Meteo) on mount and every ~10 minutes
- * (FR-004), renders both, drives the production-animation `--intensity`/`data-intensity` tier,
- * and wires the weather/forecast area's wetteronline.com click-through (FR-007). Each data
+ * (FR-004), renders both, drives the production-animation pulse's size/speed tier
+ * (`data-intensity`) and its continuous red→orange→yellow→green color (`--pulse-color`, from
+ * `productionColor()`), links the production value to today's day view (mirroring
+ * `dashboard.js`'s widget), and
+ * wires the weather/forecast area's wetteronline.com click-through (FR-007). Each data
  * source's "unavailable" state (FR-008) is fully independent — a production or weather/location
  * failure never blocks or resets the other.
  *
- * The panel exists twice in the DOM (see index.html): `.info-panel--desktop` tucked under the
- * header's icon row (visible from `md:` up), and `.info-panel--mobile` as a full-width bar
- * below the nav (visible below `md:`) — CSS alone decides which one is actually shown per
+ * The panel exists twice in the DOM (see index.html): `.info-panel--desktop` inside
+ * `.app-nav__end`, sharing the persistent nav row with the nav links and the desktop
+ * transparency toggle (visible from `md:` up), and `.info-panel--mobile` as its own full-width
+ * bar below the nav (visible below `md:`) — CSS alone decides which one is actually shown per
  * viewport width, so this module treats them identically and just updates every element
  * matching a given `[data-role]` in both at once. Not unit-tested directly — covered by
  * tests/e2e/info-panel.spec.js, mirroring the sky feature's controller/pure-logic split.
@@ -18,12 +22,26 @@
 import { fetchText } from '../data/fetch-text.js';
 import { parseMinFile } from '../data/min-file.js';
 import { resolveInstallationLocation } from '../sky/location.js';
+import { formatRoute } from '../router.js';
 import { fetchWeatherAndForecast, weatherCodeToLabelKey } from './weather-forecast-client.js';
-import { productionIntensity } from './production-animation.js';
+import {
+  productionIntensity,
+  productionColor,
+  PRODUCTION_COLOR_IDLE,
+} from './production-animation.js';
 import { buildWetteronlineSearchUrl } from './wetteronline-link.js';
 import { t } from '../i18n.js';
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000;
+
+/**
+ * @returns {{ year: number, month: number, day: number }} Today's date in Route-param shape
+ *   (1-indexed month), matching `dashboard.js`'s own `todayParams()`.
+ */
+function todayParams() {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
+}
 
 /**
  * @returns {string} Today's date as 'DD.MM.YY', matching `parseMinFile`'s expected fallback
@@ -72,6 +90,9 @@ function renderProduction({ pulseEls, valueEls, wrapperEls }, production, capaci
   const intensity = production.available
     ? productionIntensity(production.totalPacW, capacityKwp)
     : 'idle';
+  const color = production.available
+    ? productionColor(production.totalPacW, capacityKwp)
+    : PRODUCTION_COLOR_IDLE;
   const valueText = productionValueText(production);
 
   wrapperEls.forEach((el) => {
@@ -82,6 +103,7 @@ function renderProduction({ pulseEls, valueEls, wrapperEls }, production, capaci
   });
   pulseEls.forEach((el) => {
     el.dataset.intensity = intensity;
+    el.style.setProperty('--pulse-color', color);
   });
 }
 
@@ -140,6 +162,14 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
     } else {
       el.removeAttribute('href');
     }
+  });
+
+  // Links the production value to today's day view, mirroring the dashboard's own current-
+  // production widget (web/js/views/dashboard.js) — set once at mount like the wetteronline
+  // link above, since "today" doesn't change within a single page session.
+  const dayHref = formatRoute({ view: 'day', params: todayParams() });
+  elements.wrapperEls.forEach((el) => {
+    el.href = dayHref;
   });
 
   const capacityKwp = plant?.capacityKwp ?? 0;

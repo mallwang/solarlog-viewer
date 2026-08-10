@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { productionIntensity } from './production-animation.js';
+import {
+  productionIntensity,
+  productionColor,
+  PRODUCTION_COLOR_IDLE,
+} from './production-animation.js';
 
 const CAPACITY_W = 6200;
 
@@ -40,4 +44,42 @@ test('a missing/zero capacity falls back to idle rather than throwing or dividin
 
 test('a non-finite current reading falls back to idle', () => {
   assert.equal(productionIntensity(Number.NaN, CAPACITY_W), 'idle');
+});
+
+test('productionColor: 0 W (no production) is gray', () => {
+  assert.equal(productionColor(0, CAPACITY_W), PRODUCTION_COLOR_IDLE);
+});
+
+test('productionColor: a non-finite or negative reading is gray', () => {
+  assert.equal(productionColor(Number.NaN, CAPACITY_W), PRODUCTION_COLOR_IDLE);
+  assert.equal(productionColor(-100, CAPACITY_W), PRODUCTION_COLOR_IDLE);
+});
+
+test('productionColor: 0% ratio is pure red (the first color stop)', () => {
+  assert.equal(productionColor(0.0001, CAPACITY_W), 'rgb(198, 40, 40)');
+});
+
+test('productionColor: 25% ratio is pure orange', () => {
+  assert.equal(productionColor(CAPACITY_W * 0.25, CAPACITY_W), 'rgb(245, 124, 0)');
+});
+
+test('productionColor: 50% ratio is pure yellow', () => {
+  assert.equal(productionColor(CAPACITY_W * 0.5, CAPACITY_W), 'rgb(251, 192, 45)');
+});
+
+test('productionColor: 75% ratio and above is pure green', () => {
+  assert.equal(productionColor(CAPACITY_W * 0.75, CAPACITY_W), 'rgb(46, 125, 50)');
+  assert.equal(productionColor(CAPACITY_W, CAPACITY_W), 'rgb(46, 125, 50)');
+  assert.equal(productionColor(CAPACITY_W * 1.5, CAPACITY_W), 'rgb(46, 125, 50)');
+});
+
+test('productionColor: 64.5% ratio (4000 W of 6200 W) interpolates between yellow and green', () => {
+  // t = (0.6452 - 0.5) / 0.25 ≈ 0.5806 — matches the worked example from the user's request.
+  const color = productionColor(4000, 6200);
+  assert.equal(color, 'rgb(132, 153, 48)');
+});
+
+test('productionColor: a missing/zero capacity falls back to red rather than throwing', () => {
+  assert.equal(productionColor(1200, 0), 'rgb(198, 40, 40)');
+  assert.equal(productionColor(1200, undefined), 'rgb(198, 40, 40)');
 });

@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-const TOGGLE = '#transparency-toggle';
+// Two instances of the same control exist (mobile: header; desktop: the nav row, alongside
+// the info panel) — the default Playwright viewport is desktop-width, so the desktop instance
+// is the one actually visible/clickable here. See main.js's `transparencyToggles` NodeList.
+const TOGGLE = '#transparency-toggle-desktop';
 
 const VIEWS_WITH_PANELS = [
   { name: 'day', path: '/#/day/2019/07/15' },

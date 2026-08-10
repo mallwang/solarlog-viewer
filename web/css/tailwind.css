@@ -51,14 +51,24 @@
        Below md:, the toggle button lives in the header instead of here (see
        `.app-header__actions`), so this bar carries no border/padding of its own there — otherwise
        it would show as an empty strip under the title. From md: up it's the persistent,
-       always-visible row of nav links, so it gets its usual border/padding back. */
-    @apply relative flex items-center gap-xs bg-bg md:border-b md:border-border md:px-md
-      md:py-sm;
+       always-visible row of nav links, so it gets its usual border/padding back; `md:justify-
+       between` pushes `.app-nav__end` (info panel + desktop transparency toggle) to the far
+       right of this same row instead of bunching it against the nav links. */
+    @apply relative flex items-center gap-xs bg-bg md:justify-between md:border-b
+      md:border-border md:px-md md:py-sm;
   }
 
   .app-nav__toggle {
     @apply md:hidden inline-flex items-center justify-center rounded-md border border-border
       bg-bg px-sm py-xs text-text;
+  }
+
+  /* Desktop-only group sharing the nav row with `.app-nav__list` — the info panel (production
+     + weather/forecast) and the desktop transparency toggle, per the user's request to combine
+     them into "one row, the navigation row" instead of a separate row under the header. Hidden
+     below `md:` in favor of the header's own transparency toggle and `.info-panel--mobile`. */
+  .app-nav__end {
+    @apply items-center gap-md;
   }
 
   .app-nav__list {

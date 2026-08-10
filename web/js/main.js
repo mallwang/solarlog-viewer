@@ -40,12 +40,17 @@ const viewNav = document.getElementById('app-nav');
 const viewNavList = document.getElementById('app-nav-list');
 const navToggle = document.getElementById('app-nav-toggle');
 const langSwitcher = document.getElementById('lang-switcher');
-const transparencyToggle = document.getElementById('transparency-toggle');
+// Two instances of the same control (mobile: header; desktop: the nav row, alongside the info
+// panel — see index.html/tailwind.css's `.app-nav__end`), kept in sync as a NodeList rather
+// than a single element.
+const transparencyToggles = document.querySelectorAll('.transparency-toggle');
 
 function applyNavLabels() {
   viewNav.setAttribute('aria-label', t('nav.ariaLabel'));
   navToggle.setAttribute('aria-label', t('nav.toggleLabel'));
-  transparencyToggle.setAttribute('aria-label', t('nav.transparencyToggleLabel'));
+  transparencyToggles.forEach((toggle) => {
+    toggle.setAttribute('aria-label', t('nav.transparencyToggleLabel'));
+  });
 }
 
 function closeNav() {
@@ -105,14 +110,18 @@ function initNavToggle() {
 }
 
 function renderTransparencyToggle() {
-  transparencyToggle.setAttribute('aria-pressed', String(isTransparencyEnabled()));
+  transparencyToggles.forEach((toggle) => {
+    toggle.setAttribute('aria-pressed', String(isTransparencyEnabled()));
+  });
 }
 
 function initTransparencyToggle() {
   renderTransparencyToggle();
-  transparencyToggle.addEventListener('click', () => {
-    setTransparencyEnabled(!isTransparencyEnabled());
-    renderTransparencyToggle();
+  transparencyToggles.forEach((toggle) => {
+    toggle.addEventListener('click', () => {
+      setTransparencyEnabled(!isTransparencyEnabled());
+      renderTransparencyToggle();
+    });
   });
 }
 
