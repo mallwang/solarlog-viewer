@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 90" width="900" height="90">
+  <!--
+    balloon-cells.svg — 10-frame horizontal sprite strip, 900×90 px (each frame 90×90 px).
+    Hot-air balloon facing up; burner flame varies in height across frames.
+    Animate with: background-position-x 0 → -900px, steps(10), to cycle all frames.
+    For vertical ascent, pair with a CSS flight-path keyframe that moves the element upward.
+  -->
+  <defs>
+    <!-- Static balloon body (envelope + basket + ropes) in frame-0 local space -->
+    <g id="bln">
+      <!-- Envelope base -->
+      <circle cx="45" cy="34" r="26" fill="#e06015"/>
+      <!-- Alternate panel strips (lighter, giving 4-panel illusion without clipPath) -->
+      <path d="M32,8 Q19,34 32,60 L45,60 L45,8Z" fill="#f5801a" opacity="0.55"/>
+      <path d="M58,8 Q71,34 58,60 L45,60 L45,8Z" fill="#f5801a" opacity="0.55"/>
+      <!-- Top highlight -->
+      <ellipse cx="40" cy="24" rx="9" ry="7" fill="rgba(255,240,200,0.22)"/>
+      <!-- Bottom shading arc -->
+      <path d="M21,46 A26,26 0 0 0 69,46 Z" fill="rgba(0,0,0,0.12)"/>
+      <!-- Envelope outline -->
+      <circle cx="45" cy="34" r="26" fill="none" stroke="#b04010" stroke-width="1.2"/>
+      <!-- Envelope mouth (dark opening) -->
+      <ellipse cx="45" cy="60" rx="7" ry="3.5" fill="#1a1a1a"/>
+      <!-- Suspension ropes -->
+      <line x1="39" y1="62" x2="36" y2="73" stroke="#7a4e1a" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="51" y1="62" x2="54" y2="73" stroke="#7a4e1a" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Basket -->
+      <rect x="33" y="73" width="24" height="12" rx="2" fill="#8b5e2a"/>
+      <!-- Basket weave lines -->
+      <line x1="33" y1="76.5" x2="57" y2="76.5" stroke="#6a4418" stroke-width="0.8"/>
+      <line x1="33" y1="80" x2="57" y2="80" stroke="#6a4418" stroke-width="0.8"/>
+      <line x1="45" y1="73" x2="45" y2="85" stroke="#6a4418" stroke-width="0.8"/>
+    </g>
+  </defs>
+
+  <!-- Frame 0: small flame (h=4, tip y=58) -->
+  <g transform="translate(0,0)">
+    <use href="#bln"/>
+    <path d="M42,62 Q39,60 45,58 Q51,60 48,62Z" fill="#f5901a"/>
+    <path d="M43,62 Q41,61 45,60 Q49,61 47,62Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 1: medium flame (h=10, tip y=52) -->
+  <g transform="translate(90,0)">
+    <use href="#bln"/>
+    <path d="M41,62 Q37,57 45,52 Q53,57 49,62Z" fill="#f5901a"/>
+    <path d="M42,62 Q39,59 45,56 Q51,59 48,62Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 2: large flame (h=18, tip y=44) -->
+  <g transform="translate(180,0)">
+    <use href="#bln"/>
+    <path d="M40,62 Q37,53 45,44 Q53,53 50,62Z" fill="#f5901a"/>
+    <path d="M41,62 Q38,56 45,50 Q52,56 49,62Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 3: medium-large flame (h=13, tip y=49) -->
+  <g transform="translate(270,0)">
+    <use href="#bln"/>
+    <path d="M41,62 Q37,56 45,49 Q53,56 49,62Z" fill="#f5901a"/>
+    <path d="M42,62 Q39,58 45,54 Q51,58 48,62Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 4: small-medium flame (h=6, tip y=56) -->
+  <g transform="translate(360,0)">
+    <use href="#bln"/>
+    <path d="M42,62 Q39,59 45,56 Q51,59 48,62Z" fill="#f5901a"/>
+    <path d="M43,62 Q41,60 45,58 Q49,60 47,62Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 5: large flame (h=16, tip y=46) -->
+  <g transform="translate(450,0)">
+    <use href="#bln"/>
+    <path d="M40,62 Q37,54 45,46 Q53,54 50,62Z" fill="#f5901a"/>
+    <path d="M41,62 Q38,57 45,52 Q52,57 49,62Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 6: tallest flame (h=20, tip y=42) -->
+  <g transform="translate(540,0)">
+    <use href="#bln"/>
+    <path d="M40,62 Q37,52 45,42 Q53,52 50,62Z" fill="#f5901a"/>
+    <path d="M41,62 Q38,55 45,49 Q52,55 49,62Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 7: medium flame (h=9, tip y=53) -->
+  <g transform="translate(630,0)">
+    <use href="#bln"/>
+    <path d="M41,62 Q37,58 45,53 Q53,58 49,62Z" fill="#f5901a"/>
+    <path d="M42,62 Q39,59 45,56 Q51,59 48,62Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 8: medium-large flame (h=14, tip y=48) -->
+  <g transform="translate(720,0)">
+    <use href="#bln"/>
+    <path d="M40,62 Q37,55 45,48 Q53,55 50,62Z" fill="#f5901a"/>
+    <path d="M41,62 Q38,58 45,53 Q52,58 49,62Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 9: tiny flame (h=5, tip y=57) -->
+  <g transform="translate(810,0)">
+    <use href="#bln"/>
+    <path d="M42,62 Q39,60 45,57 Q51,60 48,62Z" fill="#f5901a"/>
+    <path d="M43,62 Q41,61 45,59 Q49,61 47,62Z" fill="#ffd700"/>
+  </g>
+</svg>

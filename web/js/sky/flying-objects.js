@@ -15,9 +15,9 @@
  * @type {{ bird: [number, number], rare: [number, number], rocket: [number, number] }}
  */
 export const SPAWN_DELAY_BANDS_MS = {
-  bird: [10 * 1000, 25 * 1000],
-  rare: [2 * 60_000, 3 * 60_000],
-  rocket: [4 * 60_000, 6 * 60_000],
+  bird: [5 * 1000, 15 * 1000],
+  rare: [30 * 1000, 60 * 1000],
+  rocket: [60 * 1000, 120 * 1000],
 };
 
 /**
@@ -53,9 +53,9 @@ export function createFlyingObjectScheduler({ now = () => Date.now(), rng = Math
 
   /**
    * Checks all three timers against the current time. Any timer at or past its scheduled
-   * time fires: it's added to the returned list (except the rocket timer when `body` isn't
-   * `'moon'`, which is silently rescheduled without spawning — FR-011) and rescheduled to a
-   * new random delay from now.
+   * time fires, is added to the returned list, and is rescheduled to a new random delay
+   * from now. (The body parameter is accepted for API compatibility but no longer gates
+   * any kind.)
    * @param {'sun' | 'moon'} body - Current Solar Time State body, from `solar-arc.js`.
    * @returns {{ kind: 'bird' | 'plane' | 'balloon' | 'rocket', spawnedAt: Date }[]}
    */
@@ -74,9 +74,7 @@ export function createFlyingObjectScheduler({ now = () => Date.now(), rng = Math
     }
 
     if (t >= rocketAt) {
-      if (body === 'moon') {
-        spawned.push({ kind: 'rocket', spawnedAt: new Date(t) });
-      }
+      spawned.push({ kind: 'rocket', spawnedAt: new Date(t) });
       rocketAt = t + randomDelayMs(SPAWN_DELAY_BANDS_MS.rocket, rng);
     }
 

@@ -49,41 +49,18 @@ test('the bird timer fires and reschedules within its band', () => {
   assert.equal(spawned[0].kind, 'bird');
 });
 
-test('rocket kind is never selected when body !== "moon" at roll time', () => {
-  let clockMs = 0;
-  // rng=0 puts every timer (bird/rare/rocket) at its band minimum.
-  const rng = seededRng([0]);
-  const scheduler = createFlyingObjectScheduler({ now: () => clockMs, rng });
-
-  clockMs = SPAWN_DELAY_BANDS_MS.rocket[0];
-  const spawnedDuringDay = scheduler.poll('sun');
-
-  assert.ok(!spawnedDuringDay.some((obj) => obj.kind === 'rocket'));
-});
-
-test('rocket kind is selected when body === "moon" at roll time', () => {
-  let clockMs = 0;
-  const rng = seededRng([0]);
-  const scheduler = createFlyingObjectScheduler({ now: () => clockMs, rng });
-
-  clockMs = SPAWN_DELAY_BANDS_MS.rocket[0];
-  const spawnedAtNight = scheduler.poll('moon');
-
-  assert.ok(spawnedAtNight.some((obj) => obj.kind === 'rocket'));
-});
-
-test('a rocket timer that fires while body === "sun" is rescheduled, not dropped forever', () => {
-  let clockMs = 0;
-  const rng = seededRng([0]);
-  const scheduler = createFlyingObjectScheduler({ now: () => clockMs, rng });
-
-  clockMs = SPAWN_DELAY_BANDS_MS.rocket[0];
-  scheduler.poll('sun'); // rocket timer fires but body is sun: rescheduled, not spawned
-
-  clockMs += SPAWN_DELAY_BANDS_MS.rocket[0];
-  const spawned = scheduler.poll('moon');
-
-  assert.ok(spawned.some((obj) => obj.kind === 'rocket'));
+test('rocket kind is selected regardless of body value', () => {
+  for (const body of ['sun', 'moon']) {
+    let clockMs = 0;
+    const rng = seededRng([0]);
+    const scheduler = createFlyingObjectScheduler({ now: () => clockMs, rng });
+    clockMs = SPAWN_DELAY_BANDS_MS.rocket[0];
+    const spawned = scheduler.poll(body);
+    assert.ok(
+      spawned.some((obj) => obj.kind === 'rocket'),
+      `rocket should fire during '${body}'`,
+    );
+  }
 });
 
 test('scheduling is fully deterministic given a fixed RNG seed', () => {
@@ -94,7 +71,7 @@ test('scheduling is fully deterministic given a fixed RNG seed', () => {
     const allSpawned = [];
     for (let i = 0; i < 200; i++) {
       clockMs += 60_000; // advance one minute per poll
-      allSpawned.push(...scheduler.poll('moon').map((obj) => obj.kind));
+      allSpawned.push(...scheduler.poll('sun').map((obj) => obj.kind));
     }
     return allSpawned;
   }

@@ -156,10 +156,14 @@ body {
 }
 
 .sky-sun {
+  width: 100px;
+  height: 100px;
   background: radial-gradient(circle, #fff6c8 0%, #ffd54a 70%, #ffb200 100%);
 }
 
 .sky-moon {
+  width: 80px;
+  height: 80px;
   background: radial-gradient(circle, #f4f6fb 0%, #d8dee9 70%, #aab2c0 100%);
 }
 
@@ -182,13 +186,13 @@ body {
    filter — these are small sprites (bird/plane/balloon/rocket glyphs) that would turn into
    shapeless blobs under that filter. `sky-controller.js` appends short-lived
    `.sky-flying-object` elements (one per spawn from `flying-objects.js`'s scheduler),
-   positioned in a lane within the upper sky band so they never cross the header/nav/main
-   content column (FR-012), and removes each on its `animationend` event. */
+   positioned in a lane anywhere within the main content area, and removes each on its
+   `animationend` event. */
 .sky-flying-objects {
   position: fixed;
   top: var(--chrome-height, 120px);
   right: 0;
-  height: 35%;
+  bottom: 0;
   left: 0;
   z-index: -1;
   overflow: hidden;
@@ -199,20 +203,251 @@ body {
   position: absolute;
   top: var(--lane-top, 10%);
   left: 0;
-  font-size: 1.75rem;
-  line-height: 1;
   transform: translateX(-10vw);
   will-change: transform;
 }
 
-.sky-flying-object--bird,
-.sky-flying-object--plane,
-.sky-flying-object--balloon {
+.sky-flying-object--plane[data-direction='ltr'] {
   animation: fly-across var(--flight-duration, 16s) linear forwards;
 }
 
+.sky-flying-object--plane[data-direction='rtl'] {
+  animation: fly-across-rtl var(--flight-duration, 16s) linear forwards;
+}
+
+/* Balloon drifts with gentle thermal undulation — subtler than birds (±2 vh vs ±4 vh). */
+.sky-flying-object--balloon[data-direction='ltr'] {
+  animation: fly-balloon-ltr var(--flight-duration, 28s) linear forwards;
+}
+
+.sky-flying-object--balloon[data-direction='rtl'] {
+  animation: fly-balloon-rtl var(--flight-duration, 28s) linear forwards;
+}
+
+/* Bird uses a CSS sprite sheet with two distinct wavy flight-path profiles (FR-003).
+   The data-wavy-profile attribute ("a" or "b") is set by createBirdElement() in
+   flying-object-renderers.js; the attribute selector picks the matching @keyframes.
+   data-direction selects LTR or RTL keyframes; the sprite is additionally flipped
+   with scaleX(-1) for RTL so the bird always faces the way it is flying. */
+.sky-flying-object--bird[data-wavy-profile='a'][data-direction='ltr'] {
+  animation: fly-wavy-a var(--flight-duration, 13s) linear forwards;
+}
+
+.sky-flying-object--bird[data-wavy-profile='a'][data-direction='rtl'] {
+  animation: fly-wavy-a-rtl var(--flight-duration, 13s) linear forwards;
+}
+
+.sky-flying-object--bird[data-wavy-profile='b'][data-direction='ltr'] {
+  animation: fly-wavy-b var(--flight-duration, 13s) linear forwards;
+}
+
+.sky-flying-object--bird[data-wavy-profile='b'][data-direction='rtl'] {
+  animation: fly-wavy-b-rtl var(--flight-duration, 13s) linear forwards;
+}
+
+/* Inner sprite element that cycles through the 10-frame SVG strip via background-position.
+   background-size 900×125px preserves the original 3671×510 aspect ratio at ~90px/frame.
+   background-position-y: -25px vertically centres the bird silhouettes within the 90px element.
+   --bird-scale (set by createBirdElement) scales each bird independently to mock size variety.
+   For RTL birds the sprite is additionally flipped with scaleX(-1) so it faces left. */
+.sky-bird-sprite {
+  width: 90px;
+  height: 90px;
+  background-image: url('/vendor/bird-cells.svg');
+  background-size: 900px 125px;
+  background-repeat: no-repeat;
+  background-position: 0 -25px;
+  transform: scale(var(--bird-scale, 1));
+  transform-origin: center;
+  animation: bird-wingbeat var(--wingbeat-duration, 0.6s) steps(10) infinite;
+  animation-delay: var(--wingbeat-phase, 0s);
+}
+
+.sky-flying-object--bird[data-direction='rtl'] .sky-bird-sprite {
+  transform: scaleX(-1) scale(var(--bird-scale, 1));
+}
+
+@keyframes bird-wingbeat {
+  from {
+    background-position-x: 0;
+  }
+
+  to {
+    background-position-x: -900px;
+  }
+}
+
+/* Wavy profile A — gentle hump: enters small, peaks at full scale in the centre, exits small */
+@keyframes fly-wavy-a {
+  0% {
+    transform: translateX(-10vw) translateY(0) scale(0.6);
+  }
+
+  25% {
+    transform: translateX(20vw) translateY(-2vh) scale(0.8);
+  }
+
+  50% {
+    transform: translateX(55vw) translateY(-4vh) scale(1);
+  }
+
+  75% {
+    transform: translateX(85vw) translateY(-2vh) scale(0.85);
+  }
+
+  100% {
+    transform: translateX(110vw) translateY(0) scale(0.7);
+  }
+}
+
+/* RTL mirror: X positions mirrored around the viewport (x → 100vw − x) */
+@keyframes fly-wavy-a-rtl {
+  0% {
+    transform: translateX(110vw) translateY(0) scale(0.6);
+  }
+
+  25% {
+    transform: translateX(80vw) translateY(-2vh) scale(0.8);
+  }
+
+  50% {
+    transform: translateX(45vw) translateY(-4vh) scale(1);
+  }
+
+  75% {
+    transform: translateX(15vw) translateY(-2vh) scale(0.85);
+  }
+
+  100% {
+    transform: translateX(-10vw) translateY(0) scale(0.7);
+  }
+}
+
+/* Wavy profile B — irregular undulation: starts full size, dips, rises higher, minor dip, exits */
+@keyframes fly-wavy-b {
+  0% {
+    transform: translateX(-10vw) translateY(0) scale(1);
+  }
+
+  20% {
+    transform: translateX(15vw) translateY(3vh) scale(0.75);
+  }
+
+  45% {
+    transform: translateX(45vw) translateY(-3vh) scale(1.1);
+  }
+
+  70% {
+    transform: translateX(80vw) translateY(1vh) scale(0.9);
+  }
+
+  100% {
+    transform: translateX(110vw) translateY(-1vh) scale(0.8);
+  }
+}
+
+/* RTL mirror: X positions mirrored around the viewport (x → 100vw − x) */
+@keyframes fly-wavy-b-rtl {
+  0% {
+    transform: translateX(110vw) translateY(0) scale(1);
+  }
+
+  20% {
+    transform: translateX(85vw) translateY(3vh) scale(0.75);
+  }
+
+  45% {
+    transform: translateX(55vw) translateY(-3vh) scale(1.1);
+  }
+
+  70% {
+    transform: translateX(20vw) translateY(1vh) scale(0.9);
+  }
+
+  100% {
+    transform: translateX(-10vw) translateY(-1vh) scale(0.8);
+  }
+}
+
 .sky-flying-object--rocket {
-  animation: fly-to-moon var(--flight-duration, 10s) ease-in forwards;
+  /* Rocket flies straight up: override the base `top: var(--lane-top)` rule so
+     the element starts below the container, then translateY(-50vh) carries it
+     through the visible sky band and off the top. `--lane-left` sets the
+     horizontal position (createRocketElement repurposes laneTopPct for this). */
+  top: 100%;
+  left: var(--lane-left, 50%);
+  animation: fly-vertical var(--flight-duration, 10s) linear forwards;
+}
+
+/* Plane — 10-frame exhaust-flicker sprite, 900×90 px, jet faces right (LTR).
+   Flipped with scaleX(-1) for RTL so it always faces the flight direction. */
+.sky-plane-sprite {
+  width: 90px;
+  height: 90px;
+  background-image: url('/vendor/airplane-cells.svg');
+  background-size: 900px 90px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  transform: scale(var(--plane-scale, 2));
+  transform-origin: center;
+  animation: plane-exhaust 0.3s steps(10) infinite;
+}
+
+.sky-flying-object--plane[data-direction='rtl'] .sky-plane-sprite {
+  transform: scaleX(-1) scale(var(--plane-scale, 2));
+}
+
+/* Balloon — 10-frame burner-flame sprite, 900×90 px, always upright. */
+.sky-balloon-sprite {
+  width: 90px;
+  height: 90px;
+  background-image: url('/vendor/balloon-cells.svg');
+  background-size: 900px 90px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  transform: scale(var(--balloon-scale, 0.9));
+  transform-origin: center;
+  animation: balloon-flame 1.6s steps(10) infinite;
+}
+
+/* Rocket — 10-frame exhaust-flicker sprite, 900×90 px, points upward. */
+.sky-rocket-sprite {
+  width: 90px;
+  height: 90px;
+  background-image: url('/vendor/rocket-cells.svg');
+  background-size: 900px 90px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  transform: scale(3);
+  transform-origin: center;
+  animation: rocket-exhaust 0.2s steps(10) infinite;
+}
+
+@keyframes plane-exhaust {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -900px;
+  }
+}
+
+@keyframes balloon-flame {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -900px;
+  }
+}
+
+@keyframes rocket-exhaust {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -900px;
+  }
 }
 
 @keyframes fly-across {
@@ -225,13 +460,63 @@ body {
   }
 }
 
-@keyframes fly-to-moon {
+@keyframes fly-across-rtl {
   from {
-    transform: translate(-10vw, 0) rotate(35deg);
+    transform: translateX(110vw);
   }
 
   to {
-    transform: translate(110vw, -60vh) rotate(35deg);
+    transform: translateX(-10vw);
+  }
+}
+
+/* Balloon drift — gentle thermal undulation; vertical range ≈ ±2 vh (vs ±4 vh for birds).
+   RTL mirror: X positions mirrored around the viewport (x → 100vw − x). */
+@keyframes fly-balloon-ltr {
+  0% {
+    transform: translateX(-10vw) translateY(0);
+  }
+  20% {
+    transform: translateX(15vw) translateY(-2vh);
+  }
+  45% {
+    transform: translateX(45vw) translateY(1.5vh);
+  }
+  70% {
+    transform: translateX(75vw) translateY(-1vh);
+  }
+  100% {
+    transform: translateX(110vw) translateY(1vh);
+  }
+}
+
+@keyframes fly-balloon-rtl {
+  0% {
+    transform: translateX(110vw) translateY(0);
+  }
+  20% {
+    transform: translateX(85vw) translateY(-2vh);
+  }
+  45% {
+    transform: translateX(55vw) translateY(1.5vh);
+  }
+  70% {
+    transform: translateX(25vw) translateY(-1vh);
+  }
+  100% {
+    transform: translateX(-10vw) translateY(1vh);
+  }
+}
+
+/* Rocket launches straight up: travels from below the container (top: 100%) to
+   above it. 110 vh is enough to clear the full-height container plus the 90 px sprite. */
+@keyframes fly-vertical {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-110vh);
   }
 }
 
@@ -258,7 +543,10 @@ a {
      transparency toggle, burger) are the row's only two direct children, pushed to opposite
      ends by `justify-content: space-between`. The border only appears from `md:` up — below
      that, `.app-nav__list`'s collapsed dropdown (an absolutely-positioned overlay, see
-     tailwind.css) draws its own border when open, so a permanent one here would double up. */
+     tailwind.css) draws its own border when open, so a permanent one here would double up.
+     `position: relative` is the positioning context for the mobile dropdown — `.app-nav`
+     itself must NOT be `relative` so the dropdown spans the full header width. */
+  position: relative;
   background: var(--color-bg);
   display: flex;
   align-items: center;

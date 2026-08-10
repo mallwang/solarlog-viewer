@@ -24,7 +24,7 @@ their corresponding implementation tasks (T007, T009).
 **Purpose**: Provision the bird SVG sprite asset before any code is written.
 No code task can reference the asset until this is complete.
 
-- [ ] T001 Create the 10-frame bird silhouette SVG sprite strip (900 × 90 px, each frame 90 × 90 px) and save to `web/vendor/bird-cells-new.svg` — source from the referenced CodePen asset or draw an equivalent open-licensed SVG wing-cycle; verify 10 equal frames in a single horizontal strip
+- [x] T001 Create the 10-frame bird silhouette SVG sprite strip (900 × 90 px, each frame 90 × 90 px) and save to `web/vendor/bird-cells-new.svg` — source from the referenced CodePen asset or draw an equivalent open-licensed SVG wing-cycle; verify 10 equal frames in a single horizontal strip
 
 ---
 
@@ -35,11 +35,11 @@ can be implemented. The refactored `spawnFlyingObject` dispatcher depends on the
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 Add bird CSS to `web/css/app.css`: `.sky-bird-sprite` ruleset (`background-image: url('/vendor/bird-cells-new.svg')`, `background-size: 900px 90px`, `background-repeat: no-repeat`), `@keyframes bird-wingbeat` (`background-position-x: 0 → -900px` at `steps(10)`), `@keyframes fly-wavy-a` and `@keyframes fly-wavy-b` (see data-model.md §5 for keyframe stop tables); remove the `font-size: 1.75rem` / `text-content`-oriented rule from `.sky-flying-object--bird`
+- [x] T002 Add bird CSS to `web/css/app.css`: `.sky-bird-sprite` ruleset (`background-image: url('/vendor/bird-cells-new.svg')`, `background-size: 900px 90px`, `background-repeat: no-repeat`), `@keyframes bird-wingbeat` (`background-position-x: 0 → -900px` at `steps(10)`), `@keyframes fly-wavy-a` and `@keyframes fly-wavy-b` (see data-model.md §5 for keyframe stop tables); remove the `font-size: 1.75rem` / `text-content`-oriented rule from `.sky-flying-object--bird`
 
-- [ ] T003 Create `web/js/sky/flying-object-renderers.js` with: file-level JSDoc block, `@typedef {function({durationS: number, laneTopPct: number}): HTMLElement} RendererFn` JSDoc typedef, and `export const FLYING_OBJECT_RENDERERS` initialised with `{ bird: null, plane: null, balloon: null, rocket: null }` — all null at this stage
+- [x] T003 Create `web/js/sky/flying-object-renderers.js` with: file-level JSDoc block, `@typedef {function({durationS: number, laneTopPct: number}): HTMLElement} RendererFn` JSDoc typedef, and `export const FLYING_OBJECT_RENDERERS` initialised with `{ bird: null, plane: null, balloon: null, rocket: null }` — all null at this stage
 
-- [ ] T004 Refactor `spawnFlyingObject` in `web/js/sky/sky-controller.js`: import `FLYING_OBJECT_RENDERERS` from `./flying-object-renderers.js`; replace `FLYING_OBJECT_KIND_CONFIG` (which held `glyph`) with a `KIND_DURATION_RANGES` map (duration ranges only); rewrite `spawnFlyingObject` to look up `FLYING_OBJECT_RENDERERS[kind]`, return early if `null`, compute `durationS`/`laneTopPct` from duration range and `Math.random()`, call `renderer({ durationS, laneTopPct })`, attach `animationend` cleanup listener, and append to container — no `if kind === '...'` branching
+- [x] T004 Refactor `spawnFlyingObject` in `web/js/sky/sky-controller.js`: import `FLYING_OBJECT_RENDERERS` from `./flying-object-renderers.js`; replace `FLYING_OBJECT_KIND_CONFIG` (which held `glyph`) with a `KIND_DURATION_RANGES` map (duration ranges only); rewrite `spawnFlyingObject` to look up `FLYING_OBJECT_RENDERERS[kind]`, return early if `null`, compute `durationS`/`laneTopPct` from duration range and `Math.random()`, call `renderer({ durationS, laneTopPct })`, attach `animationend` cleanup listener, and append to container — no `if kind === '...'` branching
 
 **Checkpoint**: Foundation ready — `spawnFlyingObject` delegates to registry; all kinds silently no-op (all null). Site loads without errors. Existing `sky.spec.js` tests pass (birds no longer appear, which the existing test `'not.toHaveCount(0)'` will now fail — this is expected and will be fixed in T007).
 
@@ -53,13 +53,13 @@ can be implemented. The refactored `spawnFlyingObject` dispatcher depends on the
 
 ### Tests for User Story 1 ⚠️ Write first — confirm failing before T007
 
-- [ ] T005 [US1] Write failing unit tests in `web/js/sky/flying-object-renderers.test.js`: (1) `createBirdElement` returns an `HTMLElement` with class `sky-flying-object sky-flying-object--bird`; (2) outer element has `--lane-top` and `--flight-duration` CSS vars set to the passed values; (3) outer element contains a child `.sky-bird-sprite`; (4) `.sky-bird-sprite` has `--wingbeat-duration` set within [0.4, 0.9] s; (5) `textContent` of outer element is empty; (6) calling 10 times produces at least two distinct `data-wavy-profile` values (`"a"` and `"b"`)
+- [x] T005 [US1] Write failing unit tests in `web/js/sky/flying-object-renderers.test.js`: (1) `createBirdElement` returns an `HTMLElement` with class `sky-flying-object sky-flying-object--bird`; (2) outer element has `--lane-top` and `--flight-duration` CSS vars set to the passed values; (3) outer element contains a child `.sky-bird-sprite`; (4) `.sky-bird-sprite` has `--wingbeat-duration` set within [0.4, 0.9] s; (5) `textContent` of outer element is empty; (6) calling 10 times produces at least two distinct `data-wavy-profile` values (`"a"` and `"b"`)
 
-- [ ] T006 [US1] Write failing Playwright tests in `tests/e2e/sky-birds.spec.js`: (1) after `clock.fastForward(30s)` a `.sky-flying-object--bird` element exists; (2) its `textContent` is empty (no emoji); (3) it contains a `.sky-bird-sprite` child; (4) after `clock.fastForward` past flight duration the element is removed from DOM (`animationend` cleanup); (5) when the SVG is intercepted to return 404 (`page.route()`), spawning produces no `pageerror` and the element is still removed from DOM
+- [x] T006 [US1] Write failing Playwright tests in `tests/e2e/sky-birds.spec.js`: (1) after `clock.fastForward(30s)` a `.sky-flying-object--bird` element exists; (2) its `textContent` is empty (no emoji); (3) it contains a `.sky-bird-sprite` child; (4) after `clock.fastForward` past flight duration the element is removed from DOM (`animationend` cleanup); (5) when the SVG is intercepted to return 404 (`page.route()`), spawning produces no `pageerror` and the element is still removed from DOM
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Implement `createBirdElement({ durationS, laneTopPct })` in `web/js/sky/flying-object-renderers.js` (with full JSDoc `@param`/`@returns`): create outer `div.sky-flying-object.sky-flying-object--bird` with `data-wavy-profile` attribute (`"a"` or `"b"` chosen at random), `--lane-top` and `--flight-duration` CSS vars; create inner `div.sky-bird-sprite` with `--wingbeat-duration` (random 0.4–0.9 s) and `--wingbeat-phase` (negative random offset in `[-wingbeatDuration, 0]` s) CSS vars; append inner to outer; return outer — then set `FLYING_OBJECT_RENDERERS.bird = createBirdElement`
+- [x] T007 [US1] Implement `createBirdElement({ durationS, laneTopPct })` in `web/js/sky/flying-object-renderers.js` (with full JSDoc `@param`/`@returns`): create outer `div.sky-flying-object.sky-flying-object--bird` with `data-wavy-profile` attribute (`"a"` or `"b"` chosen at random), `--lane-top` and `--flight-duration` CSS vars; create inner `div.sky-bird-sprite` with `--wingbeat-duration` (random 0.4–0.9 s) and `--wingbeat-phase` (negative random offset in `[-wingbeatDuration, 0]` s) CSS vars; append inner to outer; return outer — then set `FLYING_OBJECT_RENDERERS.bird = createBirdElement`
 
 **Checkpoint**: `node --test web/js/sky/flying-object-renderers.test.js` passes. `npx playwright test tests/e2e/sky-birds.spec.js` US1 tests pass. `npx playwright test tests/e2e/sky.spec.js` passes (update the `'not.toHaveCount(0)'` assertion in the existing bird-spawns test if needed).
 
@@ -73,11 +73,11 @@ can be implemented. The refactored `spawnFlyingObject` dispatcher depends on the
 
 ### Tests for User Story 2 ⚠️ Write first — confirm failing before T009
 
-- [ ] T008 [US2] Add Playwright test for US2 in `tests/e2e/sky-birds.spec.js`: `clock.fastForward(5 * 60 * 1000)`, then assert `page.locator('.sky-flying-object:not(.sky-flying-object--bird)').count()` equals 0 and no `pageerror` was emitted during the run
+- [x] T008 [US2] Add Playwright test for US2 in `tests/e2e/sky-birds.spec.js`: `clock.fastForward(5 * 60 * 1000)`, then assert `page.locator('.sky-flying-object:not(.sky-flying-object--bird)').count()` equals 0 and no `pageerror` was emitted during the run
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Verify and annotate null entries in `web/js/sky/flying-object-renderers.js`: add an inline JSDoc comment above each null entry in `FLYING_OBJECT_RENDERERS` explaining it is intentionally disabled pending a future renderer implementation (e.g., `// plane renderer not yet implemented — set to null to disable spawning (FR-007)`); confirm `spawnFlyingObject`'s `if (!renderer) return` in `sky-controller.js` already gates these correctly
+- [x] T009 [US2] Verify and annotate null entries in `web/js/sky/flying-object-renderers.js`: add an inline JSDoc comment above each null entry in `FLYING_OBJECT_RENDERERS` explaining it is intentionally disabled pending a future renderer implementation (e.g., `// plane renderer not yet implemented — set to null to disable spawning (FR-007)`); confirm `spawnFlyingObject`'s `if (!renderer) return` in `sky-controller.js` already gates these correctly
 
 **Checkpoint**: `npx playwright test tests/e2e/sky-birds.spec.js` US2 test passes.
 
@@ -91,9 +91,9 @@ can be implemented. The refactored `spawnFlyingObject` dispatcher depends on the
 
 ### Implementation for User Story 3
 
-- [ ] T010 [P] [US3] Expand JSDoc in `web/js/sky/flying-object-renderers.js`: add an `@example` block to the `FLYING_OBJECT_RENDERERS` JSDoc showing the minimal 3-file diff to add a new kind (`flying-object-renderers.js` registry entry + `flying-objects.js` scheduler band + `app.css` keyframe); ensure the `RendererFn` `@typedef` fully documents the `durationS`/`laneTopPct` contract
+- [x] T010 [P] [US3] Expand JSDoc in `web/js/sky/flying-object-renderers.js`: add an `@example` block to the `FLYING_OBJECT_RENDERERS` JSDoc showing the minimal 3-file diff to add a new kind (`flying-object-renderers.js` registry entry + `flying-objects.js` scheduler band + `app.css` keyframe); ensure the `RendererFn` `@typedef` fully documents the `durationS`/`laneTopPct` contract
 
-- [ ] T011 [P] [US3] Add a one-sentence comment above `spawnFlyingObject` in `web/js/sky/sky-controller.js` stating that kind-specific logic MUST NOT be added to this function — new kinds extend only via the renderer registry
+- [x] T011 [P] [US3] Add a one-sentence comment above `spawnFlyingObject` in `web/js/sky/sky-controller.js` stating that kind-specific logic MUST NOT be added to this function — new kinds extend only via the renderer registry
 
 **Checkpoint**: `spawnFlyingObject` body contains zero kind-specific branches. JSDoc in `flying-object-renderers.js` makes the extension pattern self-evident.
 

@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 90" width="900" height="90">
+  <!--
+    rocket-cells.svg — 10-frame horizontal sprite strip, 900×90 px (each frame 90×90 px).
+    Rocket points upward; exhaust flame flickers across frames.
+    Animate with: background-position-x 0 → -900px, steps(10), to cycle all frames.
+    For vertical ascent, pair with a CSS flight-path keyframe that moves the element upward.
+  -->
+  <defs>
+    <!-- Static rocket body in frame-0 local space -->
+    <g id="rkt">
+      <!-- Main body -->
+      <rect x="37" y="19" width="16" height="52" rx="4" fill="#2a2a2a"/>
+      <!-- Nose cone -->
+      <path d="M37,23 L45,8 L53,23Z" fill="#cc2200"/>
+      <!-- Porthole window -->
+      <circle cx="45" cy="34" r="5.5" fill="#2a5a8a"/>
+      <circle cx="45" cy="34" r="3.5" fill="#4a9ad4"/>
+      <!-- Porthole rim -->
+      <circle cx="45" cy="34" r="5.5" fill="none" stroke="#1a1a1a" stroke-width="1.2"/>
+      <!-- Body stripe (mid-section band) -->
+      <rect x="37" y="50" width="16" height="5" fill="#383838" rx="1"/>
+      <!-- Left fin -->
+      <path d="M37,63 L22,82 L37,74Z" fill="#383838"/>
+      <!-- Right fin -->
+      <path d="M53,63 L68,82 L53,74Z" fill="#383838"/>
+      <!-- Nozzle bell -->
+      <path d="M39,71 L37,76 L53,76 L51,71Z" fill="#444"/>
+    </g>
+  </defs>
+
+  <!-- Frame 0: small exhaust (h=8, tip y=84) -->
+  <g transform="translate(0,0)">
+    <use href="#rkt"/>
+    <path d="M41,76 Q38,80 45,84 Q52,80 49,76Z" fill="#e85d00"/>
+    <path d="M42,76 Q40,79 45,82 Q50,79 48,76Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 1: medium-large exhaust (h=13, tip y=89) -->
+  <g transform="translate(90,0)">
+    <use href="#rkt"/>
+    <path d="M40,76 Q37,82 45,89 Q53,82 50,76Z" fill="#e85d00"/>
+    <path d="M41,76 Q39,81 45,86 Q51,81 49,76Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 2: medium exhaust (h=10, tip y=86) -->
+  <g transform="translate(180,0)">
+    <use href="#rkt"/>
+    <path d="M41,76 Q38,81 45,86 Q52,81 49,76Z" fill="#e85d00"/>
+    <path d="M42,76 Q40,80 45,83 Q50,80 48,76Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 3: large exhaust (h=14, tip y=90) -->
+  <g transform="translate(270,0)">
+    <use href="#rkt"/>
+    <path d="M40,76 Q37,83 45,90 Q53,83 50,76Z" fill="#e85d00"/>
+    <path d="M41,76 Q39,81 45,87 Q51,81 49,76Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 4: tiny exhaust (h=5, tip y=81) -->
+  <g transform="translate(360,0)">
+    <use href="#rkt"/>
+    <path d="M42,76 Q40,78 45,81 Q50,78 48,76Z" fill="#e85d00"/>
+    <path d="M43,76 Q41,78 45,79 Q49,78 47,76Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 5: medium-large exhaust (h=12, tip y=88) -->
+  <g transform="translate(450,0)">
+    <use href="#rkt"/>
+    <path d="M40,76 Q37,82 45,88 Q53,82 50,76Z" fill="#e85d00"/>
+    <path d="M41,76 Q39,80 45,85 Q51,80 49,76Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 6: largest exhaust (h=14, tip y=90) -->
+  <g transform="translate(540,0)">
+    <use href="#rkt"/>
+    <path d="M40,76 Q37,83 45,90 Q53,83 50,76Z" fill="#e85d00"/>
+    <path d="M41,76 Q39,82 45,88 Q51,82 49,76Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 7: small exhaust (h=8, tip y=84) -->
+  <g transform="translate(630,0)">
+    <use href="#rkt"/>
+    <path d="M41,76 Q38,80 45,84 Q52,80 49,76Z" fill="#e85d00"/>
+    <path d="M42,76 Q40,79 45,82 Q50,79 48,76Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 8: medium-large exhaust (h=13, tip y=89) -->
+  <g transform="translate(720,0)">
+    <use href="#rkt"/>
+    <path d="M40,76 Q37,82 45,89 Q53,82 50,76Z" fill="#e85d00"/>
+    <path d="M41,76 Q39,81 45,86 Q51,81 49,76Z" fill="#ffd700"/>
+  </g>
+
+  <!-- Frame 9: tiny exhaust (h=6, tip y=82) -->
+  <g transform="translate(810,0)">
+    <use href="#rkt"/>
+    <path d="M42,76 Q39,79 45,82 Q51,79 48,76Z" fill="#e85d00"/>
+    <path d="M43,76 Q41,78 45,80 Q49,78 47,76Z" fill="#ffd700"/>
+  </g>
+</svg>
