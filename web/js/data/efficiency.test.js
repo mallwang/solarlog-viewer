@@ -1,6 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { efficiencyPercent } from './efficiency.js';
+import { efficiencyPercent, efficiencySums } from './efficiency.js';
+
+test('efficiencySums sums pacW and every pdcW element across inverters', () => {
+  const perInverter = {
+    1: { pacW: 300, pdcW: [150, 150] },
+    2: { pacW: 100, pdcW: [50] },
+  };
+  assert.deepEqual(efficiencySums(perInverter), { pacW: 400, pdcW: 350 });
+});
+
+test('efficiencySums returns zeroes for an empty map', () => {
+  assert.deepEqual(efficiencySums({}), { pacW: 0, pdcW: 0 });
+});
 
 test('computes a normal ratio as a percentage', () => {
   const perInverter = { 1: { pacW: 900, pdcW: [1000] } };

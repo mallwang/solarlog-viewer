@@ -964,6 +964,12 @@ a {
   cursor: pointer;
 }
 
+/* A wider gap between each legend marker "bubble" and its label text
+   (ApexCharts' own text padding/margin cancel each other out, leaving ~1px by default). */
+.chart-mount .apexcharts-legend-marker {
+  margin-right: var(--space-xs);
+}
+
 /* .view-title / .empty-state base styling — migrated to Tailwind utility classes directly in
    each view module's markup (web/js/views/*.js, empty-state.js). */
 

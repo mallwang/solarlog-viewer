@@ -116,11 +116,12 @@ against raw PAC/PDC data; confirm gaps at zero-PDC points and absence on yield-o
   `t('chart.efficiencyAxis')`) mapping each reading to `efficiencyPercent(r.perInverter)`
   (`null`-gapped, uncapped — no `Math.min`/clamp), attach it to a second `yaxis` entry (opposite
   side, e.g. `{ seriesName: ..., opposite: true, title: { text: t('chart.efficiencyAxis') } }`
-  alongside the existing power `yaxis`), and extend `tooltip.y` to a per-series formatter array so
-  the power series keeps its `W` suffix and the new series formats with a `%` suffix (both still
-  rendering `'—'` for `null`) — per data-model.md's Consumers section and research.md's
-  "Day chart rendering approach" decision; do NOT touch `buildDayYieldOptions()` (FR-006 —
-  yield-only fallback days must show no efficiency curve)
+  alongside the existing power `yaxis`), and give the tooltip a `tooltip.custom` renderer so the
+  power series keeps its `W` suffix, the new series formats with a `%` suffix plus an
+  "AC: … / DC: …" breakdown sub-line from `efficiencySums()`, and both still render `'—'` for
+  `null` — per data-model.md's Consumers section and research.md's "Day chart rendering approach"
+  decision; do NOT touch `buildDayYieldOptions()` (FR-006 — yield-only fallback days must show no
+  efficiency curve)
 - [X] T010 [US2] Verify `buildDayYieldOptions()` in `web/js/charts/chart-factory.js` is unmodified
   and confirm (via T007's Playwright case) that yield-only/backfilled days render only the
   existing Wh series, no efficiency curve (FR-006)

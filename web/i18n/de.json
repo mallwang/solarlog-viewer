@@ -101,6 +101,7 @@
     "timeAxis": "Uhrzeit",
     "powerAxis": "Leistung",
     "energyAxis": "Energie",
+    "feedInAxis": "Einspeisung (W)",
     "efficiencyAxis": "Wirkungsgrad (%)",
     "total": "Gesamt"
   },

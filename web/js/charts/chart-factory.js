@@ -1,7 +1,7 @@
 import '../../vendor/apexcharts/apexcharts.esm.js';
 import { t } from '../i18n.js';
 import { formatNumber, formatKwh } from '../format.js';
-import { efficiencyPercent } from '../data/efficiency.js';
+import { efficiencyPercent, efficiencySums } from '../data/efficiency.js';
 
 // vendor/apexcharts/apexcharts.esm.js is ApexCharts' UMD build; loaded as an ES module for its
 // side effect of attaching `window.ApexCharts` (no bundler-free single-file ESM build is
@@ -27,8 +27,33 @@ function getChartColors() {
 
 const charts = new WeakMap();
 
+// Fixed (not palette-driven) so "Wirkungsgrad" stays legible against the sky background even
+// in transparency mode, where a blue line washes out against the blue sky.
+const EFFICIENCY_LINE_COLOR = '#2e7d32';
+
 function formatTimeLabel(isoTimestamp) {
   return isoTimestamp.slice(11, 16);
+}
+
+/**
+ * Renders one series row for the day chart's custom tooltip (see `buildDayOptions`), reusing
+ * ApexCharts' own tooltip CSS classes so it inherits the built-in light/dark theming. `detail`,
+ * when given, adds a muted sub-line under the value — used to show the Wirkungsgrad calculation
+ * (PAC ⁄ PDC) beneath its percentage.
+ * @param {{ color: string, label: string, value: string, detail?: string }} opts
+ * @returns {string}
+ */
+function tooltipRow({ color, label, value, detail }) {
+  return `<div class="apexcharts-tooltip-series-group apexcharts-active" style="display:flex">
+    <span class="apexcharts-tooltip-marker" style="background-color:${color}"></span>
+    <div class="apexcharts-tooltip-text">
+      <div class="apexcharts-tooltip-y-group">
+        <span class="apexcharts-tooltip-text-y-label">${label}: </span>
+        <span class="apexcharts-tooltip-text-y-value">${value}</span>
+        ${detail ? `<div style="color:var(--apx-tt-color-muted);font-size:11px;margin-top:2px;">${detail}</div>` : ''}
+      </div>
+    </div>
+  </div>`;
 }
 
 function baseOptions(colors) {
@@ -58,56 +83,91 @@ function buildDayOptions(data, colors, { lang } = {}) {
   const categories = data.readings.map((r) => formatTimeLabel(r.timestamp));
   const series = [
     {
-      name: t('chart.total'),
+      name: t('chart.feedInAxis'),
+      type: 'area',
       data: data.readings.map((r) =>
         sumPerInverter(Object.values(r.perInverter).map((i) => i?.pacW)),
       ),
     },
     {
       name: t('chart.efficiencyAxis'),
+      type: 'line',
       data: data.readings.map((r) => efficiencyPercent(r.perInverter)),
     },
   ];
 
   return {
     ...baseOptions(colors),
-    chart: { ...baseOptions(colors).chart, type: 'area' },
-    stroke: { width: 2, curve: 'smooth' },
-    fill: { type: 'gradient', gradient: { opacityFrom: 0.8, opacityTo: 0.25 } },
-    markers: { size: 0 },
+    chart: { ...baseOptions(colors).chart, type: 'line' },
+    colors: [colors[0], EFFICIENCY_LINE_COLOR],
+    stroke: { width: [2, 2], curve: 'smooth' },
+    fill: {
+      type: ['gradient', 'solid'],
+      gradient: {
+        type: 'vertical',
+        shade: 'light',
+        shadeIntensity: 0.3,
+        opacityFrom: 0.8,
+        opacityTo: 0.25,
+      },
+    },
+    // Explicit per-series colors: without this, ApexCharts' hover markers both pick up the
+    // area series' color (mixed area+line charts don't reliably fall back to the top-level
+    // `colors` array for marker fills), so the Wirkungsgrad hover dot showed up orange too.
+    markers: { size: 0, hover: { size: 5 }, colors: [colors[0], EFFICIENCY_LINE_COLOR] },
     series,
     xaxis: {
       categories,
-      title: { text: t('chart.timeAxis') },
+      title: { text: t('chart.timeAxis'), offsetY: -30 },
       tickAmount: 12,
     },
     yaxis: [
       {
-        seriesName: t('chart.total'),
-        title: { text: 'W' },
+        seriesName: t('chart.feedInAxis'),
+        title: { text: t('chart.feedInAxis') },
         min: 0,
+        forceNiceScale: true,
+        labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
       },
       {
         seriesName: t('chart.efficiencyAxis'),
         opposite: true,
         title: { text: t('chart.efficiencyAxis') },
+        forceNiceScale: true,
+        labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
       },
     ],
     tooltip: {
-      y: [
-        {
-          formatter: (value) =>
-            value === null || value === undefined
-              ? '—'
-              : `${formatNumber(value, { decimals: 0, lang })} W`,
-        },
-        {
-          formatter: (value) =>
-            value === null || value === undefined
-              ? '—'
-              : `${formatNumber(value, { decimals: 0, lang })}%`,
-        },
-      ],
+      // Custom (rather than per-series `y.formatter`) so the Wirkungsgrad row can show its
+      // PAC ⁄ PDC calculation as a sub-line under the percentage.
+      custom: ({ series: hoveredSeries, dataPointIndex, w }) => {
+        const pacValue = hoveredSeries[0][dataPointIndex];
+        const pctValue = hoveredSeries[1][dataPointIndex];
+        const { pacW, pdcW } = efficiencySums(data.readings[dataPointIndex]?.perInverter);
+        const rows = [
+          tooltipRow({
+            color: w.globals.colors[0],
+            label: t('chart.feedInAxis'),
+            value:
+              pacValue === null || pacValue === undefined
+                ? '—'
+                : `${formatNumber(pacValue, { decimals: 0, lang })} W`,
+          }),
+          tooltipRow({
+            color: w.globals.colors[1],
+            label: t('chart.efficiencyAxis'),
+            value:
+              pctValue === null || pctValue === undefined
+                ? '—'
+                : `${formatNumber(pctValue, { decimals: 0, lang })}%`,
+            detail:
+              pctValue === null || pctValue === undefined
+                ? undefined
+                : `AC: ${formatNumber(pacW, { decimals: 0, lang })} W / DC: ${formatNumber(pdcW, { decimals: 0, lang })} W`,
+          }),
+        ];
+        return `<div class="apexcharts-tooltip-title">${categories[dataPointIndex]}</div>${rows.join('')}`;
+      },
     },
   };
 }
@@ -138,12 +198,14 @@ function buildDayYieldOptions(data, colors, { lang } = {}) {
     series,
     xaxis: {
       categories,
-      title: { text: t('chart.timeAxis') },
+      title: { text: t('chart.timeAxis'), offsetY: -8 },
       tickAmount: 12,
     },
     yaxis: {
       title: { text: 'Wh' },
       min: 0,
+      forceNiceScale: true,
+      labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
     },
     tooltip: {
       y: {

@@ -22,14 +22,19 @@ reading.perInverter = {
 }
 ```
 
-**Derived value** — `efficiencyPercent(perInverter)`:
+**Derived values** — `efficiencySums(perInverter)` and `efficiencyPercent(perInverter)`:
+
+`efficiencySums()` computes the raw summed inputs; `efficiencyPercent()` calls it and divides.
+Both are exported from `efficiency.js` — the day chart's tooltip calls `efficiencySums()`
+directly (alongside `efficiencyPercent()` for the series value) so it can show the underlying
+"AC: … / DC: …" figures next to the percentage, without re-deriving the sums itself.
 
 | Field | Type | Description |
 |---|---|---|
 | Input | `Record<string\|number, { pacW: number, pdcW: number[] }>` | One reading's `perInverter` map (live or historical). |
-| `sumPac` | `number` | Σ `pacW` across all inverters. |
-| `sumPdc` | `number` | Σ every element of every inverter's `pdcW` array. |
-| Output | `number \| null` | `(sumPac / sumPdc) * 100` when `sumPdc > 0` and both sums are finite; `null` otherwise (no fabricated 0%/Infinity/NaN — FR-003/FR-005). |
+| `pacW` (sum) | `number` | Σ `pacW` across all inverters — returned as-is by `efficiencySums()`. |
+| `pdcW` (sum) | `number` | Σ every element of every inverter's `pdcW` array — returned as-is by `efficiencySums()`. |
+| Output | `number \| null` | `efficiencyPercent()`: `(pacW / pdcW) * 100` when `pdcW > 0` and both sums are finite; `null` otherwise (no fabricated 0%/Infinity/NaN — FR-003/FR-005). |
 
 **Validation rules** (from spec Requirements):
 
@@ -54,7 +59,10 @@ the info panel, one call per reading when building the day chart's series).
    `efficiencyPercent(reading.perInverter)` once per poll tick (existing
    10-minute interval, existing `min_cur.js` fetch — no new request), renders
    the rounded value next to the existing wattage or omits it on `null`.
-2. **Day view chart** (`chart-factory.js`'s `buildDayOptions`): calls it once
-   per reading when building the chart's `series` array, producing a second
-   series (`null`-gapped per point where unavailable) plotted on a secondary
-   y-axis alongside the existing power series.
+2. **Day view chart** (`chart-factory.js`'s `buildDayOptions`): calls
+   `efficiencyPercent()` once per reading when building the chart's `series`
+   array, producing a second series (`null`-gapped per point where
+   unavailable) plotted as a solid green line on a secondary y-axis
+   alongside the existing power area series. A custom `tooltip.custom`
+   renderer calls `efficiencySums()` per hovered point to show an
+   "AC: … W / DC: … W" breakdown under the percentage.
