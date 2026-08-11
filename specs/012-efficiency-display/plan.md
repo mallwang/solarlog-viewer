@@ -51,7 +51,7 @@ tooltip); no historical/month/year aggregate scope (per spec Assumptions).
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **Principle I (Static-File Data Model is Sacred)**: PASS — no `.js` data
   file is read differently or altered; efficiency is computed at display time
@@ -129,4 +129,4 @@ consumed by `info-panel-controller.js`.
 
 ## Complexity Tracking
 
-*No Constitution Check violations — this section is intentionally empty.*
+_No Constitution Check violations — this section is intentionally empty._

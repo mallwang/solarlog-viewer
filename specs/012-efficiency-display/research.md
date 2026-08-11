@@ -24,6 +24,7 @@ a second consumer (the chart factory), so it belongs in `web/js/data/`
 alongside `min-file.js`, not under `info-panel/`.
 
 **Alternatives considered**:
+
 - Inlining the sum/ratio in both `info-panel-controller.js` and
   `chart-factory.js` separately — rejected: duplicates the zero/missing-PDC
   guard and risks the two surfaces disagreeing on edge-case behavior.
@@ -53,7 +54,7 @@ error value").
 
 ## Decision: Day chart rendering approach (secondary y-axis vs. separate chart)
 
-**Decision**: Add the efficiency series to the *existing* `buildDayOptions`
+**Decision**: Add the efficiency series to the _existing_ `buildDayOptions`
 chart as a second ApexCharts series plotted against a secondary y-axis
 (0–100%+, on the right), rather than a second chart instance below the power
 chart.

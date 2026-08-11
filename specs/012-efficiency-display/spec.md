@@ -8,7 +8,7 @@
 
 **Input**: User description: "Zusätzlich zur aktuellen Energieproduktion soll der Wirkungsgrad angezeigt werden, welcher sich aus PAC zu PDC errechnet — sowohl im Info-Panel (Live-Wert) als auch im Day-View-Chart (Tagesverlauf)."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Live efficiency in the info panel (Priority: P1)
 
@@ -50,7 +50,7 @@ A visitor viewing a specific day's production chart (Mode 0 day detail view) can
 - What happens when PAC exceeds PDC (efficiency > 100%), e.g. due to measurement rounding or SolarLog's own accuracy limits? → Display the computed value as-is, uncapped; this is a real-world data-quality artifact, not something the display should silently hide or clamp.
 - How does the system handle days/readings where PDC data was never collected historically (older archived files with a different field layout)? → Treated the same as PDC = 0/missing: point omitted from the efficiency curve, no error shown.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -68,7 +68,7 @@ A visitor viewing a specific day's production chart (Mode 0 day detail view) can
 
 - **Efficiency reading**: A derived value per timestamp (live or historical), computed from the existing PAC/PDC figures already present in `min_cur.js` / `min{YYMMDD}.js` readings — not a new stored data point, purely a display-time calculation.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

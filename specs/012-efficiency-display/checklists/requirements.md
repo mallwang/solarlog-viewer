@@ -31,5 +31,5 @@
 
 ## Notes
 
-- Spec references existing data fields (`min_cur.js`/`min{YYMMDD}.js`, PAC/PDC) only to describe *what data already exists*, not *how* to implement the derivation — kept in Assumptions/Key Entities as context, not as prescribed implementation.
+- Spec references existing data fields (`min_cur.js`/`min{YYMMDD}.js`, PAC/PDC) only to describe _what data already exists_, not _how_ to implement the derivation — kept in Assumptions/Key Entities as context, not as prescribed implementation.
 - All items pass on first validation pass; no clarifications needed — efficiency scope (PAC/PDC ratio, live value + day-view curve) was already agreed with the user before this spec was written.

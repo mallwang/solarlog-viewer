@@ -29,16 +29,16 @@ Both are exported from `efficiency.js` — the day chart's tooltip calls `effici
 directly (alongside `efficiencyPercent()` for the series value) so it can show the underlying
 "AC: … / DC: …" figures next to the percentage, without re-deriving the sums itself.
 
-| Field | Type | Description |
-|---|---|---|
-| Input | `Record<string\|number, { pacW: number, pdcW: number[] }>` | One reading's `perInverter` map (live or historical). |
-| `pacW` (sum) | `number` | Σ `pacW` across all inverters — returned as-is by `efficiencySums()`. |
-| `pdcW` (sum) | `number` | Σ every element of every inverter's `pdcW` array — returned as-is by `efficiencySums()`. |
-| Output | `number \| null` | `efficiencyPercent()`: `(pacW / pdcW) * 100` when `pdcW > 0` and both sums are finite; `null` otherwise (no fabricated 0%/Infinity/NaN — FR-003/FR-005). |
+| Field        | Type                                                       | Description                                                                                                                                              |
+| ------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Input        | `Record<string\|number, { pacW: number, pdcW: number[] }>` | One reading's `perInverter` map (live or historical).                                                                                                    |
+| `pacW` (sum) | `number`                                                   | Σ `pacW` across all inverters — returned as-is by `efficiencySums()`.                                                                                    |
+| `pdcW` (sum) | `number`                                                   | Σ every element of every inverter's `pdcW` array — returned as-is by `efficiencySums()`.                                                                 |
+| Output       | `number \| null`                                           | `efficiencyPercent()`: `(pacW / pdcW) * 100` when `pdcW > 0` and both sums are finite; `null` otherwise (no fabricated 0%/Infinity/NaN — FR-003/FR-005). |
 
 **Validation rules** (from spec Requirements):
 
-- FR-001: sum across *all* inverters and *all* strings/trackers per inverter
+- FR-001: sum across _all_ inverters and _all_ strings/trackers per inverter
   before dividing (not a per-inverter or per-string efficiency).
 - FR-003/FR-005: `sumPdc === 0` (or non-finite) → `null`, never `0%` or an
   error.
