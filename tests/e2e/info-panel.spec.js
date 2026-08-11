@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
  * @param {import('@playwright/test').Page} page
  * @param {{ pacW?: number, aborted?: boolean }} [options]
  */
-async function mockProduction(page, { pacW = 3100, aborted = false } = {}) {
+async function mockProduction(page, { pacW = 3100, pdcW = [0, 0], aborted = false } = {}) {
   if (aborted) {
     await page.route('**/data/min_cur.js', (route) => route.abort());
     return;
@@ -15,7 +15,7 @@ async function mockProduction(page, { pacW = 3100, aborted = false } = {}) {
     'var Datum="10.08.26"',
     'var Uhrzeit="14:00:00"',
     `PacArr = [[${pacW}]];`,
-    'PdcArr = [[0,0]];',
+    `PdcArr = [[${pdcW.join(',')}]];`,
   ].join('\n');
   await page.route('**/data/min_cur.js', (route) =>
     route.fulfill({ contentType: 'application/javascript', body }),
@@ -202,6 +202,42 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     await page.goto('/');
     const pulse = page.locator('[data-info-panel="desktop"] [data-role="pulse"]');
     await expect(pulse).toHaveCSS('background-color', 'rgb(132, 153, 48)');
+  });
+
+  test('shows efficiency percentage next to the wattage when PAC>0 and PDC>0', async ({ page }) => {
+    await mockProduction(page, { pacW: 1234, pdcW: [1312] }); // 1234/1312*100 ≈ 94%
+    await mockForecast(page);
+    await page.goto('/');
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('1234 W · 94%');
+  });
+
+  test('shows no efficiency percentage when idle (PAC=0, PDC=0)', async ({ page }) => {
+    await mockProduction(page, { pacW: 0, pdcW: [0, 0] });
+    await mockForecast(page);
+    await page.goto('/');
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production-value"]')).not.toContainText('%');
+  });
+
+  test('shows no efficiency percentage when PDC is 0/missing but PAC>0', async ({ page }) => {
+    await mockProduction(page, { pacW: 800, pdcW: [0, 0] });
+    await mockForecast(page);
+    await page.goto('/');
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('800 W');
+  });
+
+  test('shows no efficiency percentage on fetch failure', async ({ page }) => {
+    await mockProduction(page, { aborted: true });
+    await mockForecast(page);
+    await page.goto('/');
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'data-available',
+      'false',
+    );
+    await expect(desktop.locator('[data-role="production-value"]')).not.toContainText('%');
   });
 });
 

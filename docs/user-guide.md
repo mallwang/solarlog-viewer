@@ -39,7 +39,12 @@ and today's remaining forecast for the installation's location. It refreshes bot
 minutes (matching the SolarLog device's own minimum update interval, so a faster refresh
 wouldn't find newer data anyway). A small pulsing dot next to the production value gets larger
 and pulses faster the closer current output is to the plant's configured peak capacity, and
-calms to idle near zero (e.g. at night). Click or tap the weather/forecast area to open a
+calms to idle near zero (e.g. at night). Next to the production wattage, the panel shows the
+inverter's current efficiency (AC output ÷ DC input, e.g. "1234 W · 94%") whenever DC input is
+available and non-zero — hidden rather than showing a misleading 0%/∞ when it isn't. The day
+view (`#/day/YYYY/MM/DD`) shows the same efficiency figure as a second curve alongside the power
+curve, gapped wherever DC input is zero or missing, and not shown at all for backfilled/archived
+days that only have a reconstructed yield curve. Click or tap the weather/forecast area to open a
 wetteronline.de search for the installation's address in a new tab. If production or weather
 data can't be retrieved, that side of the panel shows "Unavailable" while the other side keeps
 working normally. The panel is hidden entirely below 768px — it contributes no extra space to

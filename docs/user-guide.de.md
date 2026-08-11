@@ -45,7 +45,13 @@ aktualisiert (passend zum minimalen Aktualisierungsintervall des SolarLog-Gerät
 schnelleres Abfragen würde also ohnehin keine neueren Daten finden). Ein kleiner pulsierender
 Punkt neben dem Leistungswert wird größer und pulsiert schneller, je näher die aktuelle Leistung
 an der konfigurierten Spitzenleistung der Anlage liegt, und beruhigt sich nahe null (z. B.
-nachts). Ein Klick/Tap auf den Wetter-/Prognosebereich öffnet eine wetteronline.de-Suche für die
+nachts). Neben dem Leistungswert zeigt das Panel den aktuellen Wirkungsgrad des Wechselrichters
+(AC-Ausgang ÷ DC-Eingang, z. B. „1234 W · 94%“), sofern DC-Eingangsdaten verfügbar und ungleich
+null sind — andernfalls bleibt er ausgeblendet statt eines irreführenden 0%/∞. Die Tagesansicht
+(`#/day/YYYY/MM/DD`) zeigt denselben Wirkungsgrad als zweite Kurve neben der Leistungskurve, mit
+Lücken überall dort, wo der DC-Eingang null oder unbekannt ist, und komplett ausgeblendet für
+rekonstruierte/archivierte Tage, die nur eine Ertragskurve besitzen. Ein Klick/Tap auf den
+Wetter-/Prognosebereich öffnet eine wetteronline.de-Suche für die
 Adresse der Anlage in einem neuen Tab. Können Leistungs- oder Wetterdaten nicht abgerufen
 werden, zeigt der jeweilige Bereich "Nicht verfügbar" an, während der andere Bereich normal
 weiterarbeitet. Das Panel ist unterhalb von 768px vollständig ausgeblendet — es beansprucht im
