@@ -51,7 +51,13 @@ der Anlage — sichtbar in jeder Ansicht, nicht nur im Dashboard. Es fragt `data
 [Open-Meteo](https://open-meteo.com) alle ~10 Minuten ab, passend zum minimalen
 Aktualisierungsintervall des SolarLog-Geräts selbst. Eine kleine pulsierende Anzeige neben dem
 Leistungswert skaliert Größe/Geschwindigkeit mit `currentPacW / capacityKwp` (ruhig nahe null,
-am aktivsten nahe der konfigurierten Spitzenleistung der Anlage). Ein Klick auf den Wetter-/
+am aktivsten nahe der konfigurierten Spitzenleistung der Anlage). Neben dem Leistungswert zeigt
+das Panel außerdem den aktuellen Wirkungsgrad des Wechselrichters (ΣPAC ÷ ΣPDC, z. B. „1234 W ·
+94%“), sofern DC-Eingangsdaten verfügbar und ungleich null sind — andernfalls wird er ausgeblendet
+statt eines irreführenden 0%/∞. Die Tagesansicht (`#/day/YYYY/MM/DD`) zeigt denselben Wirkungsgrad
+als zweite Kurve auf einer sekundären y-Achse neben der Leistungskurve, mit Lücken überall dort,
+wo PDC null oder fehlt, und komplett ausgeblendet für rekonstruierte/archivierte Tage, die nur
+eine Ertragskurve besitzen. Ein Klick auf den Wetter-/
 Prognosebereich öffnet eine wetteronline.de-Suche für die konfigurierte Adresse der Anlage in
 einem neuen Tab — die übliche Wetterquelle des Anlagenbetreibers. Leistung und Wetter/Prognose
 zeigen jeweils unabhängig einen "nicht verfügbar"-Zustand an, falls die jeweilige Datenquelle

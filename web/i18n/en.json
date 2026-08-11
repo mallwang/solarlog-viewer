@@ -101,6 +101,7 @@
     "timeAxis": "Time",
     "powerAxis": "Power",
     "energyAxis": "Energy",
+    "efficiencyAxis": "Efficiency (%)",
     "total": "Total"
   },
   "infoPanel": {

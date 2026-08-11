@@ -1,6 +1,7 @@
 import '../../vendor/apexcharts/apexcharts.esm.js';
 import { t } from '../i18n.js';
 import { formatNumber, formatKwh } from '../format.js';
+import { efficiencyPercent } from '../data/efficiency.js';
 
 // vendor/apexcharts/apexcharts.esm.js is ApexCharts' UMD build; loaded as an ES module for its
 // side effect of attaching `window.ApexCharts` (no bundler-free single-file ESM build is
@@ -62,6 +63,10 @@ function buildDayOptions(data, colors, { lang } = {}) {
         sumPerInverter(Object.values(r.perInverter).map((i) => i?.pacW)),
       ),
     },
+    {
+      name: t('chart.efficiencyAxis'),
+      data: data.readings.map((r) => efficiencyPercent(r.perInverter)),
+    },
   ];
 
   return {
@@ -76,17 +81,33 @@ function buildDayOptions(data, colors, { lang } = {}) {
       title: { text: t('chart.timeAxis') },
       tickAmount: 12,
     },
-    yaxis: {
-      title: { text: 'W' },
-      min: 0,
-    },
-    tooltip: {
-      y: {
-        formatter: (value) =>
-          value === null || value === undefined
-            ? '—'
-            : `${formatNumber(value, { decimals: 0, lang })} W`,
+    yaxis: [
+      {
+        seriesName: t('chart.total'),
+        title: { text: 'W' },
+        min: 0,
       },
+      {
+        seriesName: t('chart.efficiencyAxis'),
+        opposite: true,
+        title: { text: t('chart.efficiencyAxis') },
+      },
+    ],
+    tooltip: {
+      y: [
+        {
+          formatter: (value) =>
+            value === null || value === undefined
+              ? '—'
+              : `${formatNumber(value, { decimals: 0, lang })} W`,
+        },
+        {
+          formatter: (value) =>
+            value === null || value === undefined
+              ? '—'
+              : `${formatNumber(value, { decimals: 0, lang })}%`,
+        },
+      ],
     },
   };
 }

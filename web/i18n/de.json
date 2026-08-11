@@ -101,6 +101,7 @@
     "timeAxis": "Uhrzeit",
     "powerAxis": "Leistung",
     "energyAxis": "Energie",
+    "efficiencyAxis": "Wirkungsgrad (%)",
     "total": "Gesamt"
   },
   "infoPanel": {

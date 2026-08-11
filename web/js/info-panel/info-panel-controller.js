@@ -29,7 +29,8 @@ import {
   addTodayYield,
 } from '../data/aggregates.js';
 import { fetchFromBothSources } from '../data/data-source.js';
-import { formatKwh } from '../format.js';
+import { efficiencyPercent } from '../data/efficiency.js';
+import { formatKwh, formatNumber } from '../format.js';
 import { resolveInstallationLocation } from '../sky/location.js';
 import { formatRoute } from '../router.js';
 import { fetchWeatherAndForecast, weatherCodeToLabelKey } from './weather-forecast-client.js';
@@ -109,8 +110,10 @@ async function fetchYield() {
 }
 
 /**
- * Fetches and parses `data/min_cur.js`, summing all inverters' current AC output.
- * @returns {Promise<{ totalPacW: number, available: true } | { available: false }>}
+ * Fetches and parses `data/min_cur.js`, summing all inverters' current AC output and keeping the
+ * reading's `perInverter` map so `productionValueText` can derive efficiency without re-fetching.
+ * @returns {Promise<{ totalPacW: number, perInverter: object, available: true } |
+ *   { available: false }>}
  */
 async function fetchCurrentProduction() {
   const result = await fetchText('data/min_cur.js');
@@ -119,17 +122,22 @@ async function fetchCurrentProduction() {
   const [reading] = trace.readings;
   if (!reading) return { available: false };
   const totalPacW = Object.values(reading.perInverter).reduce((s, inv) => s + inv.pacW, 0);
-  return { totalPacW, available: true };
+  return { totalPacW, perInverter: reading.perInverter, available: true };
 }
 
 /**
- * @param {{ totalPacW: number, available: true } | { available: false }} production
+ * @param {{ totalPacW: number, perInverter?: object, available: true } | { available: false }}
+ *   production
  * @returns {string} Display text for the production value, per the "0 W is real, idle" and
- *   "unavailable" states.
+ *   "unavailable" states; appends the rounded efficiency percentage (e.g. "1234 W · 94%") when
+ *   `efficiencyPercent` returns a value, per FR-002/FR-003.
  */
 function productionValueText(production) {
   if (!production.available) return t('infoPanel.unavailable');
-  return production.totalPacW === 0 ? t('widget.notProducing') : `${production.totalPacW} W`;
+  if (production.totalPacW === 0) return t('widget.notProducing');
+  const efficiency = efficiencyPercent(production.perInverter);
+  if (efficiency === null) return `${production.totalPacW} W`;
+  return `${production.totalPacW} W · ${formatNumber(efficiency, { decimals: 0 })}%`;
 }
 
 /**
