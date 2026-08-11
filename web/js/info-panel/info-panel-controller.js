@@ -174,7 +174,9 @@ function renderYield({ todayEls, monthEls }, yield_) {
   const todayText = yield_.available
     ? `${t('widget.todayYield')}: ${formatKwh(yield_.todayKwh)}`
     : t('infoPanel.unavailable');
-  const monthText = yield_.available ? `${t('widget.monthYield')}: ${formatKwh(yield_.monthKwh)}` : '';
+  const monthText = yield_.available
+    ? `${t('widget.monthYield')}: ${formatKwh(yield_.monthKwh)}`
+    : '';
 
   todayEls.forEach((el) => {
     el.textContent = todayText;
