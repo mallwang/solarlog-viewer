@@ -85,7 +85,7 @@ server (originally Apache); all computation runs in the visitor's browser.
 | `solaranlage.jpg` (referenced from `anlageninfo.html`) | Plant photo                                                                               |
 | `*.gif` (`b_000000.gif`, `h_blue.gif`, `back.gif`, …)  | 1×1 px colored spacer GIFs and navigation arrow icons used by the pixel-math chart engine |
 | `background.jpg`, `bg_palm.jpg`, `back_links.jpg`      | Background images                                                                         |
-| `favicon-v2.ico`                                          | Browser tab icon                                                                          |
+| `favicon-v2.ico`                                       | Browser tab icon                                                                          |
 
 ### Hardware/SolarLog artifacts
 
