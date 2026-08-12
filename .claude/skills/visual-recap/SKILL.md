@@ -83,7 +83,13 @@ The block lives between HTML comment markers, wrapped in a collapsible
 Formatting rules: blank lines around every fenced block (required for GitHub
 to render mermaid); quote node labels containing spaces; keep the overall
 risk word bolded in the summary line; use primitive `id`s verbatim, never
-their `name`.
+their `name`. Write fences as literal triple backticks — never backslash-escape
+them (`` \`\`\` ``) when composing the block in your own reasoning/response
+text and then transcribing it into the scratch file, since an escaped fence
+renders as flat text instead of a code block. The Artifact preview step
+exists specifically to catch this before it reaches the PR — check the
+mermaid diagram and any before/after blocks actually render as blocks, not
+as a single line of literal backticks, before asking for confirmation.
 
 ```markdown
 <!-- system-recap:start -->
