@@ -239,6 +239,26 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     );
     await expect(desktop.locator('[data-role="production-value"]')).not.toContainText('%');
   });
+
+  test("shows the reading's own time as a subline, so a stale value is recognizable", async ({
+    page,
+  }) => {
+    await mockProduction(page, { pacW: 3100 }); // fixture's Uhrzeit is "14:00:00"
+    await mockForecast(page);
+    await page.goto('/');
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText(
+      'Stand: 14:00',
+    );
+  });
+
+  test('clears the timestamp subline on fetch failure', async ({ page }) => {
+    await mockProduction(page, { aborted: true });
+    await mockForecast(page);
+    await page.goto('/');
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText('');
+  });
 });
 
 test.describe('Global info panel — mobile placement (bar below the nav)', () => {

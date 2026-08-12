@@ -799,8 +799,23 @@ a {
   background: var(--color-border);
 }
 
+/* Wraps the wattage and its "Stand: HH:MM" subline (the reading's own timestamp — see
+   info-panel-controller.js's productionTimestampText), stacked like `.info-panel__weather`'s
+   current/forecast pair, so a stale min_cur.js reading is recognizable at a glance. */
+.info-panel__production-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
 .info-panel__value {
   font-weight: 600;
+}
+
+.info-panel__timestamp {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs, 0.8em);
 }
 
 .info-panel__production[data-available='false'] {

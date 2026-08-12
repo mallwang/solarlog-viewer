@@ -80,19 +80,23 @@ function sumPerInverter(values) {
 }
 
 function buildDayOptions(data, colors, { lang } = {}) {
-  const categories = data.readings.map((r) => formatTimeLabel(r.timestamp));
+  const timestamps = data.readings.map((r) => new Date(r.timestamp).getTime());
   const series = [
     {
       name: t('chart.feedInAxis'),
       type: 'area',
-      data: data.readings.map((r) =>
-        sumPerInverter(Object.values(r.perInverter).map((i) => i?.pacW)),
-      ),
+      data: data.readings.map((r, i) => ({
+        x: timestamps[i],
+        y: sumPerInverter(Object.values(r.perInverter).map((inv) => inv?.pacW)),
+      })),
     },
     {
       name: t('chart.efficiencyAxis'),
       type: 'line',
-      data: data.readings.map((r) => efficiencyPercent(r.perInverter)),
+      data: data.readings.map((r, i) => ({
+        x: timestamps[i],
+        y: efficiencyPercent(r.perInverter),
+      })),
     },
   ];
 
@@ -117,9 +121,9 @@ function buildDayOptions(data, colors, { lang } = {}) {
     markers: { size: 0, hover: { size: 5 }, colors: [colors[0], EFFICIENCY_LINE_COLOR] },
     series,
     xaxis: {
-      categories,
-      title: { text: t('chart.timeAxis'), offsetY: -30 },
-      tickAmount: 12,
+      type: 'datetime',
+      title: { text: t('chart.timeAxis') },
+      labels: { datetimeUTC: false, format: 'HH:mm' },
     },
     yaxis: [
       {
@@ -166,7 +170,7 @@ function buildDayOptions(data, colors, { lang } = {}) {
                 : `AC: ${formatNumber(pacW, { decimals: 0, lang })} W / DC: ${formatNumber(pdcW, { decimals: 0, lang })} W`,
           }),
         ];
-        return `<div class="apexcharts-tooltip-title">${categories[dataPointIndex]}</div>${rows.join('')}`;
+        return `<div class="apexcharts-tooltip-title">${formatTimeLabel(data.readings[dataPointIndex]?.timestamp ?? '')}</div>${rows.join('')}`;
       },
     },
   };
@@ -179,13 +183,13 @@ function buildDayOptions(data, colors, { lang } = {}) {
  * day still shows something meaningful rather than looking like "no data".
  */
 function buildDayYieldOptions(data, colors, { lang } = {}) {
-  const categories = data.readings.map((r) => formatTimeLabel(r.timestamp));
   const series = [
     {
       name: t('chart.total'),
-      data: data.readings.map((r) =>
-        sumPerInverter(Object.values(r.perInverter).map((i) => i?.dailyYieldWh)),
-      ),
+      data: data.readings.map((r) => ({
+        x: new Date(r.timestamp).getTime(),
+        y: sumPerInverter(Object.values(r.perInverter).map((i) => i?.dailyYieldWh)),
+      })),
     },
   ];
 
@@ -197,9 +201,9 @@ function buildDayYieldOptions(data, colors, { lang } = {}) {
     markers: { size: 0 },
     series,
     xaxis: {
-      categories,
+      type: 'datetime',
       title: { text: t('chart.timeAxis'), offsetY: -8 },
-      tickAmount: 12,
+      labels: { datetimeUTC: false, format: 'HH:mm' },
     },
     yaxis: {
       title: { text: 'Wh' },
@@ -228,10 +232,18 @@ function buildDayYieldOptions(data, colors, { lang } = {}) {
  * itself isn't set here — ApexCharts has no `plotOptions.bar.cursor` option, so `renderChart`
  * toggles a `chart-mount--clickable` class on the container instead (see app.css).
  * @param {{ categories: string[], seriesData: number[], colors: string[], columnWidth: string,
- *   onDataPointClick?: (dataPointIndex: number) => void }} opts
+ *   xAxisTitle: string, onDataPointClick?: (dataPointIndex: number) => void }} opts
  * @returns {object} Full ApexCharts options.
  */
-function buildBarOptions({ categories, seriesData, colors, columnWidth, onDataPointClick, lang }) {
+function buildBarOptions({
+  categories,
+  seriesData,
+  colors,
+  columnWidth,
+  xAxisTitle,
+  onDataPointClick,
+  lang,
+}) {
   const clickEvents = onDataPointClick
     ? {
         events: {
@@ -248,7 +260,7 @@ function buildBarOptions({ categories, seriesData, colors, columnWidth, onDataPo
     plotOptions: { bar: { columnWidth } },
     ...(onDataPointClick ? { states: { hover: { filter: { type: 'darken' } } } } : {}),
     series: [{ name: t('chart.total'), data: seriesData }],
-    xaxis: { categories },
+    xaxis: { categories, title: { text: xAxisTitle } },
     yaxis: {
       title: { text: 'kWh' },
       min: 0,
@@ -269,6 +281,7 @@ function buildMonthOptions(data, colors, { onDataPointClick, lang } = {}) {
     ),
     colors,
     columnWidth: '70%',
+    xAxisTitle: t('chart.dayAxis'),
     onDataPointClick,
     lang,
   });
@@ -282,6 +295,7 @@ function buildYearOptions(yearlyTotalsList, colors, { onDataPointClick, lang } =
     ),
     colors,
     columnWidth: '60%',
+    xAxisTitle: t('chart.yearAxis'),
     onDataPointClick,
     lang,
   });
@@ -301,6 +315,7 @@ function buildYearMonthsOptions(data, colors, { onDataPointClick, lang } = {}) {
     ),
     colors,
     columnWidth: '60%',
+    xAxisTitle: t('chart.monthAxis'),
     onDataPointClick,
     lang,
   });

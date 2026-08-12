@@ -99,6 +99,9 @@
   },
   "chart": {
     "timeAxis": "Uhrzeit",
+    "dayAxis": "Tag",
+    "monthAxis": "Monat",
+    "yearAxis": "Jahr",
     "powerAxis": "Leistung",
     "energyAxis": "Energie",
     "feedInAxis": "Einspeisung (W)",
@@ -109,6 +112,7 @@
     "unavailable": "Nicht verfügbar",
     "currentLabel": "Aktuell",
     "todayLabel": "Heute",
+    "asOfLabel": "Stand",
     "weatherCode": {
       "clear": "Klar",
       "cloudy": "Bewölkt",

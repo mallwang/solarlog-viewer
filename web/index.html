@@ -73,7 +73,10 @@
               data-intensity="idle"
               aria-hidden="true"
             ></span>
-            <span class="info-panel__value" data-role="production-value">—</span>
+            <span class="info-panel__production-text">
+              <span class="info-panel__value" data-role="production-value">—</span>
+              <span class="info-panel__timestamp" data-role="production-timestamp"></span>
+            </span>
           </a>
           <!-- Temporary stand-in for the disabled dashboard (see js/views/dashboard.js): plain
                text, not a link, populated by info-panel-controller.js's pollYield/renderYield. -->
@@ -122,7 +125,10 @@
           data-intensity="idle"
           aria-hidden="true"
         ></span>
-        <span class="info-panel__value" data-role="production-value">—</span>
+        <span class="info-panel__production-text">
+          <span class="info-panel__value" data-role="production-value">—</span>
+          <span class="info-panel__timestamp" data-role="production-timestamp"></span>
+        </span>
       </a>
       <div class="info-panel__yield" data-role="yield">
         <span class="info-panel__yield-today" data-role="yield-today">—</span>

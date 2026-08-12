@@ -111,8 +111,9 @@ async function fetchYield() {
 
 /**
  * Fetches and parses `data/min_cur.js`, summing all inverters' current AC output and keeping the
- * reading's `perInverter` map so `productionValueText` can derive efficiency without re-fetching.
- * @returns {Promise<{ totalPacW: number, perInverter: object, available: true } |
+ * reading's `perInverter` map so `productionValueText` can derive efficiency without re-fetching,
+ * plus its `timestamp` (FR: show the reading's "as of" time so a stale value is recognizable).
+ * @returns {Promise<{ totalPacW: number, perInverter: object, timestamp: string, available: true } |
  *   { available: false }>}
  */
 async function fetchCurrentProduction() {
@@ -122,7 +123,12 @@ async function fetchCurrentProduction() {
   const [reading] = trace.readings;
   if (!reading) return { available: false };
   const totalPacW = Object.values(reading.perInverter).reduce((s, inv) => s + inv.pacW, 0);
-  return { totalPacW, perInverter: reading.perInverter, available: true };
+  return {
+    totalPacW,
+    perInverter: reading.perInverter,
+    timestamp: reading.timestamp,
+    available: true,
+  };
 }
 
 /**
@@ -141,16 +147,27 @@ function productionValueText(production) {
 }
 
 /**
+ * @param {{ timestamp: string, available: true } | { available: false }} production
+ * @returns {string} "Stand: HH:MM" (localized label), so the user can tell whether the wattage
+ *   above is current or stale (e.g. min_cur.js not refreshed since sundown); empty when
+ *   unavailable, since `productionValueText` already renders that state's own message.
+ */
+function productionTimestampText(production) {
+  if (!production.available) return '';
+  return `${t('infoPanel.asOfLabel')}: ${production.timestamp.slice(11, 16)}`;
+}
+
+/**
  * Renders the production side of every panel variant, including the animation intensity tier.
  * Keeps whatever was last rendered when the fetch reports unavailable, except for flipping the
  * `data-available` flag and the pulse to idle — a genuinely missing reading should not keep
  * animating at a stale intensity.
  * @param {{ pulseEls: NodeListOf<HTMLElement>, valueEls: NodeListOf<HTMLElement>,
- *   wrapperEls: NodeListOf<HTMLElement> }} elements
+ *   timestampEls: NodeListOf<HTMLElement>, wrapperEls: NodeListOf<HTMLElement> }} elements
  * @param {{ totalPacW: number, available: true } | { available: false }} production
  * @param {number} capacityKwp
  */
-function renderProduction({ pulseEls, valueEls, wrapperEls }, production, capacityKwp) {
+function renderProduction({ pulseEls, valueEls, timestampEls, wrapperEls }, production, capacityKwp) {
   const intensity = production.available
     ? productionIntensity(production.totalPacW, capacityKwp)
     : 'idle';
@@ -158,12 +175,16 @@ function renderProduction({ pulseEls, valueEls, wrapperEls }, production, capaci
     ? productionColor(production.totalPacW, capacityKwp)
     : PRODUCTION_COLOR_IDLE;
   const valueText = productionValueText(production);
+  const timestampText = productionTimestampText(production);
 
   wrapperEls.forEach((el) => {
     el.dataset.available = String(production.available);
   });
   valueEls.forEach((el) => {
     el.textContent = valueText;
+  });
+  timestampEls.forEach((el) => {
+    el.textContent = timestampText;
   });
   pulseEls.forEach((el) => {
     el.dataset.intensity = intensity;
@@ -237,6 +258,7 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
   const elements = {
     pulseEls: document.querySelectorAll('[data-role="pulse"]'),
     valueEls: document.querySelectorAll('[data-role="production-value"]'),
+    timestampEls: document.querySelectorAll('[data-role="production-timestamp"]'),
     wrapperEls: document.querySelectorAll('[data-role="production"]'),
     todayYieldEls: document.querySelectorAll('[data-role="yield-today"]'),
     monthYieldEls: document.querySelectorAll('[data-role="yield-month"]'),

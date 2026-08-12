@@ -1,0 +1,185 @@
+# solarlog-viewer system primitives map (taxonomy)
+#
+# Stable vocabulary for the visual-recap skill (.claude/skills/visual-recap/
+# SKILL.md). This is NOT a living feature changelog and NOT the
+# source-of-truth for behavior — the linked docs/ and specs/NNN-*/plan.md
+# files are. Code is the truth for implementation.
+#
+# Risk labels used in PR recaps:
+#   composes - wires existing primitives without changing them
+#   extends  - changes a primitive's behavior, shape, or contract
+#   adds     - introduces a new primitive (update this file in the same PR)
+#
+# Update this file only when adding, removing, or materially reshaping a
+# primitive (id, name, group, code roots, or meaning). Do NOT edit `summary`
+# for ordinary feature work — put that in the linked docs or the feature's
+# specs/NNN-*/plan.md instead.
+#
+# `code` entries are coarse ownership roots (longest-prefix match). Prefer
+# directories over file lists. Keep the map small — one entry per subsystem,
+# not per file or per feature.
+
+version: 1
+
+groups:
+  - id: surfaces
+    name: Entry points & routing
+  - id: rendering
+    name: Chart rendering
+  - id: data
+    name: Data loading & parsing
+  - id: features
+    name: User-facing feature layers
+  - id: shared
+    name: Cross-cutting utilities
+  - id: tooling
+    name: Offline data maintenance
+  - id: legacy
+    name: Original 2006 site
+
+primitives:
+  # --- Entry points & routing ---------------------------------------------
+  - id: nav-frameset
+    group: surfaces
+    name: Page shell & hash router
+    summary:
+      Top-level page load (web/index.html), hash-based route parsing, and
+      dispatch to the active view.
+    code:
+      - web/index.html
+      - web/js/router.js
+      - web/js/main.js
+    docs:
+      - docs/architecture.md
+      - docs/dataflow.md
+
+  # --- Chart rendering ------------------------------------------------------
+  - id: chart-views
+    group: rendering
+    name: Period chart views
+    summary:
+      Day/month/year/total chart views, the shared chart-factory renderer,
+      stats panel, and prev/next period navigation.
+    code:
+      - web/js/views/
+      - web/js/charts/
+    docs:
+      - specs/001-website-modernization/plan.md
+      - specs/005-tailwind-css-dashboard-ui/plan.md
+
+  # --- Data loading & parsing -----------------------------------------------
+  - id: data-pipeline
+    group: data
+    name: SolarLog data loader & parser
+    summary:
+      Fetches and parses SolarLog-pushed JS data files (min/day/month/year)
+      in the browser, decodes epoch-specific block layouts, and derives
+      aggregates (yield stats, CO2, efficiency).
+    code:
+      - web/js/data/
+    docs:
+      - docs/data-format.md
+      - docs/data-format-daily.md
+      - docs/dataflow.md
+      - specs/002-data-validation-aggregation/plan.md
+
+  # --- User-facing feature layers --------------------------------------------
+  - id: sky-animation
+    group: features
+    name: Sky & weather visuals
+    summary:
+      Weather-driven animated sky background, solar arc, cloud density, and
+      flying-object sprites (birds, butterflies, dragonflies, geese).
+    code:
+      - web/js/sky/
+    docs:
+      - specs/007-dynamic-sky-weather/plan.md
+      - specs/011-realistic-bird-sprites/plan.md
+
+  - id: info-panel
+    group: features
+    name: Global info panel
+    summary:
+      Production/weather summary panel merged into the nav frame, including
+      the production-value animation and inverter efficiency display.
+    code:
+      - web/js/info-panel/
+    docs:
+      - specs/010-global-info-panel/plan.md
+      - specs/012-efficiency-display/plan.md
+
+  # --- Cross-cutting utilities ------------------------------------------------
+  - id: shared-utils
+    group: shared
+    name: i18n, formatting & settings
+    summary:
+      Localized strings (DE/EN), number/date formatting, icons, and
+      persisted user settings shared across views.
+    code:
+      - web/js/i18n.js
+      - web/i18n/
+      - web/js/format.js
+      - web/js/icons.js
+      - web/js/settings.js
+    docs:
+      - docs/user-guide.md
+
+  # --- Offline data maintenance -----------------------------------------------
+  - id: offline-data-tools
+    group: tooling
+    name: Data backfill & validation scripts
+    summary:
+      Node ESM CLI scripts that repair, backfill, migrate, and validate the
+      historical min/day/month/year archive, and sync it into a local
+      SQLite mirror. Run manually/out-of-band; never executed by the browser
+      app.
+    code:
+      - scripts/
+    docs:
+      - docs/validate-min-consistency.md
+      - docs/migration-orders/
+
+  # --- Legacy -------------------------------------------------------------
+  - id: legacy-chart-engine
+    group: legacy
+    name: Original 2006 frameset site
+    summary:
+      Pre-modernization pixel-math chart engine and frameset pages, kept as
+      a behavioral reference; not actively developed.
+    code:
+      - legacy-site/
+    docs:
+      - docs/architecture.md
+
+invariants:
+  - id: client-only
+    summary:
+      No server-side logic at any layer; all rendering runs in the visitor's
+      browser. Offline Node scripts under scripts/ are maintenance tools run
+      manually, never a runtime service.
+    docs:
+      - docs/architecture.md
+
+  - id: pushed-data-is-source-of-truth
+    summary:
+      web/data/*.js and web/hist/min*.js (SolarLog-hardware-pushed files) are
+      authoritative. offline-data-tools may backfill/repair gaps but never
+      invent readings.
+    docs:
+      - docs/dataflow.md
+
+  - id: sqlite-is-a-derived-mirror
+    summary:
+      data/solarlog.sqlite3 is a read-optimized, one-directional mirror of
+      the min*.js archive (scripts/sync-sqlite.js); it is never written back
+      to the js files and never treated as the primary store.
+    docs:
+      - docs/data-format.md
+
+  - id: esm-scripts-with-tests
+    summary:
+      Every scripts/*.js is ESM with a co-located *.test.js using node:test,
+      and exports its logic functions for direct import (no filesystem I/O
+      in unit tests).
+    docs:
+      - CLAUDE.md
