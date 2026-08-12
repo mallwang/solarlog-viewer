@@ -99,6 +99,9 @@
   },
   "chart": {
     "timeAxis": "Time",
+    "dayAxis": "Day",
+    "monthAxis": "Month",
+    "yearAxis": "Year",
     "powerAxis": "Power",
     "energyAxis": "Energy",
     "feedInAxis": "Feed-in (W)",
@@ -109,6 +112,7 @@
     "unavailable": "Unavailable",
     "currentLabel": "Current",
     "todayLabel": "Today",
+    "asOfLabel": "As of",
     "weatherCode": {
       "clear": "Clear",
       "cloudy": "Cloudy",
