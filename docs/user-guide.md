@@ -19,6 +19,21 @@ current period" link (e.g. "Heute"/"Dieser Monat"), and a link to zoom out to th
 period (day → month → year → total) — e.g. from a day view, click "Monat" to jump straight to
 that day's month view. The total view has no such link since it's the top of the hierarchy.
 
+The day view's chart legend includes a "UDC" entry for the DC string voltage, summed across all
+reporting inverter strings — it's hidden by default so the chart isn't cluttered, but clicking it
+reveals the voltage line (and hovering the chart then shows the UDC value in the tooltip too);
+clicking again hides it. That shown/hidden choice is remembered across page reloads and other day
+charts, so a revealed UDC line stays revealed until you hide it again. Days with no recorded
+voltage data (e.g. backfilled/archived days that only show the reconstructed yield curve) don't
+offer the "UDC" legend entry at all, since there's nothing to plot. The month, year, and total
+(lifetime) views show a "Gesamt" / "Wechselrichter"
+toggle above the chart: "Gesamt" (the default) shows the single combined bar per period exactly
+as before, while switching to "Wechselrichter" breaks each bar into one stacked segment per
+inverter string (WR1, WR2, …), with the tooltip then showing the combined total alongside each
+string's individual value. The chosen mode is remembered (stored in the browser) and applied
+again automatically the next time any of these three views is opened. Clicking any part of a bar,
+in either mode, still drills into the next-finer view exactly as before.
+
 ## Dynamic sky background
 
 The cloud backdrop behind the dashboard changes with the installation's real current weather

@@ -22,6 +22,23 @@ Link zur nächstgrößeren Zeitebene (Tag → Monat → Jahr → Gesamt) — z. 
 Tagesansicht direkt zur zugehörigen Monatsansicht. Die Gesamt-Ansicht hat keinen solchen Link, da
 sie die oberste Ebene der Hierarchie ist.
 
+Die Legende der Tagesansicht enthält einen Eintrag "UDC" für die DC-Stringspannung, summiert über
+alle meldenden Wechselrichter-Strings — er ist standardmäßig ausgeblendet, damit das Diagramm
+nicht überladen wirkt, aber ein Klick darauf blendet die Spannungslinie ein (und beim Hovern über
+das Diagramm erscheint dann auch der UDC-Wert im Tooltip); ein erneuter Klick blendet sie wieder
+aus. Diese Ein-/Ausblend-Wahl wird über Reloads und andere Tagesdiagramme hinweg gemerkt — eine
+eingeblendete UDC-Linie bleibt also eingeblendet, bis sie wieder ausgeblendet wird. An Tagen ohne
+erfasste Spannungsdaten (z. B. rekonstruierte/archivierte Tage, die nur den Ertragsverlauf
+zeigen) wird der Eintrag "UDC" gar nicht erst angeboten, da es nichts zu zeichnen gibt. Die
+Monats-, Jahres- und Gesamt-Ansicht zeigen oberhalb des Diagramms einen
+Umschalter "Gesamt" / "Wechselrichter": "Gesamt" (Standard) zeigt wie bisher einen einzelnen
+Summenbalken pro Zeitraum, während "Wechselrichter" jeden Balken in einen gestapelten Abschnitt
+pro Wechselrichter-String aufteilt (WR1, WR2, …) — der Tooltip zeigt dann zusätzlich zur
+Gesamtsumme auch die einzelnen Beiträge jedes Strings. Die gewählte Ansicht wird gemerkt (im
+Browser gespeichert) und beim nächsten Öffnen einer dieser drei Ansichten automatisch wieder
+angewendet. Ein Klick auf einen beliebigen Teil eines Balkens führt in beiden Ansichten weiterhin
+genau wie zuvor zur nächstfeineren Ansicht.
+
 ## Dynamischer Himmel-Hintergrund
 
 Die Wolkenkulisse hinter dem Dashboard ändert sich mit dem realen aktuellen Wetter und der

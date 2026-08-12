@@ -167,7 +167,11 @@ function productionTimestampText(production) {
  * @param {{ totalPacW: number, available: true } | { available: false }} production
  * @param {number} capacityKwp
  */
-function renderProduction({ pulseEls, valueEls, timestampEls, wrapperEls }, production, capacityKwp) {
+function renderProduction(
+  { pulseEls, valueEls, timestampEls, wrapperEls },
+  production,
+  capacityKwp,
+) {
   const intensity = production.available
     ? productionIntensity(production.totalPacW, capacityKwp)
     : 'idle';

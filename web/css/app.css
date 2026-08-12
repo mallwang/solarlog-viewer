@@ -965,9 +965,37 @@ a {
   height: min(60vh, 420px);
   margin-top: var(--space-lg);
   box-sizing: border-box;
+  /* Column flex so an optional .chart-breakdown-toggle (month/year/total views) takes only the
+     height it needs and .chart-body fills the rest — without this, .chart-body's `flex: 1`
+     would have nothing to shrink against, so the toggle+chart combined would overflow the
+     container and push the chart's legend (drawn at the bottom of the ApexCharts SVG) out of
+     view. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* .chart-mount's actual flex-sizing parent (not .chart-mount itself — see below). */
+.chart-body {
+  width: 100%;
+  /* Fills whatever height .chart-breakdown-toggle didn't use. `min-height: 0` lets this shrink
+     below its content's natural size instead of overflowing the column; `overflow: hidden`
+     additionally forces the browser's *automatic* minimum size for this flex item down to 0
+     (per the flexbox spec, that automatic minimum only drops to 0 when `overflow` isn't
+     `visible`) — needed because ApexCharts sets an inline `min-height: unset` on `.chart-mount`,
+     which resolves to the flex-item default of `auto` and would otherwise keep it (and this
+     wrapper) pinned to the chart's own rendered height. */
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
 }
 
 .chart-mount {
+  /* Deliberately NOT .chart-body itself: ApexCharts resolves a percentage `chart.height`
+     (`height: '100%'` in chart-factory.js's baseOptions) against *this element's parent*, not
+     against this element's own box — so `.chart-body` (a real, non-percentage, flex-resolved
+     box) has to be the parent doing the actual shrinking, while `.chart-mount` just inherits
+     100% of whatever `.chart-body` ends up being. */
   width: 100%;
   height: 100%;
 }
@@ -1025,6 +1053,30 @@ a {
 }
 
 .transparency-toggle[aria-pressed='true'] {
+  background: var(--color-primary);
+  color: #1a1d21;
+  border-color: var(--color-primary);
+}
+
+/* .chart-breakdown-toggle — month/year/total bar charts' "Gesamt" / per-inverter switch (see
+   views/chart-breakdown-toggle.js); same look as .lang-switcher's button pair. Fixed height as a
+   flex item of .chart-container's column layout — it must never shrink to make room for
+   .chart-mount, only the reverse. */
+.chart-breakdown-toggle {
+  flex-shrink: 0;
+}
+
+.chart-breakdown-toggle button {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.chart-breakdown-toggle button[aria-pressed='true'] {
   background: var(--color-primary);
   color: #1a1d21;
   border-color: var(--color-primary);

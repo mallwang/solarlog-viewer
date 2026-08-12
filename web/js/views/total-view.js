@@ -13,6 +13,8 @@ import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
 import { emptyStateMarkup } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
+import { getChartBreakdownMode } from '../settings.js';
 import { formatKwh, formatCurrency, formatCo2 } from '../format.js';
 import {
   maxYearlyYield,
@@ -68,7 +70,7 @@ function totalStatsRows(summary, plant) {
 export async function render(container, { plant }) {
   const title = t('nav.totalView');
   container.innerHTML = `<h2 class="view-title text-lg mb-md">${title}</h2>
-    ${chartWithStatsLayoutMarkup()}`;
+    ${chartWithStatsLayoutMarkup({ breakdownToggle: true })}`;
   const periodLayout = container.querySelector('.period-layout');
 
   const [{ hist, data }, todaySource] = await Promise.all([
@@ -105,10 +107,14 @@ export async function render(container, { plant }) {
   );
 
   const mount = container.querySelector('.chart-mount');
-  renderChart(mount, 'year', years, {
-    lang: getLanguage(),
-    onDataPointClick: (index) => {
-      window.location.hash = formatRoute({ view: 'year', params: { year: years[index].year } });
-    },
-  });
+  const drawChart = () =>
+    renderChart(mount, 'year', years, {
+      lang: getLanguage(),
+      breakdown: getChartBreakdownMode(),
+      onDataPointClick: (index) => {
+        window.location.hash = formatRoute({ view: 'year', params: { year: years[index].year } });
+      },
+    });
+  drawChart();
+  initChartBreakdownToggle(container.querySelector('.chart-container'), drawChart);
 }

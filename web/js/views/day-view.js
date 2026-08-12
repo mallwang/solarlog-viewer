@@ -8,6 +8,8 @@ import { formatRoute } from '../router.js';
 import { addDays, isFutureDay, parentOfDay, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
+import { getChartBreakdownMode } from '../settings.js';
 import { formatKwh, formatCurrency, formatDate, formatCo2 } from '../format.js';
 import {
   dailyYieldWh,
@@ -104,7 +106,7 @@ export async function render(container, { route, plant }) {
       <h2 class="view-title text-lg m-0">${title}</h2>
       ${nav}
     </div>
-    ${chartWithStatsLayoutMarkup()}`;
+    ${chartWithStatsLayoutMarkup({ breakdownToggle: true })}`;
 
   // The SolarLog only finalizes min{YYMMDD}.js at end of day (final sync); until then,
   // today's readings live exclusively in the rolling min_day.js, so prefer it for today's date.
@@ -144,8 +146,20 @@ export async function render(container, { route, plant }) {
       'afterbegin',
       `<p class="chart-note mb-sm text-sm text-text-muted">${t('day.powerUnavailable')}</p>`,
     );
+    // Backfilled/yield-only days have no per-inverter power data to break down (buildDayYieldOptions
+    // only plots the combined cumulative-Wh curve) — omit the toggle entirely rather than offer a
+    // control with nothing to switch, mirroring how the UDC legend entry is omitted for FR-005.
+    chartContainer.querySelector('.chart-breakdown-toggle')?.remove();
   }
 
   const mount = container.querySelector('.chart-mount');
-  renderChart(mount, hasPowerData ? 'day' : 'day-yield', trace, { lang: getLanguage() });
+  const drawChart = () =>
+    renderChart(mount, hasPowerData ? 'day' : 'day-yield', trace, {
+      lang: getLanguage(),
+      breakdown: getChartBreakdownMode(),
+    });
+  drawChart();
+  if (hasPowerData) {
+    initChartBreakdownToggle(chartContainer, drawChart);
+  }
 }

@@ -14,6 +14,8 @@ import { formatRoute } from '../router.js';
 import { addMonths, isFutureMonth, parentOfMonth, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
+import { getChartBreakdownMode } from '../settings.js';
 import { formatKwh, formatCurrency, formatCo2 } from '../format.js';
 import {
   maxDailyYieldKwh,
@@ -135,7 +137,7 @@ export async function render(container, { route, plant }) {
       <h2 class="view-title text-lg m-0">${title}</h2>
       ${nav}
     </div>
-    ${chartWithStatsLayoutMarkup()}`;
+    ${chartWithStatsLayoutMarkup({ breakdownToggle: true })}`;
   const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');
 
@@ -197,11 +199,15 @@ export async function render(container, { route, plant }) {
   monthTotal.dailyBreakdown = fillMonthDays(params, dailyBreakdown);
 
   const mount = container.querySelector('.chart-mount');
-  renderChart(mount, 'month', monthTotal, {
-    lang: getLanguage(),
-    onDataPointClick: (index) => {
-      const day = Number.parseInt(monthTotal.dailyBreakdown[index].date.slice(8, 10), 10);
-      window.location.hash = formatRoute({ view: 'day', params: { ...params, day } });
-    },
-  });
+  const drawChart = () =>
+    renderChart(mount, 'month', monthTotal, {
+      lang: getLanguage(),
+      breakdown: getChartBreakdownMode(),
+      onDataPointClick: (index) => {
+        const day = Number.parseInt(monthTotal.dailyBreakdown[index].date.slice(8, 10), 10);
+        window.location.hash = formatRoute({ view: 'day', params: { ...params, day } });
+      },
+    });
+  drawChart();
+  initChartBreakdownToggle(container.querySelector('.chart-container'), drawChart);
 }

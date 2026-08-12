@@ -13,6 +13,8 @@ import { formatRoute } from '../router.js';
 import { addYears, isFutureYear, parentOfYear, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
+import { getChartBreakdownMode } from '../settings.js';
 import { formatKwh, formatCurrency, formatCo2 } from '../format.js';
 import {
   maxMonthlyYieldKwh,
@@ -129,7 +131,7 @@ export async function render(container, { route, plant }) {
       <h2 class="view-title text-lg m-0">${title}</h2>
       ${nav}
     </div>
-    ${chartWithStatsLayoutMarkup()}`;
+    ${chartWithStatsLayoutMarkup({ breakdownToggle: true })}`;
   const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');
 
@@ -176,15 +178,22 @@ export async function render(container, { route, plant }) {
   );
 
   const mount = container.querySelector('.chart-mount');
-  renderChart(
-    mount,
-    'year-months',
-    { year, monthlyBreakdown: fillYearMonths(year, monthlyBreakdown) },
-    {
-      lang: getLanguage(),
-      onDataPointClick: (index) => {
-        window.location.hash = formatRoute({ view: 'month', params: { year, month: index + 1 } });
+  const drawChart = () =>
+    renderChart(
+      mount,
+      'year-months',
+      { year, monthlyBreakdown: fillYearMonths(year, monthlyBreakdown) },
+      {
+        lang: getLanguage(),
+        breakdown: getChartBreakdownMode(),
+        onDataPointClick: (index) => {
+          window.location.hash = formatRoute({
+            view: 'month',
+            params: { year, month: index + 1 },
+          });
+        },
       },
-    },
-  );
+    );
+  drawChart();
+  initChartBreakdownToggle(chartContainer, drawChart);
 }
