@@ -71,47 +71,66 @@ PR.
 
 ## Block format
 
-The block lives between HTML comment markers, wrapped in a collapsible
-`<details>` tag, with this fixed section order:
+The block lives between HTML comment markers as a normal `## System Recap`
+section — a peer of the PR description's other `##` sections (e.g.
+`## Summary`, `## What changed`), not a single giant collapsed blob. Each
+topic underneath gets its own `###` heading with its content individually
+collapsed behind a generic "Show more" `<details>`, so the section skims like
+the rest of the description and only expands what the reader asks for.
 
-- Summary line: overall classification, bolded, and risk
-- `**Mode:**` and, in recap mode, `**Base:**`/`**Head:**` commit refs
-- **Primitives touched** — table of `id`, `group`, and per-primitive impact
-- **System map** — mermaid flowchart, color-coded by touched/extended/added/untouched
-- Optional: **Change flow**, **Before / after**, **Invariants**, **Plan vs actual**
+Fixed section order:
+
+- `## System Recap` — one-line classification summary, bolded, plus
+  `**Mode:**` and, in recap mode, `**Base:**`/`**Head:**` commit refs, all in
+  plain (uncollapsed) text
+- `### Primitives touched` — collapsed: table of `id`, `group`, and
+  per-primitive impact
+- `### System map` — collapsed: mermaid flowchart, color-coded by
+  touched/extended/added/untouched
+- Optional, same pattern: `### Change flow`, `### Before / after`,
+  `### Invariants`, `### Plan vs actual`
 
 Formatting rules: blank lines around every fenced block (required for GitHub
 to render mermaid); quote node labels containing spaces; keep the overall
 risk word bolded in the summary line; use primitive `id`s verbatim, never
-their `name`. Write fences as literal triple backticks — never backslash-escape
-them (`` \`\`\` ``) when composing the block in your own reasoning/response
-text and then transcribing it into the scratch file, since an escaped fence
-renders as flat text instead of a code block. The Artifact preview step
-exists specifically to catch this before it reaches the PR — check the
-mermaid diagram and any before/after blocks actually render as blocks, not
-as a single line of literal backticks, before asking for confirmation.
+their `name`; every `<details>` uses the literal summary text `Show more` —
+don't customize it per section. Write fences as literal triple backticks —
+never backslash-escape them (`` \`\`\` ``) when composing the block in your
+own reasoning/response text and then transcribing it into the scratch file,
+since an escaped fence renders as flat text instead of a code block. The
+Artifact preview step exists specifically to catch this before it reaches
+the PR — check the mermaid diagram and any before/after blocks actually
+render as blocks, not as a single line of literal backticks, before asking
+for confirmation.
 
-```markdown
+````markdown
 <!-- system-recap:start -->
 
-<details>
-<summary>System recap — <b>composes existing primitives</b> (low risk)</summary>
+## System Recap
+
+**Classification:** composes existing primitives (low risk) — no primitives
+added or changed; this PR wires existing primitives together.
 
 **Mode:** recap · **Base:** `main` @ `abc1234` · **Head:** `def5678`
 
-**Classification:** composes — no primitives added or changed; this PR wires
-existing primitives together.
-
 ### Primitives touched
+
+<details>
+<summary>Show more</summary>
 
 | Primitive       | Group   | Impact                                       |
 | --------------- | ------- | --------------------------------------------- |
 | `chart-views`   | rendering | composes                                     |
 | `data-pipeline` | data    | extends — new `efficiency` field on readings |
 
+</details>
+
 ### System map
 
-\`\`\`mermaid
+<details>
+<summary>Show more</summary>
+
+```mermaid
 flowchart LR
     dataPipeline["data-pipeline"]:::extended
     chartViews["chart-views"]:::touched
@@ -121,22 +140,42 @@ flowchart LR
     classDef extended fill:#9a6700,color:#fff
     classDef added fill:#cf222e,color:#fff
     classDef untouched fill:#57606a,color:#fff
-\`\`\`
+```
+
+</details>
 
 ### Change flow
 
+<details>
+<summary>Show more</summary>
+
 _Optional: a mermaid flowchart or sequence diagram of the specific change._
 
+</details>
+
 ### Before / after
+
+<details>
+<summary>Show more</summary>
 
 _Optional: data-format, API shape, or route changes as compact before/after
 fenced blocks or tables._
 
+</details>
+
 ### Invariants
+
+<details>
+<summary>Show more</summary>
 
 _Optional: only when the change touches an invariant from `primitives.yaml`._
 
+</details>
+
 ### Plan vs actual
+
+<details>
+<summary>Show more</summary>
 
 _Recap mode only, when a plan-mode block existed: what shipped as planned and
 what drifted, in a short list._
@@ -144,7 +183,7 @@ what drifted, in a short list._
 </details>
 
 <!-- system-recap:end -->
-```
+````
 
 ## Workflow
 
