@@ -235,6 +235,13 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
     ...(hasUdcData ? [colors[UDC_COLOR_INDEX]] : []),
   ];
 
+  // Shared max across every feed-in segment (see the `yaxis` comment below for why this needs to
+  // be identical on every segment's axis rather than left to each axis' own `forceNiceScale`).
+  // `undefined` when every segment is all-null (empty day) so ApexCharts falls back to its own
+  // default scale instead of clamping to `max: 0`.
+  const feedInValues = feedInSeries.flatMap((s) => s.data.map((p) => p.y).filter((y) => y !== null));
+  const feedInMax = feedInValues.length ? Math.max(...feedInValues) : undefined;
+
   return {
     ...baseOptions(colors),
     chart: {
@@ -293,12 +300,19 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
     yaxis: [
       // One axis entry per feed-in segment, all sharing the same (left, Watt) scale — only the
       // first is actually drawn (title/labels), the rest stay `show: false` so per-inverter mode
-      // doesn't draw duplicate axis lines/labels on top of each other.
+      // doesn't draw duplicate axis lines/labels on top of each other. Each ApexCharts yaxis
+      // entry with `forceNiceScale` picks its own "nice" max from *its own* series' data unless
+      // told otherwise, so — since only the WR1 axis is actually drawn — a smaller WR2 (or WR3…)
+      // area was being read off a hidden axis that topped out well above WR1's, making it look
+      // artificially shrunk (e.g. a 1600 W WR2 peak plotted under WR1's 3200 W gridline). Passing
+      // the same explicit `max`, derived from every feed-in segment's largest value, to every
+      // entry keeps them all on one identical scale.
       ...feedInSeries.map((s, i) => ({
         seriesName: s.name,
         show: i === 0,
         title: i === 0 ? { text: t('chart.feedInAxis') } : undefined,
         min: 0,
+        max: feedInMax,
         forceNiceScale: true,
         labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
       })),
