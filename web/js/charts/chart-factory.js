@@ -2,7 +2,12 @@ import '../../vendor/apexcharts/apexcharts.esm.js';
 import { t } from '../i18n.js';
 import { formatNumber, formatKwh } from '../format.js';
 import { efficiencyPercent, efficiencySums } from '../data/efficiency.js';
-import { isDayUdcVisible, setDayUdcVisible } from '../settings.js';
+import {
+  isDayUdcVisible,
+  setDayUdcVisible,
+  isDayEfficiencyVisible,
+  setDayEfficiencyVisible,
+} from '../settings.js';
 
 // vendor/apexcharts/apexcharts.esm.js is ApexCharts' UMD build; loaded as an ES module for its
 // side effect of attaching `window.ApexCharts` (no bundler-free single-file ESM build is
@@ -28,9 +33,14 @@ function getChartColors() {
 
 const charts = new WeakMap();
 
-// Fixed (not palette-driven) so "Wirkungsgrad" stays legible against the sky background even
-// in transparency mode, where a blue line washes out against the blue sky.
-const EFFICIENCY_LINE_COLOR = '#2e7d32';
+// Fixed palette slots for the day chart's non-feed-in series, kept aligned with what the
+// month/year/total bar charts already use for "Gesamt"/WR1/WR2 (colors[0]/colors[1] — see
+// buildBarOptions) so the same series means the same color across every chart: feed-in total or
+// WR1 stays colors[0] (orange), WR2 colors[1] (green), Wirkungsgrad colors[2] (blue), UDC
+// colors[3] (red). NB: a blue Wirkungsgrad line washes out somewhat against the blue sky
+// background in transparency mode — accepted for cross-chart color consistency.
+const EFFICIENCY_COLOR_INDEX = 2;
+const UDC_COLOR_INDEX = 3;
 
 function formatTimeLabel(isoTimestamp) {
   return isoTimestamp.slice(11, 16);
@@ -95,14 +105,35 @@ function sumUdcVolts(perInverter) {
   return sumPerInverter(allStrings);
 }
 
-function buildDayOptions(data, colors, { lang } = {}) {
-  const timestamps = data.readings.map((r) => new Date(r.timestamp).getTime());
-  // Omitted entirely (not merely hidden) when the day has no UDC readings at all — e.g. an
-  // older epoch whose min-file format predates volt reporting — so no "UDC" legend entry is
-  // offered at all, per FR-005.
-  const hasUdcData = data.readings.some((r) => sumUdcVolts(r.perInverter) !== null);
-
-  const series = [
+/**
+ * Builds the day chart's feed-in (AC power) series — either a single pre-summed area (default
+ * "total" mode, unchanged from before per-inverter breakdown existed) or one area series per
+ * reporting inverter string (`breakdown: 'inverters'`), mirroring the month/year/total bar
+ * charts' own total/per-inverter toggle (see `buildBarOptions`). Both segments share the same
+ * gradient-fade fill as the total-mode area (see `buildDayOptions`'s `fill` option) rather than
+ * being stacked: each inverter string gets its own `yaxis` entry so it can be bound by name,
+ * which puts them in different ApexCharts axis groups — `chart.stacked` only stacks series
+ * sharing one axis group, so it can't produce a true additive stack here the way the bar charts'
+ * single-axis `stacked: true` does; two directly comparable per-string areas read better for a
+ * power-over-time chart anyway.
+ * @param {{ readings: object[] }} data
+ * @param {number[]} timestamps
+ * @param {'total' | 'inverters'} breakdown
+ * @param {string[]} stringKeys
+ * @returns {{ name: string, type: string, data: { x: number, y: number | null }[] }[]}
+ */
+function buildFeedInSeries(data, timestamps, breakdown, stringKeys) {
+  if (breakdown === 'inverters' && stringKeys.length > 1) {
+    return stringKeys.map((key) => ({
+      name: inverterLabel(key),
+      type: 'area',
+      data: data.readings.map((r, i) => ({
+        x: timestamps[i],
+        y: r.perInverter[key]?.pacW ?? null,
+      })),
+    }));
+  }
+  return [
     {
       name: t('chart.feedInAxis'),
       type: 'area',
@@ -111,6 +142,68 @@ function buildDayOptions(data, colors, { lang } = {}) {
         y: sumPerInverter(Object.values(r.perInverter).map((inv) => inv?.pacW)),
       })),
     },
+  ];
+}
+
+/**
+ * Tooltip rows for the feed-in series/segment(s) — a single "Einspeisung" row in total mode, or
+ * (mirroring `buildBarOptions`' tooltip) a "Gesamt" sum row followed by one row per inverter
+ * string when in per-inverter mode, so the total stays visible alongside the breakdown.
+ */
+function feedInTooltipRows({ hoveredSeries, dataPointIndex, feedInSeries, colors, lang }) {
+  if (feedInSeries.length === 1) {
+    const pacValue = hoveredSeries[0][dataPointIndex];
+    return [
+      tooltipRow({
+        color: colors[0],
+        label: t('chart.feedInAxis'),
+        value:
+          pacValue === null || pacValue === undefined
+            ? '—'
+            : `${formatNumber(pacValue, { decimals: 0, lang })} W`,
+      }),
+    ];
+  }
+  const values = feedInSeries.map((_, i) => hoveredSeries[i][dataPointIndex]);
+  const total = sumPerInverter(values);
+  const rows = [
+    tooltipRow({
+      color: colors[0],
+      label: t('chart.total'),
+      value: total === null ? '—' : `${formatNumber(total, { decimals: 0, lang })} W`,
+    }),
+  ];
+  feedInSeries.forEach((s, i) => {
+    rows.push(
+      tooltipRow({
+        color: colors[i],
+        label: s.name,
+        value:
+          values[i] === null || values[i] === undefined
+            ? '—'
+            : `${formatNumber(values[i], { decimals: 0, lang })} W`,
+      }),
+    );
+  });
+  return rows;
+}
+
+function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
+  const timestamps = data.readings.map((r) => new Date(r.timestamp).getTime());
+  // Omitted entirely (not merely hidden) when the day has no UDC readings at all — e.g. an
+  // older epoch whose min-file format predates volt reporting — so no "UDC" legend entry is
+  // offered at all, per FR-005.
+  const hasUdcData = data.readings.some((r) => sumUdcVolts(r.perInverter) !== null);
+  const stringKeys = inverterKeysAcross(data.readings);
+  const feedInSeries = buildFeedInSeries(data, timestamps, breakdown, stringKeys);
+  // Series order is always feed-in segment(s), then efficiency, then (optionally) UDC — indices
+  // below are derived from that rather than hard-coded, since the feed-in segment count now
+  // varies with the breakdown toggle.
+  const efficiencyIndex = feedInSeries.length;
+  const udcIndex = efficiencyIndex + 1;
+
+  const series = [
+    ...feedInSeries,
     {
       name: t('chart.efficiencyAxis'),
       type: 'line',
@@ -132,38 +225,53 @@ function buildDayOptions(data, colors, { lang } = {}) {
         ]
       : []),
   ];
-  const seriesColors = hasUdcData
-    ? [colors[0], EFFICIENCY_LINE_COLOR, colors[2]]
-    : [colors[0], EFFICIENCY_LINE_COLOR];
+  // Feed-in segment(s) use colors[0] (total, or WR1) / colors[1] (WR2) — the same slots the
+  // month/year/total bar charts already use for "Gesamt"/WR1/WR2 — while Wirkungsgrad and UDC
+  // sit in their own fixed slots regardless of how many feed-in segments there are, so neither
+  // ever collides with a feed-in color.
+  const seriesColors = [
+    ...feedInSeries.map((_, i) => colors[i]),
+    colors[EFFICIENCY_COLOR_INDEX],
+    ...(hasUdcData ? [colors[UDC_COLOR_INDEX]] : []),
+  ];
 
   return {
     ...baseOptions(colors),
     chart: {
       ...baseOptions(colors).chart,
       type: 'line',
-      // Persists the UDC line's shown/hidden state across visits (per updated Edge Cases —
-      // unlike the day chart's other series, UDC's visibility is now remembered). Fires on every
-      // legend click, not only UDC's, so it's guarded to the UDC series index (2 — series order
-      // above is fixed: feed-in, efficiency, UDC). ApexCharts applies its own default
-      // show/hide toggle after invoking this callback, so the resulting visibility is read one
-      // tick later via `collapsedSeriesIndices` (same check the tooltip already uses) rather
-      // than assumed from the click alone.
-      events: hasUdcData
-        ? {
-            legendClick: (chartContext, seriesIndex) => {
-              if (seriesIndex !== 2) return;
-              window.setTimeout(() => {
-                const hidden = chartContext.w.globals.collapsedSeriesIndices.includes(seriesIndex);
-                setDayUdcVisible(!hidden);
-              }, 0);
-            },
-          }
-        : undefined,
+      // Persists the Wirkungsgrad and UDC lines' shown/hidden state across visits (per updated
+      // Edge Cases — unlike the feed-in series, these two are remembered). Fires on every legend
+      // click, so it's guarded to each series' own index (derived above — series order is fixed:
+      // feed-in segment(s), efficiency, UDC) and dispatched to that series' own setter.
+      // ApexCharts applies its own default show/hide toggle after invoking this callback, so the
+      // resulting visibility is read one tick later via `collapsedSeriesIndices` (same check the
+      // tooltip already uses) rather than assumed from the click alone.
+      events: {
+        legendClick: (chartContext, seriesIndex) => {
+          const setVisible = {
+            [efficiencyIndex]: setDayEfficiencyVisible,
+            [udcIndex]: setDayUdcVisible,
+          }[seriesIndex];
+          if (!setVisible) return;
+          window.setTimeout(() => {
+            const hidden = chartContext.w.globals.collapsedSeriesIndices.includes(seriesIndex);
+            setVisible(!hidden);
+          }, 0);
+        },
+      },
     },
     colors: seriesColors,
-    stroke: { width: hasUdcData ? [2, 2, 2] : [2, 2], curve: 'smooth' },
+    stroke: {
+      width: series.map(() => 2),
+      curve: 'smooth',
+    },
     fill: {
-      type: hasUdcData ? ['gradient', 'solid', 'solid'] : ['gradient', 'solid'],
+      type: [
+        ...feedInSeries.map((s) => (s.type === 'area' ? 'gradient' : 'solid')),
+        'solid',
+        ...(hasUdcData ? ['solid'] : []),
+      ],
       gradient: {
         type: 'vertical',
         shade: 'light',
@@ -183,13 +291,17 @@ function buildDayOptions(data, colors, { lang } = {}) {
       labels: { datetimeUTC: false, format: 'HH:mm' },
     },
     yaxis: [
-      {
-        seriesName: t('chart.feedInAxis'),
-        title: { text: t('chart.feedInAxis') },
+      // One axis entry per feed-in segment, all sharing the same (left, Watt) scale — only the
+      // first is actually drawn (title/labels), the rest stay `show: false` so per-inverter mode
+      // doesn't draw duplicate axis lines/labels on top of each other.
+      ...feedInSeries.map((s, i) => ({
+        seriesName: s.name,
+        show: i === 0,
+        title: i === 0 ? { text: t('chart.feedInAxis') } : undefined,
         min: 0,
         forceNiceScale: true,
         labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
-      },
+      })),
       {
         seriesName: t('chart.efficiencyAxis'),
         opposite: true,
@@ -213,39 +325,41 @@ function buildDayOptions(data, colors, { lang } = {}) {
       // Custom (rather than per-series `y.formatter`) so the Wirkungsgrad row can show its
       // PAC ⁄ PDC calculation as a sub-line under the percentage.
       custom: ({ series: hoveredSeries, dataPointIndex, w }) => {
-        const pacValue = hoveredSeries[0][dataPointIndex];
-        const pctValue = hoveredSeries[1][dataPointIndex];
         const { pacW, pdcW } = efficiencySums(data.readings[dataPointIndex]?.perInverter);
         const rows = [
-          tooltipRow({
-            color: w.globals.colors[0],
-            label: t('chart.feedInAxis'),
-            value:
-              pacValue === null || pacValue === undefined
-                ? '—'
-                : `${formatNumber(pacValue, { decimals: 0, lang })} W`,
-          }),
-          tooltipRow({
-            color: w.globals.colors[1],
-            label: t('chart.efficiencyAxis'),
-            value:
-              pctValue === null || pctValue === undefined
-                ? '—'
-                : `${formatNumber(pctValue, { decimals: 0, lang })}%`,
-            detail:
-              pctValue === null || pctValue === undefined
-                ? undefined
-                : `AC: ${formatNumber(pacW, { decimals: 0, lang })} W / DC: ${formatNumber(pdcW, { decimals: 0, lang })} W`,
+          ...feedInTooltipRows({
+            hoveredSeries,
+            dataPointIndex,
+            feedInSeries,
+            colors: w.globals.colors,
+            lang,
           }),
         ];
-        // The UDC row only appears while the series is currently visible (FR-004) — checked via
-        // ApexCharts' own collapsed-series tracking on `w.globals`, consistent with how this
-        // function already reads `w.globals.colors` for the other rows' markers.
-        if (hasUdcData && !w.globals.collapsedSeriesIndices.includes(2)) {
-          const udcValue = hoveredSeries[2]?.[dataPointIndex];
+        // Wirkungsgrad/UDC rows only appear while their series is currently visible (FR-004) —
+        // checked via ApexCharts' own collapsed-series tracking on `w.globals`, consistent with
+        // how this function already reads `w.globals.colors` for the other rows' markers.
+        if (!w.globals.collapsedSeriesIndices.includes(efficiencyIndex)) {
+          const pctValue = hoveredSeries[efficiencyIndex][dataPointIndex];
           rows.push(
             tooltipRow({
-              color: w.globals.colors[2],
+              color: w.globals.colors[efficiencyIndex],
+              label: t('chart.efficiencyAxis'),
+              value:
+                pctValue === null || pctValue === undefined
+                  ? '—'
+                  : `${formatNumber(pctValue, { decimals: 0, lang })}%`,
+              detail:
+                pctValue === null || pctValue === undefined
+                  ? undefined
+                  : `AC: ${formatNumber(pacW, { decimals: 0, lang })} W / DC: ${formatNumber(pdcW, { decimals: 0, lang })} W`,
+            }),
+          );
+        }
+        if (hasUdcData && !w.globals.collapsedSeriesIndices.includes(udcIndex)) {
+          const udcValue = hoveredSeries[udcIndex]?.[dataPointIndex];
+          rows.push(
+            tooltipRow({
+              color: w.globals.colors[udcIndex],
               label: t('chart.udcAxis'),
               value:
                 udcValue === null || udcValue === undefined
@@ -514,9 +628,12 @@ function buildOptions(mode, data, colors, config) {
  * @param {'day' | 'day-yield' | 'month' | 'year-months' | 'year'} mode
  * @param {object} data - Same shape per mode as before (readings/dailyBreakdown/
  *   monthlyBreakdown/yearlyTotalsList).
- * @param {{ onDataPointClick?: (dataPointIndex: number) => void }} [config] - `onDataPointClick`
- *   wires bar-click drill-down (month/year/year-months only; ignored for the day line/area
- *   charts, which have no finer view to drill into).
+ * @param {{ onDataPointClick?: (dataPointIndex: number) => void, breakdown?: 'total' |
+ *   'inverters' }} [config] - `onDataPointClick` wires bar-click drill-down (month/year/
+ *   year-months only; ignored for the day line/area charts, which have no finer view to drill
+ *   into). `breakdown` selects total vs. per-inverter for both the bar charts (stacked segments)
+ *   and the day chart (feed-in split into one area per inverter string; ignored for `day-yield`,
+ *   which has no per-inverter power data to split).
  * @returns {import('apexcharts')} The ApexCharts instance (for tests/cleanup).
  */
 export function renderChart(container, mode, data, config) {
@@ -529,20 +646,25 @@ export function renderChart(container, mode, data, config) {
   const options = buildOptions(mode, data, getChartColors(), config);
   const chart = new ApexCharts(container, options);
   const rendered = chart.render();
-  // Day chart's UDC series is present in the legend, defaulting to hidden (FR-002) unless the
-  // user previously revealed it — toggled by ApexCharts' own default legend-click behavior
-  // (legend.onItemClick.toggleDataSeries) plus the `legendClick` handler in buildDayOptions
-  // that persists the choice. Only present when buildDayOptions actually built the series (a day
-  // with no UDC readings at all omits it entirely, per FR-005). Chained on the render Promise
-  // rather than called synchronously right after `render()`, since `hideSeries` manipulates
-  // legend/series DOM that only exists once rendering has actually finished.
-  const udcSeriesName = t('chart.udcAxis');
-  if (
-    mode === 'day' &&
-    options.series.some((s) => s.name === udcSeriesName) &&
-    !isDayUdcVisible()
-  ) {
-    Promise.resolve(rendered).then(() => chart.hideSeries(udcSeriesName));
+  // Day chart's UDC and Wirkungsgrad series each restore their own persisted shown/hidden state
+  // (UDC defaulting to hidden per FR-002, Wirkungsgrad defaulting to shown) — toggled by
+  // ApexCharts' own default legend-click behavior (legend.onItemClick.toggleDataSeries) plus the
+  // `legendClick` handler in buildDayOptions that persists each choice. UDC's entry is only
+  // present when buildDayOptions actually built that series (a day with no UDC readings at all
+  // omits it entirely, per FR-005); Wirkungsgrad is always present for mode 'day'. Chained on the
+  // render Promise rather than called synchronously right after `render()`, since `hideSeries`
+  // manipulates legend/series DOM that only exists once rendering has actually finished.
+  if (mode === 'day') {
+    const udcSeriesName = t('chart.udcAxis');
+    const efficiencySeriesName = t('chart.efficiencyAxis');
+    Promise.resolve(rendered).then(() => {
+      if (options.series.some((s) => s.name === udcSeriesName) && !isDayUdcVisible()) {
+        chart.hideSeries(udcSeriesName);
+      }
+      if (!isDayEfficiencyVisible()) {
+        chart.hideSeries(efficiencySeriesName);
+      }
+    });
   }
   charts.set(container, chart);
   return chart;

@@ -321,6 +321,168 @@ test.describe('Day view UDC toggle (US1 — 013-chart-udc-inverter-toggles)', ()
   });
 });
 
+test.describe('Day view Wirkungsgrad toggle', () => {
+  // Epoch 3 layout (6|4 fields, SB4200 block first): pac;pdc1;pdc2;yield;udc1;udc2|pac;pdc;yield;udc
+  const lines = [
+    'm[mi++]="20.06.24 05:00:00|0;0;0;0;0;0|0;0;0;0"',
+    'm[mi++]="20.06.24 12:00:00|900;500;400;5000;240;241|300;350;3000;230"',
+    'm[mi++]="20.06.24 21:00:00|0;0;0;5079;0;0|0;0;2995;125"',
+  ];
+
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/hist/min200627.js', (route) =>
+      route.fulfill({ contentType: 'application/javascript', body: lines.join('\n') }),
+    );
+    await page.route('**/hist/min200628.js', (route) =>
+      route.fulfill({ contentType: 'application/javascript', body: lines.join('\n') }),
+    );
+  });
+
+  test('is shown by default, unlike UDC', async ({ page }) => {
+    await page.goto('/#/day/2020/06/27');
+    await page.waitForLoadState('networkidle');
+    const effLegendItem = page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' });
+    await expect(effLegendItem).toHaveAttribute('aria-pressed', 'false');
+    // Series order is feed-in, efficiency, UDC — efficiency is index 1 in total mode.
+    await expect(page.locator('.chart-container .apexcharts-series').nth(1)).not.toHaveClass(
+      /apexcharts-series-collapsed/,
+    );
+  });
+
+  test('hidden state persists across a reload and on a different day, without affecting UDC', async ({
+    page,
+  }) => {
+    await page.goto('/#/day/2020/06/27');
+    await page.waitForLoadState('networkidle');
+    const effLegendItem = page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' });
+    const udcLegendItem = page.locator('.apexcharts-legend-series', { hasText: 'UDC' });
+
+    await effLegendItem.click();
+    await expect(effLegendItem).toHaveAttribute('aria-pressed', 'true');
+    // Other series (feed-in, UDC) are unaffected by the toggle, mirroring FR-003 for UDC.
+    await expect(udcLegendItem).toHaveAttribute('aria-pressed', 'true');
+
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await expect(
+      page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.apexcharts-legend-series', { hasText: 'UDC' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await page.goto('/#/day/2020/06/28');
+    await page.waitForLoadState('networkidle');
+    await expect(
+      page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+
+    // Re-reveal; that choice is persisted too.
+    await page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' }).click();
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await expect(
+      page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' }),
+    ).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('tooltip omits the Wirkungsgrad row while the series is hidden', async ({ page }) => {
+    await page.goto('/#/day/2020/06/27');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' }).click();
+
+    const box = await page.locator('.chart-container .apexcharts-svg').boundingBox();
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height / 2);
+    const tooltip = page.locator('.apexcharts-tooltip');
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).not.toContainText('Wirkungsgrad');
+  });
+});
+
+test.describe('Day view breakdown toggle (feed-in total/per-inverter)', () => {
+  // Epoch 3 layout (6|4 fields, SB4200 block first): pac;pdc1;pdc2;yield;udc1;udc2|pac;pdc;yield;udc
+  const lines = [
+    'm[mi++]="20.06.24 05:00:00|0;0;0;0;0;0|0;0;0;0"',
+    'm[mi++]="20.06.24 12:00:00|900;500;400;5000;240;241|300;350;3000;230"',
+    'm[mi++]="20.06.24 21:00:00|0;0;0;5079;0;0|0;0;2995;125"',
+  ];
+
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/hist/min200624.js', (route) =>
+      route.fulfill({ contentType: 'application/javascript', body: lines.join('\n') }),
+    );
+  });
+
+  test('defaults to a single combined feed-in line, with the toggle set to "Gesamt"', async ({
+    page,
+  }) => {
+    await page.goto('/#/day/2020/06/24');
+    await page.waitForLoadState('networkidle');
+    await expect(
+      page.locator('.chart-breakdown-toggle button[data-breakdown="total"]'),
+    ).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.chart-container .apexcharts-legend-text').first()).toHaveText(
+      /Einspeisung/,
+    );
+  });
+
+  test('switching to "Wechselrichter" splits the feed-in line into WR1/WR2 with a Gesamt+per-string tooltip', async ({
+    page,
+  }) => {
+    await page.goto('/#/day/2020/06/24');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.chart-breakdown-toggle button[data-breakdown="inverters"]').click();
+
+    const legend = page.locator('.chart-container .apexcharts-legend-text');
+    await expect(legend.nth(0)).toHaveText(/WR1/);
+    await expect(legend.nth(1)).toHaveText(/WR2/);
+
+    const box = await page.locator('.chart-container .apexcharts-svg').boundingBox();
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height / 2);
+    const tooltip = page.locator('.apexcharts-tooltip');
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toContainText('Gesamt');
+    await expect(tooltip).toContainText('WR1');
+    await expect(tooltip).toContainText('WR2');
+  });
+
+  test('the breakdown selection persists across a reload and is shared with the bar-chart views', async ({
+    page,
+  }) => {
+    await page.goto('/#/day/2020/06/24');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.chart-breakdown-toggle button[data-breakdown="inverters"]').click();
+
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await expect(
+      page.locator('.chart-breakdown-toggle button[data-breakdown="inverters"]'),
+    ).toHaveAttribute('aria-pressed', 'true');
+
+    await page.goto('/#/month/2008/07');
+    await page.waitForLoadState('networkidle');
+    await expect(
+      page.locator('.chart-breakdown-toggle button[data-breakdown="inverters"]'),
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('a backfilled/yield-only day offers no breakdown toggle', async ({ page }) => {
+    // Mirrors the UDC toggle's own yield-only test above: no per-inverter power data survives to
+    // break down (buildDayYieldOptions only plots the combined cumulative-Wh curve).
+    const yieldOnlyLines = [
+      'm[mi++]="26.06.24 21:35:00|0;0;0;5079;0;0|0;0;2995;125"',
+      'm[mi++]="26.06.24 21:40:00|0;0;0;5079;0;0|0;0;2995;125"',
+    ];
+    await page.route('**/hist/min200626.js', (route) =>
+      route.fulfill({ contentType: 'application/javascript', body: yieldOnlyLines.join('\n') }),
+    );
+    await page.goto('/#/day/2020/06/26');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.chart-breakdown-toggle')).toHaveCount(0);
+  });
+});
+
 test.describe('Year detail view (US2)', () => {
   test('renders all years with no drops, including the partial 2006 year', async ({ page }) => {
     await page.goto('/#/year/2019');

@@ -11,7 +11,8 @@ function statsRow(labelKey, value) {
  * Stacks to full-width, chart-then-panel on small screens.
  * @param {{ breakdownToggle?: boolean }} [opts] - `breakdownToggle: true` adds the "Gesamt" /
  *   per-inverter toggle (see chart-breakdown-toggle.js) above the chart-mount — used by the
- *   month/year/total bar-chart views only, not the day view's line chart.
+ *   month/year/total bar-chart views and the day view's feed-in line (omitted there for
+ *   backfilled/yield-only days, which have no per-inverter power data to break down).
  * @returns {string}
  */
 export function chartWithStatsLayoutMarkup({ breakdownToggle = false } = {}) {

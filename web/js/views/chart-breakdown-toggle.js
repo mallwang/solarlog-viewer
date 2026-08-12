@@ -3,10 +3,11 @@ import { getChartBreakdownMode, setChartBreakdownMode } from '../settings.js';
 
 /**
  * Markup for the "Gesamt" / per-inverter breakdown toggle shown above the month/year/total bar
- * charts (not the day chart, which uses ApexCharts' own legend-click toggling for its UDC
- * series instead — see chart-factory.js's buildDayOptions). Two mutually-exclusive buttons
- * (mirrors the header's `.lang-switcher` pattern) rather than a checkbox, since there are exactly
- * two named states, not an on/off flag.
+ * charts and the day chart's feed-in line (see chart-factory.js's buildDayOptions/buildBarOptions
+ * for how each mode consumes it; the day chart's UDC series still uses its own separate
+ * ApexCharts legend-click toggle). Two mutually-exclusive buttons (mirrors the header's
+ * `.lang-switcher` pattern) rather than a checkbox, since there are exactly two named states, not
+ * an on/off flag.
  * @returns {string}
  */
 export function chartBreakdownToggleMarkup() {

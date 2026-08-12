@@ -69,3 +69,27 @@ export function isDayUdcVisible() {
 export function setDayUdcVisible(visible) {
   window.localStorage.setItem(DAY_UDC_VISIBLE_KEY, String(visible));
 }
+
+const DAY_EFFICIENCY_VISIBLE_KEY = 'solarlog-day-efficiency-visible';
+
+/**
+ * Persisted selection for the day chart's Wirkungsgrad (efficiency) legend toggle (see
+ * `charts/chart-factory.js`'s `renderChart`) — whether the efficiency line stays shown across
+ * visits. Defaults to `true` (shown) so a day chart with no persisted choice yet renders exactly
+ * as it did before this setting existed; any stored value other than `'false'` (including none)
+ * falls back to that default — the inverse default of `isDayUdcVisible`, which starts hidden.
+ * @returns {boolean}
+ */
+export function isDayEfficiencyVisible() {
+  return window.localStorage.getItem(DAY_EFFICIENCY_VISIBLE_KEY) !== 'false';
+}
+
+/**
+ * Persists the day chart's current Wirkungsgrad visibility so it's restored on the next day
+ * chart render.
+ * @param {boolean} visible
+ * @returns {void}
+ */
+export function setDayEfficiencyVisible(visible) {
+  window.localStorage.setItem(DAY_EFFICIENCY_VISIBLE_KEY, String(visible));
+}
