@@ -57,7 +57,16 @@ das Panel außerdem den aktuellen Wirkungsgrad des Wechselrichters (ΣPAC ÷ ΣP
 statt eines irreführenden 0%/∞. Die Tagesansicht (`#/day/YYYY/MM/DD`) zeigt denselben Wirkungsgrad
 als zweite Kurve auf einer sekundären y-Achse neben der Leistungskurve, mit Lücken überall dort,
 wo PDC null oder fehlt, und komplett ausgeblendet für rekonstruierte/archivierte Tage, die nur
-eine Ertragskurve besitzen. Ein Klick auf den Wetter-/
+eine Ertragskurve besitzen. Das Tagesdiagramm führt außerdem eine "UDC"-Serie (DC-Stringspannung,
+über alle Strings summiert) in der Legende, standardmäßig ausgeblendet und per Klick auf den
+Legendeneintrag einblendbar, an Tagen ohne Spannungsdaten gar nicht erst angeboten. Diese
+Ein-/Ausblend-Wahl wird gemerkt (`localStorage`) und beim nächsten Tagesdiagramm übernommen. Die
+Balkendiagramme für Monat/Jahr/Gesamt (Lebenszeit) bieten einen gespeicherten Umschalter
+"Gesamt" / "Wechselrichter" oberhalb des Diagramms: "Gesamt" (Standard) zeigt wie bisher einen
+einzelnen Summenbalken; "Wechselrichter" stapelt stattdessen je einen Abschnitt pro
+Wechselrichter-String, mit Gesamtsumme plus Einzelwerten pro String im Tooltip. Die Auswahl wird
+(`localStorage`) über Reloads und zwischen den drei Ansichten hinweg gemerkt. Der Klick-Drilldown
+funktioniert in beiden Ansichten weiterhin auf jedem Balken/Abschnitt. Ein Klick auf den Wetter-/
 Prognosebereich öffnet eine wetteronline.de-Suche für die konfigurierte Adresse der Anlage in
 einem neuen Tab — die übliche Wetterquelle des Anlagenbetreibers. Leistung und Wetter/Prognose
 zeigen jeweils unabhängig einen "nicht verfügbar"-Zustand an, falls die jeweilige Datenquelle

@@ -21,12 +21,13 @@ Constitution Principle V ("No Custom Pixel Math" / no custom chart engines — e
 not hand-rolling interaction logic ApexCharts already provides).
 
 **Alternatives considered**:
-- *Omit the UDC series entirely until clicked, injecting it into `series` on a custom legend
-  click handler*: rejected — requires listening for legend DOM clicks outside ApexCharts' event
+
+- _Omit the UDC series entirely until clicked, injecting it into `series` on a custom legend
+  click handler_: rejected — requires listening for legend DOM clicks outside ApexCharts' event
   model (fragile, needs manual legend markup) and re-rendering the whole chart on every toggle,
   which is slower and loses the "instant toggle" goal in the Technical Context.
-- *Use a separate on/off UI control (e.g. a checkbox next to the chart) instead of the legend
-  itself*: rejected — the user explicitly asked for "click in the legend on the UDC", so the
+- _Use a separate on/off UI control (e.g. a checkbox next to the chart) instead of the legend
+  itself_: rejected — the user explicitly asked for "click in the legend on the UDC", so the
   native legend entry is the correct interaction surface, and ApexCharts already supports it.
 
 ## Decision 2: Stacked bars via `chart.stacked: true` + one series per inverter string
@@ -45,11 +46,12 @@ assuming exactly 2) satisfies FR-010 (generalizes to however many strings exist)
 complexity, since `Object.keys()` already works for any count.
 
 **Alternatives considered**:
-- *Keep a single series but pass a 2D/nested value shape ApexCharts doesn't natively support for
-  bars*: rejected — ApexCharts stacked bars are configured via multiple series + `stacked: true`,
+
+- _Keep a single series but pass a 2D/nested value shape ApexCharts doesn't natively support for
+  bars_: rejected — ApexCharts stacked bars are configured via multiple series + `stacked: true`,
   which is the documented, supported shape; inventing an alternative encoding would be non-standard
   and harder to test.
-- *Hard-code two series (`WR1`, `WR2`)*: rejected per FR-010 / Edge Cases — must generalize to
+- _Hard-code two series (`WR1`, `WR2`)_: rejected per FR-010 / Edge Cases — must generalize to
   however many strings the data contains.
 
 ## Decision 3: Click-to-drill-down compatibility with stacked bars
@@ -79,5 +81,6 @@ mechanism is the natural extension point for a third, conditionally-shown row, k
 tooltip-row formatting in one place (the existing `tooltipRow` helper).
 
 **Alternatives considered**:
-- *Switch back to per-series default tooltip formatting*: rejected — would lose the existing
+
+- _Switch back to per-series default tooltip formatting_: rejected — would lose the existing
   Wirkungsgrad PAC/PDC sub-line, a regression outside this feature's scope.

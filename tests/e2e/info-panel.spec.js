@@ -247,9 +247,7 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     await mockForecast(page);
     await page.goto('/');
     const desktop = page.locator('[data-info-panel="desktop"]');
-    await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText(
-      'Stand: 14:00',
-    );
+    await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText('Stand: 14:00');
   });
 
   test('clears the timestamp subline on fetch failure', async ({ page }) => {

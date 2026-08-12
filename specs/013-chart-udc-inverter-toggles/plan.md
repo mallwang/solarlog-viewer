@@ -60,19 +60,19 @@ Inverter string count is read from the data (`Object.keys(perInverter)`), not ha
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Applies? | How satisfied |
-|---|---|---|
-| I. Static-File Data Model is Sacred | Yes | No `.js` data file or parser touched; `udcV`/`perInverter` fields already exist in the parsed data objects and are only consumed differently by the chart layer. |
-| II. Zero Historical Data Loss | Yes | Stacked bars must sum to the exact same total as today's single bar (FR-007); UDC is an additive display of already-parsed data, nothing is dropped. |
-| III. No Backend Introduction | Yes | Purely client-side rendering change in `chart-factory.js`/views; no new service or endpoint. |
-| IV. Responsive-First Layout | Yes | ApexCharts stacked bars and legend interactions are already responsive by default; no fixed-pixel layout introduced. |
-| V. Modern Charting — No Custom Pixel Math | Yes | Uses ApexCharts' built-in stacked-bar (`chart.stacked`) and legend-toggle (`legend.onItemClick`) features exclusively; no custom pixel/show-hide logic. |
-| VI. Preserve All Five Visualization Modes | Yes | Mode 0 (day) and Modes 1–3 (month/year/all-time) keep their existing series (feed-in, efficiency, drill-down) and gain additive series/segments only; no mode is dropped or merged. |
-| Testing (Playwright) | Yes | New Playwright assertions added to `tests/e2e/detail-views.spec.js` for legend-click UDC toggle and for stacked-bar segment/tooltip content, per Development Workflow rule 3 (tests before implementation). |
-| Documentation Standards | Yes | `README.md`/`README.de.md` and `docs/user-guide.md`/`docs/user-guide.de.md` updated to describe the UDC toggle and per-string bar breakdown, kept EN/DE consistent. |
-| JSDoc / file-level docs | Yes | New/modified functions in `chart-factory.js` get JSDoc; module already carries a file-level description. |
+| Principle                                 | Applies? | How satisfied                                                                                                                                                                                               |
+| ----------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Static-File Data Model is Sacred       | Yes      | No `.js` data file or parser touched; `udcV`/`perInverter` fields already exist in the parsed data objects and are only consumed differently by the chart layer.                                            |
+| II. Zero Historical Data Loss             | Yes      | Stacked bars must sum to the exact same total as today's single bar (FR-007); UDC is an additive display of already-parsed data, nothing is dropped.                                                        |
+| III. No Backend Introduction              | Yes      | Purely client-side rendering change in `chart-factory.js`/views; no new service or endpoint.                                                                                                                |
+| IV. Responsive-First Layout               | Yes      | ApexCharts stacked bars and legend interactions are already responsive by default; no fixed-pixel layout introduced.                                                                                        |
+| V. Modern Charting — No Custom Pixel Math | Yes      | Uses ApexCharts' built-in stacked-bar (`chart.stacked`) and legend-toggle (`legend.onItemClick`) features exclusively; no custom pixel/show-hide logic.                                                     |
+| VI. Preserve All Five Visualization Modes | Yes      | Mode 0 (day) and Modes 1–3 (month/year/all-time) keep their existing series (feed-in, efficiency, drill-down) and gain additive series/segments only; no mode is dropped or merged.                         |
+| Testing (Playwright)                      | Yes      | New Playwright assertions added to `tests/e2e/detail-views.spec.js` for legend-click UDC toggle and for stacked-bar segment/tooltip content, per Development Workflow rule 3 (tests before implementation). |
+| Documentation Standards                   | Yes      | `README.md`/`README.de.md` and `docs/user-guide.md`/`docs/user-guide.de.md` updated to describe the UDC toggle and per-string bar breakdown, kept EN/DE consistent.                                         |
+| JSDoc / file-level docs                   | Yes      | New/modified functions in `chart-factory.js` get JSDoc; module already carries a file-level description.                                                                                                    |
 
 No violations — no entry required in Complexity Tracking.
 
@@ -126,4 +126,4 @@ Playwright test surface listed above.
 
 ## Complexity Tracking
 
-*No Constitution Check violations — this section is not applicable.*
+_No Constitution Check violations — this section is not applicable._
