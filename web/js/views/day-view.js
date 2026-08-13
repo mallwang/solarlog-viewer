@@ -9,6 +9,8 @@ import { addDays, isFutureDay, parentOfDay, periodNavMarkup } from './period-nav
 import { emptyStateBody } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
 import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
+import { initChartTableToggle } from './chart-table-toggle.js';
+import { renderChartTable } from './chart-data-table.js';
 import { getChartBreakdownMode } from '../settings.js';
 import { formatKwh, formatCurrency, formatDate, formatCo2 } from '../format.js';
 import {
@@ -153,13 +155,19 @@ export async function render(container, { route, plant }) {
   }
 
   const mount = container.querySelector('.chart-mount');
-  const drawChart = () =>
-    renderChart(mount, hasPowerData ? 'day' : 'day-yield', trace, {
+  const tableMount = chartContainer.querySelector('.chart-table');
+  const drawChart = () => {
+    const chart = renderChart(mount, hasPowerData ? 'day' : 'day-yield', trace, {
       lang: getLanguage(),
       breakdown: getChartBreakdownMode(),
     });
+    renderChartTable(tableMount, chart.w.config);
+  };
   drawChart();
   if (hasPowerData) {
     initChartBreakdownToggle(chartContainer, drawChart);
   }
+  initChartTableToggle(chartContainer, (visible) => {
+    tableMount.hidden = !visible;
+  });
 }

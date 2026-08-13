@@ -85,14 +85,29 @@ function renderNav() {
  * see app.css) starts exactly below whatever chrome precedes it — instead of being clipped by
  * it or leaving a gap — regardless of how many bars that chrome is made of (the combined
  * header+nav row alone on desktop; header row + the mobile info sub-nav bar on mobile — see
- * index.html). Measuring `#app-main` directly rather than any one specific chrome element means
- * this doesn't need updating every time the chrome's structure changes. Chrome height isn't a
- * fixed constant: it depends on font rendering and can change on resize (e.g. the title
- * wrapping to two lines on narrow viewports), so this is re-measured on load and on resize.
+ * index.html). Also the `top` offset every view's sticky `.view-header` (014-chart-data-table-
+ * toggle) sticks to, directly below the now-also-sticky `.app-chrome` — so a stale value here no
+ * longer just misplaces the sky's clipping by a few px, it visibly hides the view title/nav
+ * behind the header on scroll. Chrome height isn't a fixed constant: it depends on font
+ * rendering and can change whenever its own content does — window resize, the nav list filling
+ * in (renderNav runs after the first `updateChromeHeight` call in bootstrap(), below), a language
+ * switch changing label lengths enough to reflow the wrap — so `initChromeHeightSync` below wires
+ * a `ResizeObserver` on `.app-chrome` itself instead of only re-measuring on specific known
+ * events, catching every future cause of a size change too.
  */
 function updateChromeHeight() {
   const top = Math.max(viewMain.getBoundingClientRect().top, 60);
   document.documentElement.style.setProperty('--chrome-height', `${Math.ceil(top)}px`);
+}
+
+/** Wires updateChromeHeight() to fire on load, resize, and every `.app-chrome` size change. */
+function initChromeHeightSync() {
+  updateChromeHeight();
+  window.addEventListener('resize', updateChromeHeight);
+  const appChrome = document.querySelector('.app-chrome');
+  if (appChrome && typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(updateChromeHeight).observe(appChrome);
+  }
 }
 
 function initNavToggle() {
@@ -192,13 +207,11 @@ async function bootstrap() {
   renderLangSwitcher();
   initNavToggle();
   initTransparencyToggle();
-  updateChromeHeight();
-  window.addEventListener('resize', updateChromeHeight);
+  initChromeHeightSync();
 
   const result = await fetchText('data/base_vars.js');
   if (result.ok) {
     plant = parseBaseVars(result.text);
-    updateChromeHeight();
   }
   // SITE_TITLE (config.js) wins over the plant's device-generated HPTitel (e.g.
   // "Photovoltaikanlage Allwang") whenever it's set; both the nav brand and the browser tab

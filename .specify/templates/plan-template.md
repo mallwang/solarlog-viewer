@@ -13,32 +13,48 @@
 ## Technical Context
 
 <!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
+  These fields are fixed for this repository (solarlog-viewer) — a single static web app with no
+  backend, per .specify/memory/constitution.md. Only override a field below if this feature
+  genuinely changes it (e.g. adds a real dependency, needs a constitution amendment for a new
+  storage mechanism) — note the override and why. Performance Goals/Constraints/Scale still vary
+  per feature and MUST be filled in for real, not left as the example text.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**Language/Version**: Vanilla JavaScript (ES2022+), native ES modules (`type="module"`) — no
+bundler, no JS framework (constitution Technical Standards → Frontend).
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Primary Dependencies**: ApexCharts (vendored at `web/vendor/apexcharts/`, via
+`web/js/charts/chart-factory.js`); Tailwind CSS (approved exception — compiled offline via
+`npm run build:css` into `web/css/tailwind.generated.css`, never loaded from a CDN at runtime).
+Note any feature-specific addition here explicitly.
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Storage**: Browser `localStorage` for user preferences (see `web/js/settings.js` for the
+existing key pattern); the SolarLog device's static `.js` data files under `web/data/` /
+`web/hist/` are the source of truth for plant data and MUST NOT be modified (constitution
+Principle I). A local SQLite cache (`data/solarlog.sqlite3`, populated by `scripts/sync-sqlite.js`)
+exists for developer/CLI tooling only — not a runtime dependency of the browser viewer.
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Testing**: `node --test` (via `npm run test:scripts`) for pure logic in `scripts/*.js` and
+`web/js/**/*.test.js`; Playwright (`npx playwright test --reporter=line`) as the primary quality
+gate for visible UI changes — every feature with a UI-visible effect MUST get at least one
+Playwright test (constitution Testing standard).
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Target Platform**: Static site, deployable to any plain web host (Apache, nginx, GitHub Pages,
+S3) with no runtime dependencies; must render correctly 320px–2560px without horizontal scrolling
+(constitution Principle IV).
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Project Type**: Single static web app (`web/`) — no frontend/backend split, no server component
+(constitution Principle III).
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Performance Goals**: [domain-specific to this feature, e.g., "table appears in <200ms of click" — fill in for real]
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
+**Constraints**: [domain-specific to this feature, beyond the constitution's standing constraints above — fill in for real]
 
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: [domain-specific to this feature, e.g., expected max row/data-point count — fill in for real]
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 [Gates determined based on constitution file]
 
@@ -57,57 +73,43 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
+
 <!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
+  This repo has one fixed layout (below) — there is no frontend/backend or mobile/API split to
+  choose between. ACTION REQUIRED: expand the tree with the actual new/changed files for this
+  feature (mirroring how prior specs/*/plan.md did it), not just the unchanged skeleton.
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+web/
+├── css/                  # app.css (hand-written, CSS custom properties), tailwind.css (source),
+│                            tailwind.generated.css (build output, not hand-edited), tokens.css
+├── js/
+│   ├── charts/            # chart-factory.js — ApexCharts option-builders per visualization mode
+│   ├── data/               # .js data-file parsing/aggregation (client-side only, see Principle I)
+│   ├── views/              # one module per route/component (day-view.js, month-view.js, ...)
+│   ├── i18n.js, settings.js, router.js, config.js, format.js, main.js
+├── i18n/                  # de.json / en.json translation strings
+├── data/, hist/           # SolarLog device's static .js data files — read-only, never modified
+└── vendor/                # vendored third-party libraries (e.g. apexcharts), no CDN loads
 
-tests/
-├── contract/
-├── integration/
-└── unit/
+scripts/                  # ESM helper/CLI scripts (backfill, validation, sync) — see project
+                             CLAUDE.md for the mandatory TDD/lint conventions for these
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+tests/e2e/                 # Playwright specs
+web/js/**/*.test.js        # node:test unit tests, co-located with the module they cover
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: New modules for this feature go under the existing `web/js/views/` (and
+`web/js/charts/` if a chart-factory.js change is needed) alongside the current view/component
+files — no new top-level directory. Document the specific new/changed files above under the
+generic tree.
 
 ## Complexity Tracking
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |

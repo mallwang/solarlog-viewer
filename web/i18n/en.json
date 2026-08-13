@@ -131,7 +131,12 @@
     "total": "Total",
     "breakdownToggleLabel": "Chart view",
     "breakdownTotal": "Total",
-    "breakdownInverters": "Inverters"
+    "breakdownInverters": "Inverters",
+    "tableToggleLabel": "Show data table",
+    "tableToggleOn": "Hide table",
+    "tableToggleOff": "Show as table",
+    "tableNoData": "No data for this period",
+    "tableCaption": "Data table"
   },
   "infoPanel": {
     "unavailable": "Unavailable",

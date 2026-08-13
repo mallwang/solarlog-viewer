@@ -1,5 +1,7 @@
 import { t } from '../i18n.js';
 import { chartBreakdownToggleMarkup } from './chart-breakdown-toggle.js';
+import { chartTableToggleMarkup } from './chart-table-toggle.js';
+import { isChartTableVisible } from '../settings.js';
 
 function statsRow(labelKey, value) {
   return `<tr><th>${t(labelKey)}</th><td>${value}</td></tr>`;
@@ -16,15 +18,28 @@ function statsRow(labelKey, value) {
  * @returns {string}
  */
 export function chartWithStatsLayoutMarkup({ breakdownToggle = false } = {}) {
-  // .chart-body (not .chart-mount) is the flex item that actually absorbs/loses height to make
-  // room for .chart-breakdown-toggle — ApexCharts resolves a percentage `chart.height` against
-  // *.chart-mount's parent*, not .chart-mount itself (see app.css's .chart-body comment), so
-  // .chart-mount must stay a plain `height: 100%` box whose parent already has the correctly
-  // reduced, real (non-percentage) flex-resolved height.
+  // .chart-frame (not .chart-mount) is the flex item that actually absorbs/loses height to make
+  // room for .chart-container__header (breakdown/table toggles) — ApexCharts resolves a
+  // percentage `chart.height` against *.chart-mount's parent*, not .chart-mount itself (see
+  // app.css's .chart-body comment), so .chart-mount must stay a plain `height: 100%` box whose
+  // parent already has the correctly reduced, real (non-percentage) flex-resolved height.
+  //
+  // The `.chart-table` mount (feature 014) is always present — never omitted — so
+  // initChartTableToggle's onChange always has somewhere to write on the very first click; its
+  // `hidden` attribute is set directly from the persisted app-wide preference here (rather than
+  // left for JS to apply after an async data fetch) so a chart whose table preference is already
+  // "on" doesn't flash hidden-then-shown on load (FR-005).
+  const tableHidden = isChartTableVisible() ? '' : 'hidden';
   return `<div class="period-layout flex flex-col gap-md lg:flex-row lg:items-start">
     <div class="chart-container lg:flex-[7]">
-      ${breakdownToggle ? chartBreakdownToggleMarkup() : ''}
-      <div class="chart-body"><div class="chart-mount"></div></div>
+      <div class="chart-container__header flex items-center flex-wrap gap-sm mb-sm">
+        ${breakdownToggle ? chartBreakdownToggleMarkup() : ''}
+        ${chartTableToggleMarkup()}
+      </div>
+      <div class="chart-frame">
+        <div class="chart-body"><div class="chart-mount"></div></div>
+      </div>
+      <div class="chart-table overflow-x-auto" ${tableHidden}></div>
     </div>
   </div>`;
 }

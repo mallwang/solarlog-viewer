@@ -117,6 +117,19 @@ feat(contracts): add startDate, details, serviceUrl, and cancellationPeriod fiel
 ```
 ````
 
+### 5. Offer the visual recap follow-up
+
+After printing the title/description fence, ask the user whether they'd like
+to run the `visual-recap` skill next, and stop and wait for their answer —
+do not invoke it yourself and do not treat silence as a yes.
+
+Note in that question that `visual-recap` operates on an existing PR: the
+user must first paste this generated description into GitHub and create the
+pull request by hand (this project's normal flow — see the `visual-recap`
+skill's Workflow section) before `visual-recap` has anything to attach the
+recap block to. If the user says yes but no PR exists yet, remind them to
+create it first, then invoke `visual-recap` once they confirm it's up.
+
 ## Notes
 
 - Ignore commits whose messages start with `[Spec Kit]` or `docs(spec-kit):` when deriving the PR title — those are housekeeping commits added by tooling.

@@ -131,7 +131,12 @@
     "total": "Gesamt",
     "breakdownToggleLabel": "Diagrammansicht",
     "breakdownTotal": "Gesamt",
-    "breakdownInverters": "Wechselrichter"
+    "breakdownInverters": "Wechselrichter",
+    "tableToggleLabel": "Datentabelle anzeigen",
+    "tableToggleOn": "Tabelle ausblenden",
+    "tableToggleOff": "Als Tabelle anzeigen",
+    "tableNoData": "Keine Daten für diesen Zeitraum",
+    "tableCaption": "Datentabelle"
   },
   "infoPanel": {
     "unavailable": "Nicht verfügbar",

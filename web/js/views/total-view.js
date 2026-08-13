@@ -14,6 +14,8 @@ import { formatRoute } from '../router.js';
 import { emptyStateMarkup } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
 import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
+import { initChartTableToggle } from './chart-table-toggle.js';
+import { renderChartTable } from './chart-data-table.js';
 import { getChartBreakdownMode } from '../settings.js';
 import { formatKwh, formatCurrency, formatCo2 } from '../format.js';
 import {
@@ -69,7 +71,9 @@ function totalStatsRows(summary, plant) {
  */
 export async function render(container, { plant }) {
   const title = t('nav.totalView');
-  container.innerHTML = `<h2 class="view-title text-lg mb-md">${title}</h2>
+  container.innerHTML = `<div class="view-header flex items-center justify-between gap-sm flex-wrap mb-md">
+      <h2 class="view-title text-lg m-0">${title}</h2>
+    </div>
     ${chartWithStatsLayoutMarkup({ breakdownToggle: true })}`;
   const periodLayout = container.querySelector('.period-layout');
 
@@ -106,15 +110,22 @@ export async function render(container, { plant }) {
     statsPanelMarkup('total.stats.title', totalStatsRows(summary, plant)),
   );
 
+  const chartContainer = container.querySelector('.chart-container');
   const mount = container.querySelector('.chart-mount');
-  const drawChart = () =>
-    renderChart(mount, 'year', years, {
+  const tableMount = chartContainer.querySelector('.chart-table');
+  const drawChart = () => {
+    const chart = renderChart(mount, 'year', years, {
       lang: getLanguage(),
       breakdown: getChartBreakdownMode(),
       onDataPointClick: (index) => {
         window.location.hash = formatRoute({ view: 'year', params: { year: years[index].year } });
       },
     });
+    renderChartTable(tableMount, chart.w.config);
+  };
   drawChart();
-  initChartBreakdownToggle(container.querySelector('.chart-container'), drawChart);
+  initChartBreakdownToggle(chartContainer, drawChart);
+  initChartTableToggle(chartContainer, (visible) => {
+    tableMount.hidden = !visible;
+  });
 }
