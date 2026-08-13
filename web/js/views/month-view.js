@@ -15,6 +15,8 @@ import { addMonths, isFutureMonth, parentOfMonth, periodNavMarkup } from './peri
 import { emptyStateBody } from './empty-state.js';
 import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
 import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
+import { initChartTableToggle } from './chart-table-toggle.js';
+import { renderChartTable } from './chart-data-table.js';
 import { getChartBreakdownMode } from '../settings.js';
 import { formatKwh, formatCurrency, formatCo2 } from '../format.js';
 import {
@@ -199,8 +201,9 @@ export async function render(container, { route, plant }) {
   monthTotal.dailyBreakdown = fillMonthDays(params, dailyBreakdown);
 
   const mount = container.querySelector('.chart-mount');
-  const drawChart = () =>
-    renderChart(mount, 'month', monthTotal, {
+  const tableMount = chartContainer.querySelector('.chart-table');
+  const drawChart = () => {
+    const chart = renderChart(mount, 'month', monthTotal, {
       lang: getLanguage(),
       breakdown: getChartBreakdownMode(),
       onDataPointClick: (index) => {
@@ -208,6 +211,11 @@ export async function render(container, { route, plant }) {
         window.location.hash = formatRoute({ view: 'day', params: { ...params, day } });
       },
     });
+    renderChartTable(tableMount, chart.w.config);
+  };
   drawChart();
-  initChartBreakdownToggle(container.querySelector('.chart-container'), drawChart);
+  initChartBreakdownToggle(chartContainer, drawChart);
+  initChartTableToggle(chartContainer, (visible) => {
+    tableMount.hidden = !visible;
+  });
 }

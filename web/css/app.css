@@ -670,6 +670,19 @@ a {
   color: var(--color-primary-dark);
 }
 
+/* .app-chrome (014-chart-data-table-toggle): sticky wrapper around `.app-header` and the mobile
+   `.info-panel--mobile` sub-nav bar (see index.html) — keeps both pinned to the top of the
+   viewport while the page scrolls beneath them (previously only `.sky-clouds` was fixed; the
+   chrome itself scrolled away with the rest of the page once a chart's data table made a detail
+   view taller than the viewport). `z-index` sits above `.view-header` below (20) and everything
+   else in normal flow. No background/opacity of its own needed — `.app-header` and
+   `.info-panel--mobile` are already fully opaque. */
+.app-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
 .app-header {
   /* Opaque so the fixed cloud layer behind it (`.sky-clouds`, offset to start below the nav)
      never shows through the header. A single combined header+nav row (at the user's request):
@@ -951,6 +964,25 @@ a {
   margin: 0 auto;
 }
 
+/* .view-header (014-chart-data-table-toggle): the per-view page title (e.g. "Monatserträge -
+   Juni 2026") plus its period-nav buttons — the first child of every detail view's markup
+   (day/month/year/total-view.js). Sticks directly below `.app-chrome` (using the same
+   `--chrome-height` custom property `.sky-clouds` already relies on — see main.js's
+   updateChromeHeight — so it always sits flush under the real chrome, whatever height that
+   currently is) so the title/nav stay reachable while a long chart+table scrolls beneath them.
+   Styled as its own rounded card (same `--radius-lg`/`--color-bg-elevated` as `.chart-container`
+   below it) rather than a full-bleed bar — no inline margin trick, so its left/right edges land
+   exactly on `.chart-container`'s own edges (both are unpadded children of the same `.app-main`
+   box), instead of bleeding past them to the viewport edge (user correction). */
+.view-header {
+  position: sticky;
+  top: var(--chrome-height, 120px);
+  z-index: 20;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-md);
+}
+
 /* .widget-grid / .widget / .widget__title / .widget__value — migrated to Tailwind utility
    classes directly in web/js/views/dashboard.js's markup. */
 
@@ -962,16 +994,32 @@ a {
   padding: var(--space-md);
   position: relative;
   width: 100%;
-  height: min(60vh, 420px);
   margin-top: var(--space-lg);
   box-sizing: border-box;
-  /* Column flex so an optional .chart-breakdown-toggle (month/year/total views) takes only the
-     height it needs and .chart-body fills the rest — without this, .chart-body's `flex: 1`
-     would have nothing to shrink against, so the toggle+chart combined would overflow the
-     container and push the chart's legend (drawn at the bottom of the ApexCharts SVG) out of
-     view. */
+  /* Column flex so .chart-container__header (breakdown/table toggles) and the optional
+     .chart-table (feature 014) each take only the height they need, with .chart-frame carrying
+     the fixed chart height below. Unlike .chart-frame, this outer card has no fixed height of its
+     own — it must be free to grow when the data table is shown, per contracts/chart-data-table.md. */
   display: flex;
   flex-direction: column;
+}
+
+/* Header row above the chart: the optional "Gesamt"/per-inverter breakdown toggle on the left,
+   the "show as table" toggle (feature 014) pinned to the right via its own margin-left: auto. */
+.chart-container__header {
+  flex-shrink: 0;
+}
+
+/* Fixed-height frame around .chart-body — carries the height .chart-container itself used to
+   have, before .chart-container__header/.chart-table (feature 014) needed to add their own
+   height on top without pushing the chart's rendered size around. Sole child is .chart-body, so
+   its `flex: 1` below fills exactly this box, same as it filled .chart-container before. */
+.chart-frame {
+  width: 100%;
+  height: min(60vh, 420px);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
 /* .chart-mount's actual flex-sizing parent (not .chart-mount itself — see below). */
@@ -1082,12 +1130,71 @@ a {
   border-color: var(--color-primary);
 }
 
+/* .chart-table-toggle (feature 014, views/chart-table-toggle.js) — a single on/off button, same
+   look as .chart-breakdown-toggle's buttons; `margin-left: auto` keeps it pinned to the right
+   edge of .chart-container__header regardless of whether a breakdown toggle is present beside it. */
+.chart-table-toggle {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.chart-table-toggle button {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.chart-table-toggle button[aria-pressed='true'] {
+  background: var(--color-primary);
+  color: #1a1d21;
+  border-color: var(--color-primary);
+}
+
 /* .summary-table's width/border-collapse/margin-top are Tailwind utilities inline
    (web/js/views/total-view.js); cell borders/padding have no Tailwind equivalent applied yet. */
 .summary-table th,
 .summary-table td {
   text-align: left;
   padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* .chart-table (feature 014, views/chart-data-table.js) — condensed reflection of the chart's
+   currently plotted data, rendered directly below .chart-frame. Tailwind utility classes inline
+   (chart-data-table.js) handle width/border-collapse/text-size/cell spacing, mirroring
+   .summary-table's split above; this block only carries what Tailwind's utilities don't cover:
+   theme-token-driven borders, the [hidden] contract (toggled by chart-table-toggle.js's onChange
+   rather than by adding/removing the element, so a stale table never flashes on reveal — see
+   contracts/chart-data-table.md), and the horizontal-scroll safety net for wide tables (SC-003 /
+   constitution Principle IV: the table must scroll within itself, never widen the page). */
+.chart-table {
+  /* Bigger gap above the (centered) caption than the old flush-under-the-chart spacing, so the
+     table reads as its own block rather than crowding .chart-frame right above it. */
+  margin-top: var(--space-xl);
+  max-width: 100%;
+  /* `.chart-container` is a column flexbox and `.chart-table` one of its items — flex items
+     default to `min-width: auto`, which refuses to shrink below the *content's* intrinsic width
+     rather than the item's own box. Once the table itself stopped being `w-full` (compact/
+     `mx-auto` — see chart-data-table.js) its intrinsic width could exceed the container's, and
+     without this override that intrinsic width won the flex layout instead of `overflow-x-auto`
+     ever kicking in, pushing the whole page wider (regression caught by SC-003's e2e test). */
+  min-width: 0;
+}
+
+.chart-table[hidden] {
+  display: none;
+}
+
+.chart-table-caption {
+  margin: 0 0 var(--space-sm);
+}
+
+.chart-table th,
+.chart-table td {
   border-bottom: 1px solid var(--color-border);
 }
 

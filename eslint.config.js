@@ -57,6 +57,7 @@ export default [
         matchMedia: 'readonly',
         Date: 'readonly',
         URLSearchParams: 'readonly',
+        ResizeObserver: 'readonly',
       },
     },
   },

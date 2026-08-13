@@ -35,17 +35,17 @@ Structure.
 
 **Purpose**: Add the i18n strings and CSS hook every later task depends on. No behavior yet.
 
-- [ ] T001 [P] Add `chart.tableToggleLabel`, `chart.tableToggleOn`, `chart.tableToggleOff`, and
+- [x] T001 [P] Add `chart.tableToggleLabel`, `chart.tableToggleOn`, `chart.tableToggleOff`, and
       `chart.tableNoData` keys to `web/i18n/de.json` under the existing `"chart"` object (alongside
       `breakdownToggleLabel`/`breakdownTotal`/`breakdownInverters`), German copy for: the toggle
       button's `aria-label`, its visible label text, and the table's empty-state row text.
-- [ ] T002 [P] Add the same `chart.tableToggleLabel`, `chart.tableToggleOn`, `chart.tableToggleOff`,
+- [x] T002 [P] Add the same `chart.tableToggleLabel`, `chart.tableToggleOn`, `chart.tableToggleOff`,
       `chart.tableNoData` keys to `web/i18n/en.json` under `"chart"`, English copy, exactly mirroring
       the German keys added in T001.
-- [ ] T003 [P] Add a `.chart-table` CSS block to `web/css/app.css` alongside the existing
+- [x] T003 [P] Add a `.chart-table` CSS block to `web/css/app.css` alongside the existing
       `.summary-table` block: `.chart-table[hidden] { display: none; }`, an `overflow-x-auto`
       scroll-safe wrapper rule, and `.chart-table th, .chart-table td { border-bottom: 1px solid
-    var(--color-border); }` per contracts/chart-data-table.md's CSS contract — Tailwind utility
+var(--color-border); }` per contracts/chart-data-table.md's CSS contract — Tailwind utility
       classes handle spacing/typography inline at render time, this file only carries
       token-driven borders/visibility.
 
@@ -63,21 +63,21 @@ resolved `chart.w.config`, exposed by ApexCharts itself after render), not from 
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 [US1] Add `isChartTableVisible()` / `setChartTableVisible(visible)` to
+- [x] T004 [US1] Add `isChartTableVisible()` / `setChartTableVisible(visible)` to
       `web/js/settings.js`, mirroring `isTransparencyEnabled()`/`setTransparencyEnabled()` exactly
       (`STORAGE_KEY = 'solarlog-chart-table'`, `localStorage.getItem(key) === 'true'` read,
       `localStorage.setItem(key, String(value))` write). Wrap both in `try/catch` per
       contracts/chart-data-table.md's FR-009 clause: `isChartTableVisible()` catches and returns
       `false`; `setChartTableVisible()` catches and no-ops (no throw) if `localStorage` is
       unavailable.
-- [ ] T005 [P] [US1] Write `web/js/views/chart-data-table.test.js` (node:test) covering
+- [x] T005 [P] [US1] Write `web/js/views/chart-data-table.test.js` (node:test) covering
       `extractTableData()` for: (a) a bar-chart-shaped `options` with `xaxis.categories` and one
       `total` series, (b) the same shape with multiple per-inverter series (breakdown mode), (c) a
       day-chart-shaped `options` with `xaxis.type: 'datetime'` and `[timestamp, value]` series
       pairs, (d) an `options` object whose series have zero data points (empty state — expect a
       single "no data" row per data-model.md). Run before implementation exists so it fails first
       (TDD per project convention).
-- [ ] T006 [US1] Implement `extractTableData(options)` in `web/js/views/chart-data-table.js` per
+- [x] T006 [US1] Implement `extractTableData(options)` in `web/js/views/chart-data-table.js` per
       contracts/chart-data-table.md: pure function, no DOM access, returns `{ columns, rows }`
       where `columns` is `options.series[].name` in series order, and `rows` is one entry per
       x-axis point with `label` (from `options.xaxis.categories[i]` for bar-chart shapes, or
@@ -85,22 +85,22 @@ resolved `chart.w.config`, exposed by ApexCharts itself after render), not from 
       value per series, `null` for gaps). Zero data points → single row flagged as the empty state
       (consumed by `renderChartTable()` in T007, using the `chart.tableNoData` i18n key from T002).
       Make T005 pass.
-- [ ] T007 [US1] Implement `renderChartTable(mount, options)` in `web/js/views/chart-data-table.js`:
+- [x] T007 [US1] Implement `renderChartTable(mount, options)` in `web/js/views/chart-data-table.js`:
       calls `extractTableData(options)`, clears `mount.innerHTML` first (mirrors
       `renderChart()`'s destroy-before-recreate pattern), then writes a `<table>` using the
       Tailwind "condensed content" utility classes (`w-full border-collapse text-xs` header/cell
       `py-1 px-2` per research.md) with one `<th>` per column (plus a leading label column) and one
       `<tr>` per row; empty-state case renders a single `<tr><td colspan=...>` using
       `t('chart.tableNoData')` from `../i18n.js`.
-- [ ] T008 [US1] Create `web/js/views/chart-table-toggle.js` exporting
+- [x] T008 [US1] Create `web/js/views/chart-table-toggle.js` exporting
       `chartTableToggleMarkup()` and `initChartTableToggle(container, onChange)`, mirroring
       `chart-breakdown-toggle.js`'s shape exactly but with a single `<button
-    aria-pressed="false">${t('chart.tableToggleLabel')}</button>` instead of two mutually
+aria-pressed="false">${t('chart.tableToggleLabel')}</button>` instead of two mutually
       exclusive buttons. `initChartTableToggle` syncs `aria-pressed` from
       `isChartTableVisible()` (T004) on call, and on click: reads the new state (inverse of
       current), calls `setChartTableVisible(newState)`, re-syncs `aria-pressed`, then calls
       `onChange(newState)`.
-- [ ] T009 [US1] Add a `.chart-table-toggle` button (via `chartTableToggleMarkup()`, T008) and an
+- [x] T009 [US1] Add a `.chart-table-toggle` button (via `chartTableToggleMarkup()`, T008) and an
       always-present `.chart-table.overflow-x-auto` mount `<div hidden>` to
       `chartWithStatsLayoutMarkup()` in `web/js/views/stats-panel.js`, positioned per
       contracts/chart-data-table.md's DOM contract: toggle button top-right of `.chart-container`
@@ -127,7 +127,7 @@ hide it.
 
 ### Tests for User Story 1
 
-- [ ] T010 [P] [US1] Write `tests/e2e/chart-data-table.spec.js` Playwright scenarios for: toggle
+- [x] T010 [P] [US1] Write `tests/e2e/chart-data-table.spec.js` Playwright scenarios for: toggle
       button visible top-right of `.chart-container` on `#/month/...`, `.chart-table` starts
       `hidden`; clicking the button removes `hidden`, table row count matches the chart's visible
       data-point count, and `aria-pressed` becomes `"true"`; clicking again re-adds `hidden` and
@@ -136,19 +136,19 @@ hide it.
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Wire `initChartTableToggle` + `renderChartTable` into `web/js/views/day-view.js`:
+- [x] T011 [US1] Wire `initChartTableToggle` + `renderChartTable` into `web/js/views/day-view.js`:
       import both from their new modules, call `initChartTableToggle(chartContainer, (visible) =>
-    { tableMount.hidden = !visible; })` alongside the existing
+{ tableMount.hidden = !visible; })` alongside the existing
       `initChartBreakdownToggle(chartContainer, drawChart)` call, and inside `drawChart()` (after
       `renderChart(...)`) call `renderChartTable(tableMount, chart.w.config)` unconditionally so the
       table is always kept current even while hidden (FR-007).
-- [ ] T012 [P] [US1] Apply the same wiring as T011 to `web/js/views/month-view.js` (its
+- [x] T012 [P] [US1] Apply the same wiring as T011 to `web/js/views/month-view.js` (its
       `drawChart`/`renderChart` call site around line 201-212).
-- [ ] T013 [P] [US1] Apply the same wiring as T011 to `web/js/views/year-view.js` (its
+- [x] T013 [P] [US1] Apply the same wiring as T011 to `web/js/views/year-view.js` (its
       `drawChart`/`renderChart` call site around line 180-198).
-- [ ] T014 [P] [US1] Apply the same wiring as T011 to `web/js/views/total-view.js` (its
+- [x] T014 [P] [US1] Apply the same wiring as T011 to `web/js/views/total-view.js` (its
       `drawChart`/`renderChart` call site around line 109-119).
-- [ ] T015 [US1] Run `node --test web/js/views/chart-data-table.test.js` (T005/T006/T007) and
+- [x] T015 [US1] Run `node --test web/js/views/chart-data-table.test.js` (T005/T006/T007) and
       `npx playwright test tests/e2e/chart-data-table.spec.js --reporter=line` (T010) and confirm
       both pass; fix any mismatch between `chart.w.config`'s actual shape and
       `extractTableData()`'s assumptions discovered here.
@@ -169,7 +169,7 @@ preference is still applied.
 
 ### Tests for User Story 2
 
-- [ ] T016 [P] [US2] Extend `tests/e2e/chart-data-table.spec.js` with: toggle on `#/month/...`,
+- [x] T016 [P] [US2] Extend `tests/e2e/chart-data-table.spec.js` with: toggle on `#/month/...`,
       navigate (client-side, no reload) to `#/year`, assert its `.chart-table` is shown too and its
       button's `aria-pressed` is `"true"` on first render; `page.reload()`, assert the table is
       still shown and `localStorage.getItem('solarlog-chart-table') === 'true'`; toggle off, assert
@@ -178,14 +178,14 @@ preference is still applied.
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Confirm (and adjust if needed) that every view wired in T011-T014 reads
+- [x] T017 [US2] Confirm (and adjust if needed) that every view wired in T011-T014 reads
       `isChartTableVisible()` for the mount's _initial_ `hidden` state on first render — not just
       after a click — so a page freshly loaded with the preference already `true` shows its table
       immediately (FR-005). Set the `.chart-table` mount's `hidden` property from
       `isChartTableVisible()` at markup-render time in each of `day-view.js`, `month-view.js`,
       `year-view.js`, `total-view.js`, right after `chartWithStatsLayoutMarkup()` is inserted and
       before `initChartTableToggle` runs its own `aria-pressed` sync.
-- [ ] T018 [US2] Run `npx playwright test tests/e2e/chart-data-table.spec.js --reporter=line`
+- [x] T018 [US2] Run `npx playwright test tests/e2e/chart-data-table.spec.js --reporter=line`
       (T016) and confirm the cross-page/reload scenarios pass.
 
 **Checkpoint**: User Stories 1 and 2 both work independently — table persists app-wide across
@@ -206,30 +206,30 @@ without the page scrolling horizontally.
 
 ### Tests for User Story 3
 
-- [ ] T019 [P] [US3] Extend `tests/e2e/chart-data-table.spec.js` (or add to
+- [x] T019 [P] [US3] Extend `tests/e2e/chart-data-table.spec.js` (or add to
       `tests/e2e/dashboard-responsive.spec.js`'s pattern) with: resize viewport to 360px width with
       a full month/year table shown, assert `document.documentElement.scrollWidth <=
-    document.documentElement.clientWidth` (no page-level horizontal scroll) while `.chart-table`
+document.documentElement.clientWidth` (no page-level horizontal scroll) while `.chart-table`
       itself has `scrollWidth > clientWidth` if its content is wider than the viewport, per SC-003
       and constitution Principle IV.
-- [ ] T020 [P] [US3] Extend `tests/e2e/dashboard-dark-mode.spec.js`'s pattern (or add a case to
+- [x] T020 [P] [US3] Extend `tests/e2e/dashboard-dark-mode.spec.js`'s pattern (or add a case to
       `chart-data-table.spec.js`) asserting `.chart-table th`/`.chart-table td` computed
       `border-bottom-color` resolves to the theme's `--color-border` token value in both light and
       dark theme, confirming no hardcoded color leaked into T003's CSS or T007's inline classes.
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Review and adjust the Tailwind utility classes used in `renderChartTable()`
+- [x] T021 [US3] Review and adjust the Tailwind utility classes used in `renderChartTable()`
       (T007, `web/js/views/chart-data-table.js`) against the `.summary-table` precedent in
       `stats-panel.js`: condensed `py-1 px-2 text-xs` cells, numeric columns right-aligned
       (`text-right tabular-nums`), header row `font-medium text-text-muted`, matching existing
       table conventions rather than introducing new visual language.
-- [ ] T022 [US3] Verify (adjust `web/css/app.css` from T003 if needed) that
+- [x] T022 [US3] Verify (adjust `web/css/app.css` from T003 if needed) that
       `.chart-table.overflow-x-auto`'s wrapper enforces `max-width: 100%` so a wide table (year
       view's up to ~366 rows, or a day view's per-inverter columns) scrolls within itself at
       320-360px viewport widths rather than pushing the page wider, per SC-003.
-- [ ] T023 [US3] Run `npx playwright test tests/e2e/chart-data-table.spec.js
-    tests/e2e/dashboard-dark-mode.spec.js tests/e2e/dashboard-responsive.spec.js --reporter=line`
+- [x] T023 [US3] Run `npx playwright test tests/e2e/chart-data-table.spec.js
+tests/e2e/dashboard-dark-mode.spec.js tests/e2e/dashboard-responsive.spec.js --reporter=line`
       and confirm T019/T020 pass alongside the existing responsive/dark-mode regression coverage.
 
 **Checkpoint**: All three user stories independently functional — reveal/hide, persistence, and
@@ -241,12 +241,12 @@ themed/responsive styling.
 
 **Purpose**: Final regression pass and lint/documentation cleanup spanning all stories.
 
-- [ ] T024 [P] Run `npx eslint web/js/views/chart-table-toggle.js web/js/views/chart-data-table.js
-    web/js/views/chart-data-table.test.js web/js/views/stats-panel.js web/js/settings.js
-    web/js/views/day-view.js web/js/views/month-view.js web/js/views/year-view.js
-    web/js/views/total-view.js` and fix all errors/warnings (per project CLAUDE.md's mandatory
+- [x] T024 [P] Run `npx eslint web/js/views/chart-table-toggle.js web/js/views/chart-data-table.js
+web/js/views/chart-data-table.test.js web/js/views/stats-panel.js web/js/settings.js
+web/js/views/day-view.js web/js/views/month-view.js web/js/views/year-view.js
+web/js/views/total-view.js` and fix all errors/warnings (per project CLAUDE.md's mandatory
       lint step).
-- [ ] T025 [P] Run `npm run test:scripts` (full node:test suite) to confirm T005-T007's new tests
+- [x] T025 [P] Run `npm run test:scripts` (full node:test suite) to confirm T005-T007's new tests
       don't break any existing script/unit test.
 - [ ] T026 Run the full Playwright suite (`npx playwright test --reporter=line`), especially
       `tests/e2e/navigation.spec.js` and `tests/e2e/detail-views.spec.js`, to confirm the new

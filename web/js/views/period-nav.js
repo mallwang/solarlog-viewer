@@ -130,7 +130,13 @@ export function periodNavMarkup({
   const parentMarkup = parentLabel
     ? `<a class="period-nav__link period-nav__link--parent" href="${parentHref}">${parentLabel}</a>`
     : '';
-  return `<nav class="period-nav flex items-center gap-sm" aria-label="${prevLabel} / ${nextLabel}">
+  // `flex-wrap` (previously absent, relying on `.view-header`'s own wrap around the whole
+  // title+nav row to absorb overflow): now that `.view-header` sits flush within `.app-main`'s
+  // padding instead of bleeding past it (user correction — rounded card aligned to the diagram's
+  // edges), it's ~2×`--space-md` narrower, tight enough at small viewports that this row itself
+  // (title/nav/today/parent — four links even with their short mobile labels) can outgrow it and
+  // push the whole page into horizontal scroll (SC-003) unless it can wrap onto a second line.
+  return `<nav class="period-nav flex items-center flex-wrap gap-sm" aria-label="${prevLabel} / ${nextLabel}">
     <a class="period-nav__link" href="${prevHref}">${backwardIcon}${responsiveLabel(prevLabel, prevShortLabel)}</a>
     ${nextMarkup}
     ${todayMarkup}

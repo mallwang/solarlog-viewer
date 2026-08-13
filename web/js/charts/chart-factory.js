@@ -1,6 +1,6 @@
 import '../../vendor/apexcharts/apexcharts.esm.js';
 import { t } from '../i18n.js';
-import { formatNumber, formatKwh } from '../format.js';
+import { formatNumber, formatKwh, formatDate } from '../format.js';
 import { efficiencyPercent, efficiencySums } from '../data/efficiency.js';
 import {
   isDayUdcVisible,
@@ -166,6 +166,7 @@ function buildFeedInSeries(data, timestamps, breakdown, stringKeys) {
     return stringKeys.map((key) => ({
       name: inverterLabel(key),
       type: 'area',
+      unit: 'W',
       data: data.readings.map((r, i) => ({
         x: timestamps[i],
         y: r.perInverter[key]?.pacW ?? null,
@@ -176,12 +177,32 @@ function buildFeedInSeries(data, timestamps, breakdown, stringKeys) {
     {
       name: t('chart.feedInAxis'),
       type: 'area',
+      unit: 'W',
       data: data.readings.map((r, i) => ({
         x: timestamps[i],
         y: sumPerInverter(Object.values(r.perInverter).map((inv) => inv?.pacW)),
       })),
     },
   ];
+}
+
+/**
+ * The feed-in column(s) for the *table* specifically (user correction): always Gesamt+WR1+WR2
+ * together when there's more than one inverter string, regardless of the diagram's own
+ * Gesamt/Wechselrichter breakdown toggle — unlike `buildFeedInSeries` above (which returns
+ * whichever *one* of those the chart itself is currently plotting). With only one string there's
+ * nothing to break out, so it's just that string's own single "Einspeisung (W)" series, same as
+ * `buildFeedInSeries('total', …)`.
+ * @param {{ readings: object[] }} data
+ * @param {number[]} timestamps
+ * @param {string[]} stringKeys
+ * @returns {{ name: string, type: string, unit: string, data: { x: number, y: number | null }[] }[]}
+ */
+function buildFeedInTableSeries(data, timestamps, stringKeys) {
+  if (stringKeys.length <= 1) return buildFeedInSeries(data, timestamps, 'total', stringKeys);
+  const [total] = buildFeedInSeries(data, timestamps, 'total', stringKeys);
+  const perInverter = buildFeedInSeries(data, timestamps, 'inverters', stringKeys);
+  return [{ ...total, name: t('chart.total') }, ...perInverter];
 }
 
 /**
@@ -244,36 +265,53 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
   const udcBandIndex = efficiencyIndex + 1;
   const udcIndex = udcBandIndex + 1;
 
+  // Pulled into their own consts (rather than built inline in `series` below) so `tableSeries`
+  // can reuse the exact same objects — they don't depend on the breakdown toggle at all, only the
+  // feed-in segment(s) do (see `buildFeedInTableSeries` above).
+  const efficiencySeries = {
+    name: t('chart.efficiencyAxis'),
+    type: 'line',
+    unit: '%',
+    data: data.readings.map((r, i) => ({
+      x: timestamps[i],
+      y: efficiencyPercent(r.perInverter),
+    })),
+  };
+  const udcBandSeries = hasUdcData
+    ? {
+        name: t('chart.udcRangeAxis'),
+        type: 'rangeArea',
+        unit: 'V',
+        data: data.readings.map((r, i) => {
+          const stats = udcStats(r.perInverter);
+          return { x: timestamps[i], y: stats ? [stats.min, stats.max] : null };
+        }),
+      }
+    : null;
+  const udcLineSeries = hasUdcData
+    ? {
+        name: t('chart.udcAxis'),
+        type: 'line',
+        unit: 'V',
+        data: data.readings.map((r, i) => ({
+          x: timestamps[i],
+          y: udcStats(r.perInverter)?.avg ?? null,
+        })),
+      }
+    : null;
+
   const series = [
     ...feedInSeries,
-    {
-      name: t('chart.efficiencyAxis'),
-      type: 'line',
-      data: data.readings.map((r, i) => ({
-        x: timestamps[i],
-        y: efficiencyPercent(r.perInverter),
-      })),
-    },
-    ...(hasUdcData
-      ? [
-          {
-            name: t('chart.udcRangeAxis'),
-            type: 'rangeArea',
-            data: data.readings.map((r, i) => {
-              const stats = udcStats(r.perInverter);
-              return { x: timestamps[i], y: stats ? [stats.min, stats.max] : null };
-            }),
-          },
-          {
-            name: t('chart.udcAxis'),
-            type: 'line',
-            data: data.readings.map((r, i) => ({
-              x: timestamps[i],
-              y: udcStats(r.perInverter)?.avg ?? null,
-            })),
-          },
-        ]
-      : []),
+    efficiencySeries,
+    ...(hasUdcData ? [udcBandSeries, udcLineSeries] : []),
+  ];
+  // The table's own series list (user correction): always Gesamt+WR1+WR2 feed-in columns
+  // together (see `buildFeedInTableSeries`) plus Wirkungsgrad/UDC — independent of `series`
+  // above, which still varies with the diagram's own breakdown toggle.
+  const tableSeries = [
+    ...buildFeedInTableSeries(data, timestamps, stringKeys),
+    efficiencySeries,
+    ...(hasUdcData ? [udcBandSeries, udcLineSeries] : []),
   ];
   // Feed-in segment(s) use colors[0] (total, or WR1) / colors[1] (WR2) — the same slots the
   // month/year/total bar charts already use for "Gesamt"/WR1/WR2 — while Wirkungsgrad and UDC
@@ -362,6 +400,7 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
     // `colors` array for marker fills), so the Wirkungsgrad hover dot showed up orange too.
     markers: { size: 0, hover: { size: 5 }, colors: seriesColors },
     series,
+    tableSeries,
     xaxis: {
       type: 'datetime',
       title: { text: t('chart.timeAxis') },
@@ -492,6 +531,7 @@ function buildDayYieldOptions(data, colors, { lang } = {}) {
   const series = [
     {
       name: t('chart.total'),
+      unit: 'Wh',
       data: data.readings.map((r, i) => ({
         x: timestamps[i],
         y: sumPerInverter(Object.values(r.perInverter).map((inv) => inv?.dailyYieldWh)),
@@ -569,13 +609,18 @@ function inverterKeysAcross(entries) {
  * chart without a drill-down target doesn't pretend to be clickable. The pointer/hand cursor
  * itself isn't set here — ApexCharts has no `plotOptions.bar.cursor` option, so `renderChart`
  * toggles a `chart-mount--clickable` class on the container instead (see app.css).
- * @param {{ categories: string[], totalData: number[], stringSeries: { name: string, data:
- *   number[] }[], breakdown: 'total' | 'inverters', colors: string[], columnWidth: string,
- *   xAxisTitle: string, onDataPointClick?: (dataPointIndex: number) => void }} opts
+ * @param {{ categories: string[], tableCategories?: string[], totalData: number[], stringSeries:
+ *   { name: string, data: number[] }[], breakdown: 'total' | 'inverters', colors: string[],
+ *   columnWidth: string, xAxisTitle: string, onDataPointClick?: (dataPointIndex: number) => void
+ *   }} opts - `tableCategories`, when given, is the chart-data-table's own row-label text (e.g.
+ *   full "01.07.2008" dates) — kept separate from the bar chart's own short `categories` axis
+ *   ticks ("01") so the table can read out full dates without widening the chart's x-axis labels
+ *   to match (see extractTableData in chart-data-table.js).
  * @returns {object} Full ApexCharts options.
  */
 function buildBarOptions({
   categories,
+  tableCategories,
   totalData,
   stringSeries,
   breakdown,
@@ -595,7 +640,17 @@ function buildBarOptions({
       }
     : {};
   const showInverters = breakdown === 'inverters';
-  const series = showInverters ? stringSeries : [{ name: t('chart.total'), data: totalData }];
+  const series = (showInverters ? stringSeries : [{ name: t('chart.total'), data: totalData }]).map(
+    (s) => ({ ...s, unit: 'kWh' }),
+  );
+  // The table's own series list (user correction): always Gesamt+WR1+WR2 together, independent
+  // of `series` above, which only holds whichever one the diagram's own breakdown toggle
+  // currently selects. `totalData`/`stringSeries` are already computed unconditionally by every
+  // caller (buildMonthOptions/buildYearOptions/buildYearMonthsOptions), so this is free.
+  const tableSeries = [
+    { name: t('chart.total'), data: totalData, unit: 'kWh' },
+    ...stringSeries.map((s) => ({ ...s, unit: 'kWh' })),
+  ];
 
   return {
     ...baseOptions(colors),
@@ -603,6 +658,8 @@ function buildBarOptions({
     plotOptions: { bar: { columnWidth } },
     ...(onDataPointClick ? { states: { hover: { filter: { type: 'darken' } } } } : {}),
     series,
+    tableSeries,
+    tableCategories,
     xaxis: { categories, title: { text: xAxisTitle } },
     yaxis: {
       title: { text: 'kWh' },
@@ -647,6 +704,13 @@ function buildMonthOptions(data, colors, { onDataPointClick, lang, breakdown } =
   const stringKeys = inverterKeysAcross(data.dailyBreakdown);
   return buildBarOptions({
     categories: data.dailyBreakdown.map((d) => d.date.slice(8, 10)),
+    // Full date for the data-table's own row labels (user correction) — chart-data-table.js
+    // reads this instead of `categories` above, which stays the short day-of-month the bar
+    // chart's x-axis already showed before this feature.
+    tableCategories: data.dailyBreakdown.map((d) => {
+      const [y, m, dd] = d.date.split('-').map(Number);
+      return formatDate(new Date(y, m - 1, dd), { lang });
+    }),
     totalData: data.dailyBreakdown.map(
       (d) => Object.values(d.perInverter).reduce((s, i) => s + (i?.yieldWh ?? 0), 0) / 1000,
     ),
@@ -695,6 +759,12 @@ function buildYearMonthsOptions(data, colors, { onDataPointClick, lang, breakdow
   const stringKeys = inverterKeysAcross(data.monthlyBreakdown);
   return buildBarOptions({
     categories: data.monthlyBreakdown.map((m) => t(`month.short.${m.month.slice(5, 7)}`)),
+    // Full "Monatsname Jahr" for the data-table's own row labels (user correction), the same
+    // "month year" shape month-view.js's own page title uses — kept separate from `categories`
+    // above, which stays the short month abbreviation the bar chart's x-axis already showed.
+    tableCategories: data.monthlyBreakdown.map(
+      (m) => `${t(`month.long.${m.month.slice(5, 7)}`)} ${m.month.slice(0, 4)}`,
+    ),
     totalData: data.monthlyBreakdown.map(
       (m) => Object.values(m.perInverter).reduce((s, wh) => s + (wh ?? 0), 0) / 1000,
     ),

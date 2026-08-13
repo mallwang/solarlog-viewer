@@ -93,3 +93,39 @@ export function isDayEfficiencyVisible() {
 export function setDayEfficiencyVisible(visible) {
   window.localStorage.setItem(DAY_EFFICIENCY_VISIBLE_KEY, String(visible));
 }
+
+const CHART_TABLE_KEY = 'solarlog-chart-table';
+
+/**
+ * Persisted app-wide selection for the "show as table" toggle (see
+ * views/chart-table-toggle.js) — whether every chart across the app also renders a condensed
+ * data table below it. Defaults to `false` (hidden) so a first visit with no stored preference
+ * renders exactly as it did before this toggle existed; any stored value other than `'true'`
+ * (including none) falls back to that default. If `localStorage` is unavailable (e.g. private
+ * browsing), this catches and returns the same default rather than throwing (FR-009) — the
+ * toggle module keeps its own in-memory fallback for that case, not this function.
+ * @returns {boolean}
+ */
+export function isChartTableVisible() {
+  try {
+    return window.localStorage.getItem(CHART_TABLE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Persists the chart-data-table visibility selection, app-wide, so every chart (current page and
+ * any visited afterward) reflects the same choice. No-ops without throwing if `localStorage` is
+ * unavailable (FR-009).
+ * @param {boolean} visible
+ * @returns {void}
+ */
+export function setChartTableVisible(visible) {
+  try {
+    window.localStorage.setItem(CHART_TABLE_KEY, String(visible));
+  } catch {
+    // localStorage unavailable (e.g. private browsing) — the current page's toggle still works
+    // via chart-table-toggle.js's in-memory fallback; only cross-page/reload persistence is lost.
+  }
+}
