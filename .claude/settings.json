@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "deny": ["Read(.ftp-sync.json)"],
     "allow": [
       "Bash(grep -v -E '\\\\.\\(gif|jpg|ico|JPG\\)$')",
       "Bash(node --test *)",
@@ -16,6 +17,11 @@
       "Bash(node scripts/* --help)",
       "Bash(rtk find *)"
     ]
+  },
+  "sandbox": {
+    "credentials": {
+      "files": [{ "path": ".ftp-sync.json", "mode": "deny" }]
+    }
   },
   "hooks": {
     "PreToolUse": [

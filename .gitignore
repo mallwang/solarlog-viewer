@@ -8,3 +8,8 @@ min_day.part
 
 # React Component Preview
 previewConfig.json
+
+# FTP sync credentials and generated diff report (scripts/ftp-sync.js)
+.ftp-sync.json
+.ftp-sync-diff.json
+.ftp-sync-diff.html
