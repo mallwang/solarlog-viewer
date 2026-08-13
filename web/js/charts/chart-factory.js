@@ -119,22 +119,25 @@ function sumPerInverter(values) {
 }
 
 /**
- * Averages a reading's UDC (DC string voltage) across every reporting inverter string. `udcV` is
- * per-inverter *array*-valued (one element per DC string on that inverter — see
- * `web/js/data/min-file.js`'s `parseSb4200Block`/`parseSb2100Block`, mirroring how `pdcW` is
- * flattened by `efficiencySums`), so this flattens all strings' arrays first. Averaged rather
- * than summed: a string's voltage is the same kind of quantity regardless of how many strings are
- * reporting, so summing them (as the chart previously did) produced a "UDC" north of 1000 V that
- * doesn't correspond to any real voltage in the system — the average is the representative single
- * value the single legend entry implies. `null` when no string reports a value for that point,
- * per FR-001/Edge Cases.
+ * Summarizes a reading's UDC (DC string voltage) across every reporting inverter string as
+ * average/min/max. `udcV` is per-inverter *array*-valued (one element per DC string on that
+ * inverter — see `web/js/data/min-file.js`'s `parseSb4200Block`/`parseSb2100Block`, mirroring how
+ * `pdcW` is flattened by `efficiencySums`), so this flattens all strings' arrays first. The
+ * average (not a sum — a sum would read as an implausible >1000 V) drives the day chart's UDC
+ * line; min/max drive the shaded band around it and the tooltip's "Min: … / Max: …" detail.
+ * `null` when no string reports a value for that point, per FR-001/Edge Cases.
  * @param {Record<string|number, { udcV?: number[] | null }>} perInverter
- * @returns {number | null}
+ * @returns {{ avg: number, min: number, max: number } | null}
  */
-function averageUdcVolts(perInverter) {
+function udcStats(perInverter) {
   const allStrings = Object.values(perInverter ?? {}).flatMap((inv) => inv?.udcV ?? []);
   const present = allStrings.filter((v) => v !== null && v !== undefined);
-  return present.length ? present.reduce((s, v) => s + v, 0) / present.length : null;
+  if (present.length === 0) return null;
+  return {
+    avg: present.reduce((s, v) => s + v, 0) / present.length,
+    min: Math.min(...present),
+    max: Math.max(...present),
+  };
 }
 
 /**
@@ -225,14 +228,17 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
   // Omitted entirely (not merely hidden) when the day has no UDC readings at all — e.g. an
   // older epoch whose min-file format predates volt reporting — so no "UDC" legend entry is
   // offered at all, per FR-005.
-  const hasUdcData = data.readings.some((r) => averageUdcVolts(r.perInverter) !== null);
+  const hasUdcData = data.readings.some((r) => udcStats(r.perInverter) !== null);
   const stringKeys = inverterKeysAcross(data.readings);
   const feedInSeries = buildFeedInSeries(data, timestamps, breakdown, stringKeys);
-  // Series order is always feed-in segment(s), then efficiency, then (optionally) UDC — indices
-  // below are derived from that rather than hard-coded, since the feed-in segment count now
-  // varies with the breakdown toggle.
+  // Series order is always feed-in segment(s), then efficiency, then (optionally) the UDC
+  // min/max band followed by the UDC average line — indices below are derived from that rather
+  // than hard-coded, since the feed-in segment count now varies with the breakdown toggle. The
+  // band comes *before* the line so the line paints on top of it (later entries in `series` are
+  // drawn on top in ApexCharts).
   const efficiencyIndex = feedInSeries.length;
-  const udcIndex = efficiencyIndex + 1;
+  const udcBandIndex = efficiencyIndex + 1;
+  const udcIndex = udcBandIndex + 1;
 
   const series = [
     ...feedInSeries,
@@ -247,11 +253,19 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
     ...(hasUdcData
       ? [
           {
+            name: t('chart.udcRangeAxis'),
+            type: 'rangeArea',
+            data: data.readings.map((r, i) => {
+              const stats = udcStats(r.perInverter);
+              return { x: timestamps[i], y: stats ? [stats.min, stats.max] : null };
+            }),
+          },
+          {
             name: t('chart.udcAxis'),
             type: 'line',
             data: data.readings.map((r, i) => ({
               x: timestamps[i],
-              y: averageUdcVolts(r.perInverter),
+              y: udcStats(r.perInverter)?.avg ?? null,
             })),
           },
         ]
@@ -260,11 +274,13 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
   // Feed-in segment(s) use colors[0] (total, or WR1) / colors[1] (WR2) — the same slots the
   // month/year/total bar charts already use for "Gesamt"/WR1/WR2 — while Wirkungsgrad and UDC
   // sit in their own fixed slots regardless of how many feed-in segments there are, so neither
-  // ever collides with a feed-in color.
+  // ever collides with a feed-in color. The UDC band reuses the UDC line's own color at a lower
+  // fill opacity (see `fill.opacity` below) rather than a separate slot, so the shading reads as
+  // "this line's own range" instead of a distinct series.
   const seriesColors = [
     ...feedInSeries.map((_, i) => colors[i]),
     colors[EFFICIENCY_COLOR_INDEX],
-    ...(hasUdcData ? [colors[UDC_COLOR_INDEX]] : []),
+    ...(hasUdcData ? [colors[UDC_COLOR_INDEX], colors[UDC_COLOR_INDEX]] : []),
   ];
 
   return {
@@ -275,7 +291,11 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
       // Persists the Wirkungsgrad and UDC lines' shown/hidden state across visits (per updated
       // Edge Cases — unlike the feed-in series, these two are remembered). Fires on every legend
       // click, so it's guarded to each series' own index (derived above — series order is fixed:
-      // feed-in segment(s), efficiency, UDC) and dispatched to that series' own setter.
+      // feed-in segment(s), efficiency, UDC band, UDC line) and dispatched to that series' own
+      // setter. The UDC band has no legend entry of its own (hidden via CSS — see
+      // `hideUdcRangeLegendEntry`) and no persisted state: its visibility just mirrors the UDC
+      // line's every time the line is toggled here, via `toggleSeries`, so the two act as one
+      // single activation point in the legend despite being two ApexCharts series internally.
       // ApexCharts applies its own default show/hide toggle after invoking this callback, so the
       // resulting visibility is read one tick later via `collapsedSeriesIndices` (same check the
       // tooltip already uses) rather than assumed from the click alone.
@@ -293,6 +313,7 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
             // series doesn't touch axis definitions on its own, so it's shown/hidden in step here
             // rather than left stranded either always-on or always-off regardless of the line.
             if (seriesIndex === udcIndex) {
+              chartContext.toggleSeries(t('chart.udcRangeAxis'));
               chartContext.updateOptions(
                 { yaxis: chartContext.w.config.yaxis.map((y, i) => (i === udcIndex ? { ...y, show: !hidden } : y)) },
                 false,
@@ -305,14 +326,16 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
     },
     colors: seriesColors,
     stroke: {
-      width: series.map(() => 2),
+      // The UDC band has no outline of its own (`width: 0`) — just a soft fill between min and
+      // max, with the UDC line's own 2px stroke drawn on top of it as the visible boundary.
+      width: series.map((s) => (s.type === 'rangeArea' ? 0 : 2)),
       curve: 'smooth',
     },
     fill: {
       type: [
         ...feedInSeries.map((s) => (s.type === 'area' ? 'gradient' : 'solid')),
         'solid',
-        ...(hasUdcData ? ['solid'] : []),
+        ...(hasUdcData ? ['solid', 'solid'] : []),
       ],
       gradient: {
         type: 'vertical',
@@ -321,6 +344,14 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
         opacityFrom: 0.8,
         opacityTo: 0.25,
       },
+      // Only the UDC band needs a translucent fill (so the min/max range reads as a soft shadow
+      // around its line rather than a solid block) — every other series keeps its existing full
+      // opacity.
+      opacity: [
+        ...feedInSeries.map(() => 1),
+        1,
+        ...(hasUdcData ? [0.2, 1] : []),
+      ],
     },
     // Explicit per-series colors: without this, ApexCharts' hover markers both pick up the
     // area series' color (mixed area+line charts don't reliably fall back to the top-level
@@ -360,6 +391,15 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
       },
       ...(hasUdcData
         ? [
+            {
+              // The band shares the UDC line's own axis range/scale (so its shading lines up
+              // exactly with the line) but is never itself drawn — it exists purely so the band
+              // series has a y-axis to bind to at all; the visible axis below is the one users see.
+              seriesName: t('chart.udcRangeAxis'),
+              show: false,
+              opposite: true,
+              ...fixedAxisRange(DAY_CHART_AXES.udcV),
+            },
             {
               seriesName: t('chart.udcAxis'),
               // Shown as its own right-hand axis (stacked outward from the Wirkungsgrad axis by
@@ -415,16 +455,19 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
             }),
           );
         }
+        // Computed straight from the reading (rather than read off `hoveredSeries`) so it doesn't
+        // depend on the band/line series' ApexCharts indices — reflects the UDC line's own
+        // shown/hidden state (FR-004) regardless of whether the separate band toggle is on.
         if (hasUdcData && !w.globals.collapsedSeriesIndices.includes(udcIndex)) {
-          const udcValue = hoveredSeries[udcIndex]?.[dataPointIndex];
+          const stats = udcStats(data.readings[dataPointIndex]?.perInverter);
           rows.push(
             tooltipRow({
               color: w.globals.colors[udcIndex],
               label: t('chart.udcAxis'),
-              value:
-                udcValue === null || udcValue === undefined
-                  ? '—'
-                  : `${formatNumber(udcValue, { decimals: 0, lang })} V`,
+              value: stats ? `${formatNumber(stats.avg, { decimals: 0, lang })} V` : '—',
+              detail: stats
+                ? `Min: ${formatNumber(stats.min, { decimals: 0, lang })} V / Max: ${formatNumber(stats.max, { decimals: 0, lang })} V`
+                : undefined,
             }),
           );
         }
@@ -664,6 +707,43 @@ function buildYearMonthsOptions(data, colors, { onDataPointClick, lang, breakdow
   });
 }
 
+// Singleton <style> element for `hideUdcRangeLegendEntry`, lazily created in `document.head` —
+// deliberately *not* a child of the chart container: ApexCharts' `updateOptions`/`toggleSeries`
+// calls (used to keep the band in sync with the line — see `legendClick` in `buildDayOptions`)
+// were observed to strip a freshly-appended container child (and even a `data-*` attribute set on
+// the container itself) during their internal redraw, so anything living inside/on the container
+// can't be trusted to survive a toggle. A single `<head>` stylesheet has no such lifecycle tied to
+// ApexCharts and simply gets its one rule's target index rewritten on every render.
+let udcRangeLegendHideStyleEl;
+
+/**
+ * Hides the UDC min/max band's own legend entry so UDC has a single activation point in the
+ * legend (the line's) even though it's drawn as two ApexCharts series internally — the band's
+ * visibility instead tracks the line's via `toggleSeries` in `buildDayOptions`'s `legendClick`
+ * handler. ApexCharts stamps each legend item's `rel` attribute with its 1-based series index;
+ * this looks up the band's actual index in *this render's* `options.series` (rather than
+ * assuming a fixed position, since it shifts with the feed-in breakdown mode and is absent
+ * entirely on days with no UDC data) and writes a rule hiding that one legend item, scoped to
+ * `.chart-container` (the app only ever mounts one day chart at a time, so this is unambiguous
+ * without needing a per-instance id). A day without UDC data clears the rule rather than leaving
+ * a stale one targeting the wrong index.
+ * @param {{ series: { name: string }[] }} options
+ * @param {string} bandSeriesName
+ */
+function hideUdcRangeLegendEntry(options, bandSeriesName) {
+  if (typeof document === 'undefined') return;
+  const bandIndex = options.series.findIndex((s) => s.name === bandSeriesName);
+  if (!udcRangeLegendHideStyleEl) {
+    udcRangeLegendHideStyleEl = document.createElement('style');
+    udcRangeLegendHideStyleEl.dataset.role = 'udc-band-legend-hide';
+    document.head.appendChild(udcRangeLegendHideStyleEl);
+  }
+  udcRangeLegendHideStyleEl.textContent =
+    bandIndex === -1
+      ? ''
+      : `.chart-container .apexcharts-legend-series[rel="${bandIndex + 1}"] { display: none !important; }`;
+}
+
 function buildOptions(mode, data, colors, config) {
   switch (mode) {
     case 'day':
@@ -713,19 +793,27 @@ export function renderChart(container, mode, data, config) {
   // ApexCharts' own default legend-click behavior (legend.onItemClick.toggleDataSeries) plus the
   // `legendClick` handler in buildDayOptions that persists each choice. UDC's entry is only
   // present when buildDayOptions actually built that series (a day with no UDC readings at all
-  // omits it entirely, per FR-005); Wirkungsgrad is always present for mode 'day'. Chained on the
-  // render Promise rather than called synchronously right after `render()`, since `hideSeries`
-  // manipulates legend/series DOM that only exists once rendering has actually finished.
+  // omits it entirely, per FR-005); Wirkungsgrad is always present for mode 'day'. The UDC min/max
+  // band has no legend entry or persisted state of its own — it mirrors the UDC line's persisted
+  // visibility on load (see `hideUdcRangeLegendEntry`'s doc comment for why it's a separate
+  // series at all) and stays in lockstep with it via `legendClick`'s `toggleSeries` call.
+  // Chained on the render Promise rather than called synchronously right after `render()`, since
+  // `hideSeries` manipulates legend/series DOM that only exists once rendering has actually
+  // finished.
   if (mode === 'day') {
     const udcSeriesName = t('chart.udcAxis');
+    const udcRangeSeriesName = t('chart.udcRangeAxis');
     const efficiencySeriesName = t('chart.efficiencyAxis');
     Promise.resolve(rendered).then(() => {
-      if (options.series.some((s) => s.name === udcSeriesName) && !isDayUdcVisible()) {
+      const hasUdc = options.series.some((s) => s.name === udcSeriesName);
+      if (hasUdc && !isDayUdcVisible()) {
         chart.hideSeries(udcSeriesName);
+        chart.hideSeries(udcRangeSeriesName);
       }
       if (!isDayEfficiencyVisible()) {
         chart.hideSeries(efficiencySeriesName);
       }
+      hideUdcRangeLegendEntry(options, udcRangeSeriesName);
     });
   }
   charts.set(container, chart);

@@ -57,11 +57,18 @@ das Panel außerdem den aktuellen Wirkungsgrad des Wechselrichters (ΣPAC ÷ ΣP
 statt eines irreführenden 0%/∞. Die Tagesansicht (`#/day/YYYY/MM/DD`) zeigt denselben Wirkungsgrad
 als zweite Kurve auf einer sekundären y-Achse neben der Leistungskurve, mit Lücken überall dort,
 wo PDC null oder fehlt, und komplett ausgeblendet für rekonstruierte/archivierte Tage, die nur
-eine Ertragskurve besitzen. Das Tagesdiagramm führt außerdem eine "UDC"-Serie (DC-Stringspannung,
-über alle Strings gemittelt — eine Summierung würde einen unplausiblen Wert über 1000 V ergeben)
-mit eigener rechter Achse in der Legende, standardmäßig ausgeblendet und per Klick auf den
-Legendeneintrag einblendbar, an Tagen ohne Spannungsdaten gar nicht erst angeboten. Diese
-Ein-/Ausblend-Wahl wird gemerkt (`localStorage`) und beim nächsten Tagesdiagramm übernommen. Die
+eine Ertragskurve besitzen. Das Tagesdiagramm führt außerdem einen einzigen "UDC"-Legendeneintrag
+(DC-Stringspannung) mit eigener rechter Achse: eine fette Durchschnittslinie über alle meldenden
+Strings (gemittelt statt summiert — eine Summe würde einen unplausiblen Wert über 1000 V ergeben)
+mit einem weichen, dahinterliegenden Band, das für jeden Punkt die Spanne zwischen Min- und
+Max-Wert der Strings zeigt. Intern sind das zwei ApexCharts-Serien (ein rangeArea-Band plus eine
+Linie), aber die eigene Legendenzeile des Bands ist ausgeblendet (über eine CSS-Regel anhand seines
+Legenden-Index zur Laufzeit — siehe `hideUdcRangeLegendEntry` in `web/js/charts/chart-factory.js`)
+und seine Sichtbarkeit folgt bei jedem Klick der Linie, sodass beide als ein einziger
+Aktivierungspunkt wirken. Standardmäßig ausgeblendet und per Klick auf den Legendeneintrag
+einblendbar, an Tagen ohne Spannungsdaten gar nicht erst angeboten. Diese Ein-/Ausblend-Wahl wird
+gemerkt (`localStorage`) und beim nächsten Tagesdiagramm übernommen. Der Tooltip zeigt den
+Durchschnitt fett mit einer Detailzeile "Min: … / Max: …" darunter, sobald UDC sichtbar ist. Die
 drei y-Achsen des Tagesdiagramms (Einspeisung W, Wirkungsgrad %, UDC V) verwenden feste
 Wertebereiche/Schrittweiten statt sich an den Tageswerten zu orientieren, damit Tage optisch
 vergleichbar bleiben und die Skala beim Blättern nicht springt; die x-Achse orientiert sich

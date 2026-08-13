@@ -19,14 +19,17 @@ current period" link (e.g. "Heute"/"Dieser Monat"), and a link to zoom out to th
 period (day → month → year → total) — e.g. from a day view, click "Monat" to jump straight to
 that day's month view. The total view has no such link since it's the top of the hierarchy.
 
-The day view's chart legend includes a "UDC" entry for the DC string voltage, averaged across all
-reporting inverter strings (not summed — a sum would read as an implausible reading above 1000 V)
-— it's hidden by default so the chart isn't cluttered, but clicking it reveals the voltage line on
-its own right-hand axis (and hovering the chart then shows the UDC value in the tooltip too);
-clicking again hides it and its axis. That shown/hidden choice is remembered across page reloads
-and other day charts, so a revealed UDC line stays revealed until you hide it again. Days with no
-recorded voltage data (e.g. backfilled/archived days that only show the reconstructed yield curve)
-don't offer the "UDC" legend entry at all, since there's nothing to plot. The day chart's three
+The day view's chart legend includes a single "UDC (V)" entry for the DC string voltage, with its
+own right-hand axis — clicking it reveals a bold average line (averaged across all reporting
+inverter strings, not summed — a sum would read as an implausible reading above 1000 V) with a soft
+shaded band behind it, spanning that point's lowest-to-highest string reading, so you can see how
+much the strings varied at a glance as well as the average. It's hidden by default so the chart
+isn't cluttered; clicking it again hides both the line and the band together. Hovering the chart
+while it's visible shows the average in the tooltip in bold with a "Min: … V / Max: … V" line
+beneath it. That shown/hidden choice is remembered across page reloads and other day charts, so a
+revealed UDC line stays revealed until you hide it again. Days with no recorded voltage data (e.g.
+backfilled/archived days that only show the reconstructed yield curve) don't offer the UDC legend
+entry at all, since there's nothing to plot. The day chart's three
 y-axes (feed-in W, Wirkungsgrad %, UDC V) always use the same fixed range and gridline spacing
 regardless of the day, so a low-yield day doesn't visually stretch to look as strong as a
 high-yield one, and the scale doesn't jump around as you page between days. The x-axis normally

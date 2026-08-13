@@ -22,16 +22,20 @@ Link zur nächstgrößeren Zeitebene (Tag → Monat → Jahr → Gesamt) — z. 
 Tagesansicht direkt zur zugehörigen Monatsansicht. Die Gesamt-Ansicht hat keinen solchen Link, da
 sie die oberste Ebene der Hierarchie ist.
 
-Die Legende der Tagesansicht enthält einen Eintrag "UDC" für die DC-Stringspannung, gemittelt über
-alle meldenden Wechselrichter-Strings (nicht summiert — eine Summe würde einen unplausiblen Wert
-über 1000 V ergeben) — er ist standardmäßig ausgeblendet, damit das Diagramm nicht überladen
-wirkt, aber ein Klick darauf blendet die Spannungslinie mitsamt eigener rechter Achse ein (und
-beim Hovern über das Diagramm erscheint dann auch der UDC-Wert im Tooltip); ein erneuter Klick
-blendet Linie und Achse wieder aus. Diese Ein-/Ausblend-Wahl wird über Reloads und andere
+Die Legende der Tagesansicht enthält einen einzigen Eintrag "UDC (V)" für die DC-Stringspannung
+mit eigener rechter Achse — ein Klick darauf blendet eine fette Durchschnittslinie ein (gemittelt
+über alle meldenden Wechselrichter-Strings, nicht summiert — eine Summe würde einen unplausiblen
+Wert über 1000 V ergeben) mit einem weichen Band dahinter, das für jeden Punkt die Spanne vom
+niedrigsten bis zum höchsten String-Wert zeigt, sodass auf einen Blick sowohl der Durchschnitt als
+auch die Streuung zwischen den Strings sichtbar wird. Standardmäßig ausgeblendet, damit das
+Diagramm nicht überladen wirkt; ein erneuter Klick blendet Linie und Band gemeinsam wieder aus.
+Beim Hovern über das sichtbare Diagramm zeigt der Tooltip den Durchschnitt fett mit einer Zeile
+"Min: … V / Max: … V" darunter. Diese Ein-/Ausblend-Wahl wird über Reloads und andere
 Tagesdiagramme hinweg gemerkt — eine eingeblendete UDC-Linie bleibt also eingeblendet, bis sie
 wieder ausgeblendet wird. An Tagen ohne erfasste Spannungsdaten (z. B. rekonstruierte/archivierte
-Tage, die nur den Ertragsverlauf zeigen) wird der Eintrag "UDC" gar nicht erst angeboten, da es
-nichts zu zeichnen gibt. Die drei y-Achsen des Tagesdiagramms (Einspeisung W, Wirkungsgrad %,
+Tage, die nur den Ertragsverlauf zeigen) wird der UDC-Eintrag gar nicht erst angeboten, da es
+nichts zu zeichnen gibt. Die drei y-Achsen des
+Tagesdiagramms (Einspeisung W, Wirkungsgrad %,
 UDC V) verwenden unabhängig vom Tag stets denselben festen Wertebereich und dieselbe
 Gitterlinien-Schrittweite, damit ein ertragsschwacher Tag nicht optisch genauso stark wirkt wie
 ein ertragsstarker und die Skala beim Blättern zwischen Tagen nicht springt. Die x-Achse zoomt
