@@ -9,6 +9,7 @@ import {
   mergeMonthlyTotals,
   mergeYearlyTotals,
   addTodayYield,
+  addMissingDays,
 } from './aggregates.js';
 
 test('parseDailyTotalsFile extracts date, yield, and peak per inverter', () => {
@@ -37,6 +38,14 @@ test('parseMonthsFile extracts month and per-inverter whole-month totals', () =>
   assert.equal(month.month, '2026-07');
   assert.deepEqual(month.perInverter, { 1: 584376, 2: 290797 });
   assert.deepEqual(month.dailyBreakdown, []);
+});
+
+test("parseMonthsFile keeps the record's own day as asOfDate, not just its year-month", () => {
+  // The in-progress month is checkpointed on whatever day it was last rolled over, which is not
+  // necessarily the 1st (see addMissingDays).
+  const fileText = 'mo[mx++]="11.08.26|232337|120512"';
+  const [month] = parseMonthsFile(fileText);
+  assert.equal(month.asOfDate, '2026-08-11');
 });
 
 test('parseMonthsFile handles a full year of records', () => {
@@ -108,6 +117,17 @@ test('mergeMonthlyTotals sums per-inverter Wh for a month present in both hist a
   assert.deepEqual(merged[0].perInverter, { 1: 510377, 2: 255521 });
 });
 
+test("mergeMonthlyTotals keeps the later of the two sides' asOfDate on overlap", () => {
+  const hist = [
+    { month: '2026-07', asOfDate: '2026-07-15', perInverter: { 1: 500000 }, dailyBreakdown: [] },
+  ];
+  const data = [
+    { month: '2026-07', asOfDate: '2026-07-20', perInverter: { 1: 10377 }, dailyBreakdown: [] },
+  ];
+  const merged = mergeMonthlyTotals(hist, data);
+  assert.equal(merged[0].asOfDate, '2026-07-20');
+});
+
 test('mergeMonthlyTotals keeps months present in only one side untouched, sorted ascending', () => {
   const hist = [{ month: '2026-06', perInverter: { 1: 400000 }, dailyBreakdown: [] }];
   const data = [{ month: '2026-08', perInverter: { 1: 20849 }, dailyBreakdown: [] }];
@@ -157,4 +177,43 @@ test('addTodayYield does not mutate the input total', () => {
   const today = { date: '2026-08-09', perInverter: { 1: { yieldWh: 19268, peakW: 3421 } } };
   addTodayYield(total, today);
   assert.deepEqual(total.perInverter, { 1: 169583 });
+});
+
+test('addMissingDays folds in every daily total newer than asOfDate, not just today - covering a stale months.js checkpoint that skipped a rollover', () => {
+  // months.js last checkpointed 11.08.26; the device then skipped the 12.08 and 13.08 rollovers,
+  // so both days must still be recovered from dailyBreakdown, not just the most recent one.
+  const total = { month: '2026-08', asOfDate: '2026-08-11', perInverter: { 1: 232337, 2: 120512 } };
+  const dailyBreakdown = [
+    { date: '2026-08-10', perInverter: { 1: { yieldWh: 17643 }, 2: { yieldWh: 9061 } } },
+    { date: '2026-08-11', perInverter: { 1: { yieldWh: 23749 }, 2: { yieldWh: 12313 } } },
+    { date: '2026-08-12', perInverter: { 1: { yieldWh: 24170 }, 2: { yieldWh: 12347 } } },
+    { date: '2026-08-13', perInverter: { 1: { yieldWh: 23536 }, 2: { yieldWh: 11961 } } },
+  ];
+  const result = addMissingDays(total, dailyBreakdown);
+  // 08-10 and 08-11 are already baked into the checkpoint, so only 08-12 and 08-13 get added.
+  assert.deepEqual(result.perInverter, { 1: 232337 + 24170 + 23536, 2: 120512 + 12347 + 11961 });
+});
+
+test('addMissingDays adds every entry when the total has no asOfDate (no months.js entry for this month yet)', () => {
+  const total = { month: '2026-08', perInverter: {} };
+  const dailyBreakdown = [
+    { date: '2026-08-01', perInverter: { 1: { yieldWh: 16456 } } },
+    { date: '2026-08-02', perInverter: { 1: { yieldWh: 21611 } } },
+  ];
+  const result = addMissingDays(total, dailyBreakdown);
+  assert.deepEqual(result.perInverter, { 1: 38067 });
+});
+
+test('addMissingDays leaves the total unchanged when dailyBreakdown has nothing newer than asOfDate', () => {
+  const total = { month: '2026-07', asOfDate: '2026-07-31', perInverter: { 1: 79526 } };
+  const dailyBreakdown = [{ date: '2026-07-31', perInverter: { 1: { yieldWh: 3529 } } }];
+  const result = addMissingDays(total, dailyBreakdown);
+  assert.deepEqual(result.perInverter, { 1: 79526 });
+});
+
+test('addMissingDays does not mutate the input total', () => {
+  const total = { month: '2026-08', asOfDate: '2026-08-11', perInverter: { 1: 232337 } };
+  const dailyBreakdown = [{ date: '2026-08-12', perInverter: { 1: { yieldWh: 24170 } } }];
+  addMissingDays(total, dailyBreakdown);
+  assert.deepEqual(total.perInverter, { 1: 232337 });
 });

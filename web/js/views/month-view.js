@@ -3,7 +3,7 @@ import {
   parseDailyTotalsFile,
   mergeMonthlyTotals,
   mergeDailyTotals,
-  addTodayYield,
+  addMissingDays,
 } from '../data/aggregates.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
@@ -177,11 +177,13 @@ export async function render(container, { route, plant }) {
   );
   const dailyBreakdown = dailyTotals.filter((d) => d.date.startsWith(key));
 
-  // months.js is only written at day rollover, so the current month's total never yet includes
-  // today's yield - fold today's live entry in on top (see addTodayYield).
-  const monthTotal = addTodayYield(
+  // months.js is only written at day rollover - and isn't guaranteed to hit every one (observed:
+  // stuck for 2+ days) - so the current month's checkpoint can be missing more than just today's
+  // yield. Fold in every dailyBreakdown day newer than the checkpoint, not only today (see
+  // addMissingDays), so a skipped rollover doesn't silently disappear from the total.
+  const monthTotal = addMissingDays(
     months.find((m) => m.month === key) ?? { month: key, perInverter: {}, dailyBreakdown: [] },
-    todayEntry,
+    dailyBreakdown,
   );
   monthTotal.dailyBreakdown = dailyBreakdown;
 

@@ -8,7 +8,9 @@ import {
   parseYearsFile,
   mergeMonthlyTotals,
   mergeYearlyTotals,
+  mergeDailyTotals,
   addTodayYield,
+  addMissingDays,
 } from '../data/aggregates.js';
 import { fetchFromBothSources } from '../data/data-source.js';
 
@@ -39,9 +41,9 @@ function widget(titleKey, value, href) {
  * Mounts the dashboard: the 4 yield-totals widgets (today/month/year/total), each linking to its
  * detail view (SC-003: dashboard-to-any-chart in <=2 interactions). Current production moved to
  * the global nav info panel (see info-panel/info-panel-controller.js), so it is no longer shown
- * here. Month/year/total figures fold in today's live yield (days.js) on top of
- * months.js/years.js the same way the month/year/total detail views do (see addTodayYield),
- * so the dashboard and detail pages always agree.
+ * here. Month/year/total figures fold in the current month's not-yet-checkpointed daily yields
+ * (days_hist.js/days.js) on top of months.js/years.js the same way the month/year/total detail
+ * views do (see addMissingDays/addTodayYield), so the dashboard and detail pages always agree.
  * @param {HTMLElement} container
  * @param {{ plant: object | null }} ctx
  */
@@ -66,8 +68,9 @@ export async function render(container) {
   const grid = container.querySelector('#widget-grid');
   const values = grid.querySelectorAll('.widget__value');
 
-  const [daysResult, months, years] = await Promise.all([
+  const [daysResult, daysHistResult, months, years] = await Promise.all([
     fetchText('data/days.js'),
+    fetchText('data/days_hist.js'),
     fetchFromBothSources('months.js').then(({ hist, data }) =>
       mergeMonthlyTotals(
         hist.ok ? parseMonthsFile(hist.text) : [],
@@ -88,11 +91,16 @@ export async function render(container) {
 
   if (todayEntry) values[0].textContent = formatKwh(sumWh(todayEntry.perInverter) / 1000);
 
-  // months.js/years.js are only written at day rollover, so fold today's live entry into the
-  // current month before summing, mirroring month-view.js/year-view.js/total-view.js.
-  const thisMonth = addTodayYield(
+  // months.js is only written at day rollover - and isn't guaranteed to hit every one - so fold
+  // in every daily total newer than the checkpoint (not just today's), mirroring month-view.js's
+  // addMissingDays use, so a skipped rollover doesn't silently disappear from this widget either.
+  const monthDailyBreakdown = mergeDailyTotals(
+    daysHistResult.ok ? parseDailyTotalsFile(daysHistResult.text) : [],
+    todayEntry ? [todayEntry] : [],
+  ).filter((d) => d.date.startsWith(monthKey));
+  const thisMonth = addMissingDays(
     months.find((m) => m.month === monthKey) ?? { month: monthKey, perInverter: {} },
-    todayEntry,
+    monthDailyBreakdown,
   );
   values[1].textContent = formatKwh(sumWh(thisMonth.perInverter) / 1000);
 

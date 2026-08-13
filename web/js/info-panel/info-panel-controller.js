@@ -26,7 +26,8 @@ import {
   parseDailyTotalsFile,
   parseMonthsFile,
   mergeMonthlyTotals,
-  addTodayYield,
+  mergeDailyTotals,
+  addMissingDays,
 } from '../data/aggregates.js';
 import { fetchFromBothSources } from '../data/data-source.js';
 import { efficiencyPercent } from '../data/efficiency.js';
@@ -77,15 +78,17 @@ function sumWh(perInverter) {
 /**
  * Fetches today's and this month's yield-so-far, mirroring the (temporarily disabled) dashboard
  * widget's own figures: today's total straight from `days.js`, and the current month's total
- * from `months.js` with today's live entry folded in on top (months.js is only written at day
- * rollover — see addTodayYield) so it always agrees with the month detail view.
+ * from `months.js` with every daily total newer than its checkpoint folded in on top (months.js
+ * is only written at day rollover, and isn't guaranteed to hit every one — see addMissingDays)
+ * so it always agrees with the month detail view.
  * @returns {Promise<{ todayKwh: number, monthKwh: number, available: true } | { available: false }>}
  */
 async function fetchYield() {
   const { year, month } = todayParams();
   const monthKey = `${year}-${String(month).padStart(2, '0')}`;
-  const [daysResult, { hist, data }] = await Promise.all([
+  const [daysResult, daysHistResult, { hist, data }] = await Promise.all([
     fetchText('data/days.js'),
+    fetchText('data/days_hist.js'),
     fetchFromBothSources('months.js'),
   ]);
   if (!daysResult.ok) return { available: false };
@@ -97,9 +100,13 @@ async function fetchYield() {
     hist.ok ? parseMonthsFile(hist.text) : [],
     data.ok ? parseMonthsFile(data.text) : [],
   );
-  const thisMonth = addTodayYield(
+  const monthDailyBreakdown = mergeDailyTotals(
+    daysHistResult.ok ? parseDailyTotalsFile(daysHistResult.text) : [],
+    [todayEntry],
+  ).filter((d) => d.date.startsWith(monthKey));
+  const thisMonth = addMissingDays(
     months.find((m) => m.month === monthKey) ?? { month: monthKey, perInverter: {} },
-    todayEntry,
+    monthDailyBreakdown,
   );
 
   return {
