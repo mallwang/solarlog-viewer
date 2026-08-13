@@ -34,12 +34,18 @@ function cellValue(point) {
 
 /**
  * Formats a day chart's datetime x-value into the same `HH:mm` shape buildDayOptions' own xaxis
- * labels use (see chart-factory.js), rather than reinventing date formatting (research.md).
+ * labels use (see chart-factory.js), rather than reinventing date formatting (research.md). Reads
+ * local time components (not `toISOString()`, which is always UTC) to match the chart's own axis,
+ * which renders with `datetimeUTC: false` — otherwise the table's time is off by the browser's UTC
+ * offset (e.g. 04:06 instead of 06:06 CEST) while the chart itself shows the correct time.
  * @param {number} timestamp
  * @returns {string}
  */
 function formatTimeLabel(timestamp) {
-  return new Date(timestamp).toISOString().slice(11, 16);
+  const date = new Date(timestamp);
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 }
 
 /**
