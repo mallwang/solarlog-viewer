@@ -1,0 +1,9 @@
+{
+  "web/js/**/*.js": ["eslint --fix", "prettier --write"],
+  "tests/**/*.js": ["eslint --fix", "prettier --write"],
+  "scripts/**/*.js": ["eslint --fix", "prettier --write"],
+  "web/index.html": ["prettier --write"],
+  "web/css/**/*.css": ["prettier --write"],
+  "{docs,specs}/**/*.md": ["prettier --write"],
+  "*.md": ["prettier --write"]
+}

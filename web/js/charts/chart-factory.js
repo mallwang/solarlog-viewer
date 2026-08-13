@@ -8,7 +8,11 @@ import {
   isDayEfficiencyVisible,
   setDayEfficiencyVisible,
 } from '../settings.js';
-import { DAY_CHART_AXES, DAY_CHART_X_AXIS_RANGE, DAY_CHART_X_AXIS_PADDING_MINUTES } from '../config.js';
+import {
+  DAY_CHART_AXES,
+  DAY_CHART_X_AXIS_RANGE,
+  DAY_CHART_X_AXIS_PADDING_MINUTES,
+} from '../config.js';
 
 // vendor/apexcharts/apexcharts.esm.js is ApexCharts' UMD build; loaded as an ES module for its
 // side effect of attaching `window.ApexCharts` (no bundler-free single-file ESM build is
@@ -315,7 +319,11 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
             if (seriesIndex === udcIndex) {
               chartContext.toggleSeries(t('chart.udcRangeAxis'));
               chartContext.updateOptions(
-                { yaxis: chartContext.w.config.yaxis.map((y, i) => (i === udcIndex ? { ...y, show: !hidden } : y)) },
+                {
+                  yaxis: chartContext.w.config.yaxis.map((y, i) =>
+                    i === udcIndex ? { ...y, show: !hidden } : y,
+                  ),
+                },
                 false,
                 false,
               );
@@ -347,11 +355,7 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
       // Only the UDC band needs a translucent fill (so the min/max range reads as a soft shadow
       // around its line rather than a solid block) — every other series keeps its existing full
       // opacity.
-      opacity: [
-        ...feedInSeries.map(() => 1),
-        1,
-        ...(hasUdcData ? [0.2, 1] : []),
-      ],
+      opacity: [...feedInSeries.map(() => 1), 1, ...(hasUdcData ? [0.2, 1] : [])],
     },
     // Explicit per-series colors: without this, ApexCharts' hover markers both pick up the
     // area series' color (mixed area+line charts don't reliably fall back to the top-level
