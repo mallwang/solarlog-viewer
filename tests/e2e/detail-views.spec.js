@@ -239,9 +239,10 @@ test.describe('Day view UDC toggle (US1 — 013-chart-udc-inverter-toggles)', ()
     await expect(
       page.locator('.chart-container .apexcharts-series[data\\:realIndex="3"]'),
     ).toHaveClass(/apexcharts-series-collapsed/);
-    await expect(
-      page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' }),
-    ).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   test('clicking the UDC legend entry reveals both the line and its min/max band together; clicking again hides both', async ({
@@ -294,9 +295,10 @@ test.describe('Day view UDC toggle (US1 — 013-chart-udc-inverter-toggles)', ()
 
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await expect(
-      page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' }),
-    ).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
     await expect(
       page.locator('.chart-container .apexcharts-series[data\\:realIndex="3"]'),
     ).not.toHaveClass(/apexcharts-series-collapsed/);
@@ -389,9 +391,10 @@ test.describe('Day view Wirkungsgrad toggle', () => {
     await expect(
       page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' }),
     ).toHaveAttribute('aria-pressed', 'true');
-    await expect(
-      page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' }),
-    ).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
 
     await page.goto('/#/day/2020/06/28');
     await page.waitForLoadState('networkidle');

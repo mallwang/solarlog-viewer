@@ -20,7 +20,8 @@
     "fill:months": "node scripts/fill-months.js --dry-run",
     "fill:years": "node scripts/fill-years.js --dry-run",
     "sync:sqlite": "node scripts/sync-sqlite.js",
-    "ftp:diff": "node scripts/ftp-sync.js --diff"
+    "ftp:diff": "node scripts/ftp-sync.js --diff",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -29,6 +30,8 @@
     "basic-ftp": "^6.2.0",
     "browser-sync": "^3.0.4",
     "eslint": "^10.8.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "tailwindcss": "^4.1.0"
   }
