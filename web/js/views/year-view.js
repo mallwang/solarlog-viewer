@@ -2,7 +2,8 @@ import {
   parseMonthsFile,
   parseDailyTotalsFile,
   mergeMonthlyTotals,
-  addTodayYield,
+  mergeDailyTotals,
+  addMissingDays,
 } from '../data/aggregates.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
@@ -137,9 +138,10 @@ export async function render(container, { route, plant }) {
   const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');
 
-  const [{ hist, data }, todaySource] = await Promise.all([
+  const [{ hist, data }, todaySource, daysHistSource] = await Promise.all([
     fetchFromBothSources('months.js'),
     isCurrentYear ? fetchText(`${DATA_DIR}/days.js`) : Promise.resolve({ ok: false }),
+    isCurrentYear ? fetchText(`${DATA_DIR}/days_hist.js`) : Promise.resolve({ ok: false }),
   ]);
   if (!hist.ok && !data.ok) {
     chartContainer.innerHTML = emptyStateBody('year.noData');
@@ -151,19 +153,26 @@ export async function render(container, { route, plant }) {
     data.ok ? parseMonthsFile(data.text) : [],
   );
   const key = String(year);
-  // months.js is only written at day rollover, so the current month never yet includes today's
-  // yield; fold today's live entry (days.js) into that month before summing the year (mirrors
-  // month-view.js's addTodayYield use).
+  // months.js is only written at day rollover - and isn't guaranteed to hit every one - so fold
+  // every daily total newer than the current month's checkpoint into that month before summing
+  // the year (mirrors month-view.js's addMissingDays use).
   const todayEntry = todaySource.ok
     ? parseDailyTotalsFile(todaySource.text).find((d) => d.date === todayIso())
     : undefined;
+  const currentMonthDailyBreakdown = mergeDailyTotals(
+    daysHistSource.ok ? parseDailyTotalsFile(daysHistSource.text) : [],
+    todayEntry ? [todayEntry] : [],
+  ).filter((d) => d.date.startsWith(currentMonthKey()));
   const monthsInYear = months.filter((m) => m.month.startsWith(key));
-  if (todayEntry && !monthsInYear.some((m) => m.month === currentMonthKey())) {
-    // First day of the month: months.js has no entry yet for it at all.
+  if (
+    currentMonthDailyBreakdown.length > 0 &&
+    !monthsInYear.some((m) => m.month === currentMonthKey())
+  ) {
+    // First day(s) of the month: months.js has no entry yet for it at all.
     monthsInYear.push({ month: currentMonthKey(), perInverter: {}, dailyBreakdown: [] });
   }
   const monthlyBreakdown = monthsInYear.map((m) =>
-    m.month === currentMonthKey() ? addTodayYield(m, todayEntry) : m,
+    m.month === currentMonthKey() ? addMissingDays(m, currentMonthDailyBreakdown) : m,
   );
 
   if (monthlyBreakdown.length === 0) {

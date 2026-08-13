@@ -35,9 +35,12 @@ export function parseDailyTotalsFile(fileText) {
 }
 
 /**
- * Parses months.js content (`01.MM.YY|WR1_yield_Wh|WR2_yield_Wh`).
+ * Parses months.js content (`01.MM.YY|WR1_yield_Wh|WR2_yield_Wh`). Each record's own date - not
+ * just its year-month - is kept as `asOfDate`: for a completed month the device writes a final
+ * entry dated that month's last day, but for the in-progress month it's dated whatever day the
+ * running total was last checkpointed, which is not necessarily yesterday (see addMissingDays).
  * @param {string} fileText
- * @returns {{ month: string, perInverter: { [inverterIndex: number]: number }, dailyBreakdown: [] }[]}
+ * @returns {{ month: string, asOfDate: string, perInverter: { [inverterIndex: number]: number }, dailyBreakdown: [] }[]}
  */
 export function parseMonthsFile(fileText) {
   return extractAssignedStrings(fileText).map((record) => {
@@ -46,7 +49,12 @@ export function parseMonthsFile(fileText) {
     yields.forEach((wh, i) => {
       perInverter[i + 1] = Number.parseInt(wh, 10);
     });
-    return { month: yearMonthFromDdMmYy(date), perInverter, dailyBreakdown: [] };
+    return {
+      month: yearMonthFromDdMmYy(date),
+      asOfDate: isoDateFromDdMmYy(date),
+      perInverter,
+      dailyBreakdown: [],
+    };
   });
 }
 
@@ -116,6 +124,7 @@ export function mergeMonthlyTotals(histEntries, dataEntries) {
       existing
         ? {
             month: entry.month,
+            asOfDate: existing.asOfDate > entry.asOfDate ? existing.asOfDate : entry.asOfDate,
             perInverter: sumPerInverter(existing.perInverter, entry.perInverter),
             dailyBreakdown: [],
           }
@@ -165,6 +174,33 @@ export function addTodayYield(total, todayEntry) {
   const perInverter = { ...total.perInverter };
   for (const [idx, { yieldWh }] of Object.entries(todayEntry.perInverter)) {
     perInverter[idx] = (perInverter[idx] ?? 0) + yieldWh;
+  }
+  return { ...total, perInverter };
+}
+
+/**
+ * Adds every daily total dated after a MonthlyTotal's own checkpoint (`asOfDate`) into its
+ * perInverter Wh totals - a generalisation of addTodayYield that also covers a stale months.js:
+ * the device is expected to write a fresh months.js checkpoint at every day rollover, but when
+ * it skips one or more rollovers (observed: stuck for 2+ days), folding in only "today" silently
+ * drops the skipped day(s) entirely. Summing every dailyBreakdown entry newer than the checkpoint
+ * - not just today's - recovers the missing days regardless of how far behind months.js is, as
+ * long as days_hist.js/days.js still cover that date range.
+ * @param {{ asOfDate?: string, perInverter: { [inverterIndex: number]: number } }} total - a
+ *   MonthlyTotal (see parseMonthsFile); asOfDate absent (e.g. no months.js entry at all for this
+ *   month yet) is treated as "before every day", so every entry in dailyBreakdown is added.
+ * @param {ReturnType<typeof parseDailyTotalsFile>} dailyBreakdown - that month's daily totals
+ *   (days_hist.js merged with days.js/today), as built by month-view.js.
+ * @returns {{ perInverter: object }} a new object; `total` is not mutated.
+ */
+export function addMissingDays(total, dailyBreakdown) {
+  const cutoff = total.asOfDate ?? '';
+  const perInverter = { ...total.perInverter };
+  for (const day of dailyBreakdown) {
+    if (day.date <= cutoff) continue;
+    for (const [idx, { yieldWh }] of Object.entries(day.perInverter)) {
+      perInverter[idx] = (perInverter[idx] ?? 0) + yieldWh;
+    }
   }
   return { ...total, perInverter };
 }
