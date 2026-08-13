@@ -15,6 +15,7 @@ function todayParams() {
 // its "today so far" figures live on in the info panel's yield element instead (see
 // info-panel/info-panel-controller.js).
 const NAV_ITEMS = [
+  { view: 'welcome', labelKey: 'nav.welcomeView', icon: 'homeModern', params: {} },
   { view: 'day', labelKey: 'nav.dayView', icon: 'bolt', params: () => todayParams() },
   {
     view: 'month',

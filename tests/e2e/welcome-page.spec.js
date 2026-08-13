@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Welcome page (US1: base URL landing view)', () => {
-  test('base URL renders the welcome page with all three regions, not a day chart', async ({
+  test('base URL renders the welcome page with all four regions, not a day chart', async ({
     page,
   }) => {
     const errors = [];
@@ -17,7 +17,11 @@ test.describe('Welcome page (US1: base URL landing view)', () => {
     await expect(page.locator('.carousel')).toHaveCount(1);
     await expect(page.locator('.plant-details, .empty-state')).not.toHaveCount(0);
     await expect(page.locator('.welcome-chart-mount')).toHaveCount(1);
-    await expect(page.locator('.stats-panel')).toHaveCount(0);
+    // The welcome page's own yield-summary stats card (today/month/year/total/CO2/€) - not a
+    // day view's own stats-panel, which would mean we somehow landed on /#/day/... instead.
+    await expect(
+      page.locator('.welcome-stats-mount .stats-panel, .welcome-stats-mount .empty-state'),
+    ).toHaveCount(1);
     console.log('errors:', errors);
   });
 
@@ -154,6 +158,36 @@ test.describe('Welcome page (US3: today at a glance)', () => {
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('.welcome-chart-mount .empty-state')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test('yield-summary stats card shows today/month/year/total/CO2/€ rows', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const statsPanel = page.locator('.welcome-stats-mount .stats-panel');
+    if ((await statsPanel.count()) === 0) {
+      await expect(page.locator('.welcome-stats-mount .empty-state')).toBeVisible();
+      return;
+    }
+    // 4 yield rows (today/month/year/total) + CO2 + € = 6.
+    await expect(statsPanel.locator('tbody tr')).toHaveCount(6);
+  });
+
+  test('with days.js/months.js/years.js all blocked, the stats region shows .empty-state and no console error', async ({
+    page,
+  }) => {
+    const errors = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+    await page.route('**/days.js', (route) => route.abort());
+    await page.route('**/days_hist.js', (route) => route.abort());
+    await page.route('**/months.js', (route) => route.abort());
+    await page.route('**/years.js', (route) => route.abort());
+
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.locator('.welcome-stats-mount .empty-state')).toBeVisible();
     expect(errors).toEqual([]);
   });
 });

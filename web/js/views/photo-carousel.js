@@ -12,25 +12,29 @@ const AUTO_ROTATE_MS = 6000;
  * @param {string[]} photoSrcs - resolved `img/plant/...` URLs, already in display order.
  * @returns {string} HTML markup for the carousel region.
  */
+const CONTROL_BUTTON_CLASSES =
+  'absolute top-1/2 -translate-y-1/2 flex items-center justify-center size-9 rounded-full ' +
+  'bg-bg-elevated/80 text-text shadow hover:bg-bg-elevated';
+
 export function carouselMarkup(photoSrcs) {
   if (photoSrcs.length === 0) {
-    return `<div class="carousel carousel--empty">${emptyStateBody('welcome.carouselPlaceholder')}</div>`;
+    return `<div class="carousel carousel--empty rounded-2xl overflow-hidden">${emptyStateBody('welcome.carouselPlaceholder')}</div>`;
   }
 
   const slides = photoSrcs
     .map(
       (src, i) =>
-        `<img class="carousel__slide" src="${src}" alt="" data-index="${i}" ${i === 0 ? '' : 'hidden'}>`,
+        `<img class="carousel__slide block w-full aspect-[3/2] object-cover rounded-2xl" src="${src}" alt="" data-index="${i}" ${i === 0 ? '' : 'hidden'}>`,
     )
     .join('');
 
   const controls =
     photoSrcs.length > 1
-      ? `<button type="button" class="carousel__prev" aria-label="${t('welcome.carouselPrev')}">${icon('backward')}</button>
-    <button type="button" class="carousel__next" aria-label="${t('welcome.carouselNext')}">${icon('forward')}</button>`
+      ? `<button type="button" class="carousel__prev ${CONTROL_BUTTON_CLASSES} left-2" aria-label="${t('welcome.carouselPrev')}">${icon('backward')}</button>
+    <button type="button" class="carousel__next ${CONTROL_BUTTON_CLASSES} right-2" aria-label="${t('welcome.carouselNext')}">${icon('forward')}</button>`
       : '';
 
-  return `<div class="carousel relative">
+  return `<div class="carousel relative rounded-2xl overflow-hidden">
     <div class="carousel__slides relative">${slides}</div>
     ${controls}
   </div>`;

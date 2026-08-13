@@ -5,6 +5,7 @@
     "monthView": "Monatserträge",
     "yearView": "Jahreserträge",
     "totalView": "Gesamterträge",
+    "welcomeView": "Anlageninfo",
     "ariaLabel": "Hauptnavigation",
     "toggleLabel": "Navigation ein-/ausblenden",
     "transparencyToggleLabel": "Transparenzmodus umschalten"
@@ -117,14 +118,24 @@
     "carouselPlaceholder": "Noch keine Anlagenfotos hinterlegt.",
     "carouselPrev": "Vorheriges Foto",
     "carouselNext": "Nächstes Foto",
+    "statsUnavailable": "Statistik ist derzeit nicht verfügbar.",
+    "stats": {
+      "title": "Statistik"
+    },
     "plantDetails": {
       "title": "Anlage",
       "location": "Standort",
       "operator": "Betreiber",
       "capacity": "Leistung",
       "commissioned": "Inbetriebnahme",
+      "moduleType": "Module",
+      "orientation": "Ausrichtung",
       "invertersTitle": "Wechselrichter",
-      "inverterStrings": "Strings"
+      "inverterStrings": "Strings",
+      "monitoringTitle": "Überwachung",
+      "deviceName": "Gerät",
+      "firmware": "Firmware",
+      "firmwareDate": "Firmware-Datum"
     }
   },
   "widget": {
