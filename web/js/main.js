@@ -177,6 +177,7 @@ function renderLangSwitcher() {
 }
 
 const viewModules = {
+  welcome: () => import('./views/welcome-view.js'),
   dashboard: () => import('./views/dashboard.js'),
   day: () => import('./views/day-view.js'),
   month: () => import('./views/month-view.js'),

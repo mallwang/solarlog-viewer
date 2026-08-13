@@ -110,6 +110,23 @@
       "co2": "CO2 avoided"
     }
   },
+  "welcome": {
+    "title": "Welcome",
+    "plantDetailsUnavailable": "Plant details are currently unavailable.",
+    "chartUnavailable": "No data recorded for today yet.",
+    "carouselPlaceholder": "No plant photos added yet.",
+    "carouselPrev": "Previous photo",
+    "carouselNext": "Next photo",
+    "plantDetails": {
+      "title": "Plant",
+      "location": "Location",
+      "operator": "Operator",
+      "capacity": "Capacity",
+      "commissioned": "Commissioned",
+      "invertersTitle": "Inverters",
+      "inverterStrings": "Strings"
+    }
+  },
   "widget": {
     "notProducing": "0 W — not producing",
     "todayYield": "Today's Yield",

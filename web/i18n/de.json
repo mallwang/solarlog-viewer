@@ -110,6 +110,23 @@
       "co2": "Vermiedenes CO2"
     }
   },
+  "welcome": {
+    "title": "Willkommen",
+    "plantDetailsUnavailable": "Anlagendaten sind derzeit nicht verfügbar.",
+    "chartUnavailable": "Für heute liegen noch keine Daten vor.",
+    "carouselPlaceholder": "Noch keine Anlagenfotos hinterlegt.",
+    "carouselPrev": "Vorheriges Foto",
+    "carouselNext": "Nächstes Foto",
+    "plantDetails": {
+      "title": "Anlage",
+      "location": "Standort",
+      "operator": "Betreiber",
+      "capacity": "Leistung",
+      "commissioned": "Inbetriebnahme",
+      "invertersTitle": "Wechselrichter",
+      "inverterStrings": "Strings"
+    }
+  },
   "widget": {
     "notProducing": "0 W — keine Einspeisung",
     "todayYield": "Tagesertrag",
