@@ -8,6 +8,7 @@ import {
   isDayEfficiencyVisible,
   setDayEfficiencyVisible,
 } from '../settings.js';
+import { DAY_CHART_AXES, DAY_CHART_X_AXIS_RANGE, DAY_CHART_X_AXIS_PADDING_MINUTES } from '../config.js';
 
 // vendor/apexcharts/apexcharts.esm.js is ApexCharts' UMD build; loaded as an ES module for its
 // side effect of attaching `window.ApexCharts` (no bundler-free single-file ESM build is
@@ -41,6 +42,33 @@ const charts = new WeakMap();
 // background in transparency mode — accepted for cross-chart color consistency.
 const EFFICIENCY_COLOR_INDEX = 2;
 const UDC_COLOR_INDEX = 3;
+
+/** `{ max, step }` → the ApexCharts `{ min: 0, max, tickAmount }` triple for a fixed-range axis (see `DAY_CHART_AXES` in config.js). */
+function fixedAxisRange({ max, step }) {
+  return { min: 0, max, tickAmount: max / step };
+}
+
+/**
+ * Day chart x-axis bounds per `DAY_CHART_X_AXIS_RANGE` (config.js):
+ * - `'data'` — spans the timestamps actually present, each end padded outward by
+ *   `DAY_CHART_X_AXIS_PADDING_MINUTES` so the first/last points sit clear of the plot edge (easier
+ *   to see where the day's data starts/ends, and easier to hover). `{}` when there's no data to
+ *   derive a range from (empty day), so ApexCharts falls back to its own default.
+ * - `'fullDay'` — the full local 00:00–24:00 day (derived from the first timestamp's own date);
+ *   the padding doesn't apply since midnight-to-midnight is already maximal margin.
+ * @param {number[]} timestamps - epoch ms of every reading on the day being charted.
+ * @returns {{ min?: number, max?: number }}
+ */
+function dayXAxisRange(timestamps) {
+  if (timestamps.length === 0) return {};
+  if (DAY_CHART_X_AXIS_RANGE === 'fullDay') {
+    const d = new Date(timestamps[0]);
+    const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    return { min: startOfDay, max: startOfDay + 24 * 60 * 60 * 1000 };
+  }
+  const paddingMs = DAY_CHART_X_AXIS_PADDING_MINUTES * 60 * 1000;
+  return { min: Math.min(...timestamps) - paddingMs, max: Math.max(...timestamps) + paddingMs };
+}
 
 function formatTimeLabel(isoTimestamp) {
   return isoTimestamp.slice(11, 16);
@@ -91,18 +119,22 @@ function sumPerInverter(values) {
 }
 
 /**
- * Sums a reading's UDC (DC string voltage) across every reporting inverter string. `udcV` is
+ * Averages a reading's UDC (DC string voltage) across every reporting inverter string. `udcV` is
  * per-inverter *array*-valued (one element per DC string on that inverter — see
  * `web/js/data/min-file.js`'s `parseSb4200Block`/`parseSb2100Block`, mirroring how `pdcW` is
- * flattened by `efficiencySums`), so this flattens all strings' arrays before reusing
- * `sumPerInverter`'s present-value-only summation (`null` when no string reports a value for that
- * point, per FR-001/Edge Cases).
+ * flattened by `efficiencySums`), so this flattens all strings' arrays first. Averaged rather
+ * than summed: a string's voltage is the same kind of quantity regardless of how many strings are
+ * reporting, so summing them (as the chart previously did) produced a "UDC" north of 1000 V that
+ * doesn't correspond to any real voltage in the system — the average is the representative single
+ * value the single legend entry implies. `null` when no string reports a value for that point,
+ * per FR-001/Edge Cases.
  * @param {Record<string|number, { udcV?: number[] | null }>} perInverter
  * @returns {number | null}
  */
-function sumUdcVolts(perInverter) {
+function averageUdcVolts(perInverter) {
   const allStrings = Object.values(perInverter ?? {}).flatMap((inv) => inv?.udcV ?? []);
-  return sumPerInverter(allStrings);
+  const present = allStrings.filter((v) => v !== null && v !== undefined);
+  return present.length ? present.reduce((s, v) => s + v, 0) / present.length : null;
 }
 
 /**
@@ -193,7 +225,7 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
   // Omitted entirely (not merely hidden) when the day has no UDC readings at all — e.g. an
   // older epoch whose min-file format predates volt reporting — so no "UDC" legend entry is
   // offered at all, per FR-005.
-  const hasUdcData = data.readings.some((r) => sumUdcVolts(r.perInverter) !== null);
+  const hasUdcData = data.readings.some((r) => averageUdcVolts(r.perInverter) !== null);
   const stringKeys = inverterKeysAcross(data.readings);
   const feedInSeries = buildFeedInSeries(data, timestamps, breakdown, stringKeys);
   // Series order is always feed-in segment(s), then efficiency, then (optionally) UDC — indices
@@ -219,7 +251,7 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
             type: 'line',
             data: data.readings.map((r, i) => ({
               x: timestamps[i],
-              y: sumUdcVolts(r.perInverter),
+              y: averageUdcVolts(r.perInverter),
             })),
           },
         ]
@@ -234,13 +266,6 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
     colors[EFFICIENCY_COLOR_INDEX],
     ...(hasUdcData ? [colors[UDC_COLOR_INDEX]] : []),
   ];
-
-  // Shared max across every feed-in segment (see the `yaxis` comment below for why this needs to
-  // be identical on every segment's axis rather than left to each axis' own `forceNiceScale`).
-  // `undefined` when every segment is all-null (empty day) so ApexCharts falls back to its own
-  // default scale instead of clamping to `max: 0`.
-  const feedInValues = feedInSeries.flatMap((s) => s.data.map((p) => p.y).filter((y) => y !== null));
-  const feedInMax = feedInValues.length ? Math.max(...feedInValues) : undefined;
 
   return {
     ...baseOptions(colors),
@@ -264,6 +289,16 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
           window.setTimeout(() => {
             const hidden = chartContext.w.globals.collapsedSeriesIndices.includes(seriesIndex);
             setVisible(!hidden);
+            // UDC also gets its own right-hand axis (see the `yaxis` entry below) — toggling the
+            // series doesn't touch axis definitions on its own, so it's shown/hidden in step here
+            // rather than left stranded either always-on or always-off regardless of the line.
+            if (seriesIndex === udcIndex) {
+              chartContext.updateOptions(
+                { yaxis: chartContext.w.config.yaxis.map((y, i) => (i === udcIndex ? { ...y, show: !hidden } : y)) },
+                false,
+                false,
+              );
+            }
           }, 0);
         },
       },
@@ -296,6 +331,7 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
       type: 'datetime',
       title: { text: t('chart.timeAxis') },
       labels: { datetimeUTC: false, format: 'HH:mm' },
+      ...dayXAxisRange(timestamps),
     },
     yaxis: [
       // One axis entry per feed-in segment, all sharing the same (left, Watt) scale — only the
@@ -305,32 +341,42 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
       // told otherwise, so — since only the WR1 axis is actually drawn — a smaller WR2 (or WR3…)
       // area was being read off a hidden axis that topped out well above WR1's, making it look
       // artificially shrunk (e.g. a 1600 W WR2 peak plotted under WR1's 3200 W gridline). Passing
-      // the same explicit `max`, derived from every feed-in segment's largest value, to every
-      // entry keeps them all on one identical scale.
+      // the same explicit range (fixed via `DAY_CHART_AXES.feedInW` in config.js — not derived
+      // per-day) to every entry keeps them all on one identical scale, both across segments within
+      // a day and across days.
       ...feedInSeries.map((s, i) => ({
         seriesName: s.name,
         show: i === 0,
         title: i === 0 ? { text: t('chart.feedInAxis') } : undefined,
-        min: 0,
-        max: feedInMax,
-        forceNiceScale: true,
+        ...fixedAxisRange(DAY_CHART_AXES.feedInW),
         labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
       })),
       {
         seriesName: t('chart.efficiencyAxis'),
         opposite: true,
         title: { text: t('chart.efficiencyAxis') },
-        forceNiceScale: true,
+        ...fixedAxisRange(DAY_CHART_AXES.efficiencyPercent),
         labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
       },
       ...(hasUdcData
         ? [
             {
               seriesName: t('chart.udcAxis'),
-              show: false,
+              // Shown as its own right-hand axis (stacked outward from the Wirkungsgrad axis by
+              // ApexCharts, since both are `opposite: true`) whenever the UDC series itself is
+              // visible, so the line's actual voltage scale reads directly off the chart instead
+              // of only being discoverable via the tooltip. Toggling the UDC legend entry
+              // hides/shows the series but not this axis definition, so `show` is tied to the
+              // persisted visibility (`isDayUdcVisible`) rather than left permanently on — an
+              // axis with no visible line would otherwise sit there unexplained.
+              show: isDayUdcVisible(),
               opposite: true,
-              min: 0,
-              forceNiceScale: true,
+              title: { text: t('chart.udcAxis') },
+              // Fixed via `DAY_CHART_AXES.udcV` in config.js rather than derived per-day, for the
+              // same reason as the feed-in axis above: a day whose strings only reached ~200 V
+              // shouldn't fill the same chart height as one reaching ~400 V.
+              ...fixedAxisRange(DAY_CHART_AXES.udcV),
+              labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
             },
           ]
         : []),
@@ -395,12 +441,13 @@ function buildDayOptions(data, colors, { lang, breakdown = 'total' } = {}) {
  * day still shows something meaningful rather than looking like "no data".
  */
 function buildDayYieldOptions(data, colors, { lang } = {}) {
+  const timestamps = data.readings.map((r) => new Date(r.timestamp).getTime());
   const series = [
     {
       name: t('chart.total'),
-      data: data.readings.map((r) => ({
-        x: new Date(r.timestamp).getTime(),
-        y: sumPerInverter(Object.values(r.perInverter).map((i) => i?.dailyYieldWh)),
+      data: data.readings.map((r, i) => ({
+        x: timestamps[i],
+        y: sumPerInverter(Object.values(r.perInverter).map((inv) => inv?.dailyYieldWh)),
       })),
     },
   ];
@@ -416,6 +463,7 @@ function buildDayYieldOptions(data, colors, { lang } = {}) {
       type: 'datetime',
       title: { text: t('chart.timeAxis'), offsetY: -8 },
       labels: { datetimeUTC: false, format: 'HH:mm' },
+      ...dayXAxisRange(timestamps),
     },
     yaxis: {
       title: { text: 'Wh' },

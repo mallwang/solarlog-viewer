@@ -19,14 +19,22 @@ current period" link (e.g. "Heute"/"Dieser Monat"), and a link to zoom out to th
 period (day → month → year → total) — e.g. from a day view, click "Monat" to jump straight to
 that day's month view. The total view has no such link since it's the top of the hierarchy.
 
-The day view's chart legend includes a "UDC" entry for the DC string voltage, summed across all
-reporting inverter strings — it's hidden by default so the chart isn't cluttered, but clicking it
-reveals the voltage line (and hovering the chart then shows the UDC value in the tooltip too);
-clicking again hides it. That shown/hidden choice is remembered across page reloads and other day
-charts, so a revealed UDC line stays revealed until you hide it again. Days with no recorded
-voltage data (e.g. backfilled/archived days that only show the reconstructed yield curve) don't
-offer the "UDC" legend entry at all, since there's nothing to plot. The month, year, and total
-(lifetime) views show a "Gesamt" / "Wechselrichter"
+The day view's chart legend includes a "UDC" entry for the DC string voltage, averaged across all
+reporting inverter strings (not summed — a sum would read as an implausible reading above 1000 V)
+— it's hidden by default so the chart isn't cluttered, but clicking it reveals the voltage line on
+its own right-hand axis (and hovering the chart then shows the UDC value in the tooltip too);
+clicking again hides it and its axis. That shown/hidden choice is remembered across page reloads
+and other day charts, so a revealed UDC line stays revealed until you hide it again. Days with no
+recorded voltage data (e.g. backfilled/archived days that only show the reconstructed yield curve)
+don't offer the "UDC" legend entry at all, since there's nothing to plot. The day chart's three
+y-axes (feed-in W, Wirkungsgrad %, UDC V) always use the same fixed range and gridline spacing
+regardless of the day, so a low-yield day doesn't visually stretch to look as strong as a
+high-yield one, and the scale doesn't jump around as you page between days. The x-axis normally
+zooms to just the times that day actually has data for (with a small pad on each side so the line
+doesn't start/end flush against the plot edge, which also makes those points easier to hover); a
+site administrator can switch it to always show the full 00:00–24:00 day instead — see
+`DAY_CHART_AXES`, `DAY_CHART_X_AXIS_RANGE`, and `DAY_CHART_X_AXIS_PADDING_MINUTES` in
+`web/js/config.js`. The month, year, and total (lifetime) views show a "Gesamt" / "Wechselrichter"
 toggle above the chart: "Gesamt" (the default) shows the single combined bar per period exactly
 as before, while switching to "Wechselrichter" breaks each bar into one stacked segment per
 inverter string (WR1, WR2, …), with the tooltip then showing the combined total alongside each

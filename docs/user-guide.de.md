@@ -22,15 +22,24 @@ Link zur nächstgrößeren Zeitebene (Tag → Monat → Jahr → Gesamt) — z. 
 Tagesansicht direkt zur zugehörigen Monatsansicht. Die Gesamt-Ansicht hat keinen solchen Link, da
 sie die oberste Ebene der Hierarchie ist.
 
-Die Legende der Tagesansicht enthält einen Eintrag "UDC" für die DC-Stringspannung, summiert über
-alle meldenden Wechselrichter-Strings — er ist standardmäßig ausgeblendet, damit das Diagramm
-nicht überladen wirkt, aber ein Klick darauf blendet die Spannungslinie ein (und beim Hovern über
-das Diagramm erscheint dann auch der UDC-Wert im Tooltip); ein erneuter Klick blendet sie wieder
-aus. Diese Ein-/Ausblend-Wahl wird über Reloads und andere Tagesdiagramme hinweg gemerkt — eine
-eingeblendete UDC-Linie bleibt also eingeblendet, bis sie wieder ausgeblendet wird. An Tagen ohne
-erfasste Spannungsdaten (z. B. rekonstruierte/archivierte Tage, die nur den Ertragsverlauf
-zeigen) wird der Eintrag "UDC" gar nicht erst angeboten, da es nichts zu zeichnen gibt. Die
-Monats-, Jahres- und Gesamt-Ansicht zeigen oberhalb des Diagramms einen
+Die Legende der Tagesansicht enthält einen Eintrag "UDC" für die DC-Stringspannung, gemittelt über
+alle meldenden Wechselrichter-Strings (nicht summiert — eine Summe würde einen unplausiblen Wert
+über 1000 V ergeben) — er ist standardmäßig ausgeblendet, damit das Diagramm nicht überladen
+wirkt, aber ein Klick darauf blendet die Spannungslinie mitsamt eigener rechter Achse ein (und
+beim Hovern über das Diagramm erscheint dann auch der UDC-Wert im Tooltip); ein erneuter Klick
+blendet Linie und Achse wieder aus. Diese Ein-/Ausblend-Wahl wird über Reloads und andere
+Tagesdiagramme hinweg gemerkt — eine eingeblendete UDC-Linie bleibt also eingeblendet, bis sie
+wieder ausgeblendet wird. An Tagen ohne erfasste Spannungsdaten (z. B. rekonstruierte/archivierte
+Tage, die nur den Ertragsverlauf zeigen) wird der Eintrag "UDC" gar nicht erst angeboten, da es
+nichts zu zeichnen gibt. Die drei y-Achsen des Tagesdiagramms (Einspeisung W, Wirkungsgrad %,
+UDC V) verwenden unabhängig vom Tag stets denselben festen Wertebereich und dieselbe
+Gitterlinien-Schrittweite, damit ein ertragsschwacher Tag nicht optisch genauso stark wirkt wie
+ein ertragsstarker und die Skala beim Blättern zwischen Tagen nicht springt. Die x-Achse zoomt
+normalerweise auf die Zeiten, für die an diesem Tag tatsächlich Daten vorliegen (mit etwas
+Polsterung an beiden Enden, damit die Linie nicht direkt am Diagrammrand beginnt/endet — das
+erleichtert auch das Hovern dieser Randpunkte); eine Admin-Person kann stattdessen fest auf den
+vollen Tag 00:00–24:00 umstellen — siehe `DAY_CHART_AXES`, `DAY_CHART_X_AXIS_RANGE` und
+`DAY_CHART_X_AXIS_PADDING_MINUTES` in `web/js/config.js`. Die Monats-, Jahres- und Gesamt-Ansicht zeigen oberhalb des Diagramms einen
 Umschalter "Gesamt" / "Wechselrichter": "Gesamt" (Standard) zeigt wie bisher einen einzelnen
 Summenbalken pro Zeitraum, während "Wechselrichter" jeden Balken in einen gestapelten Abschnitt
 pro Wechselrichter-String aufteilt (WR1, WR2, …) — der Tooltip zeigt dann zusätzlich zur
