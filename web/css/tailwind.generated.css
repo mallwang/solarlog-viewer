@@ -246,6 +246,9 @@
   .box-border {
     box-sizing: border-box;
   }
+  .\!hidden {
+    display: none !important;
+  }
   .block {
     display: block;
   }
