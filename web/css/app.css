@@ -1004,6 +1004,16 @@ a {
   flex-direction: column;
 }
 
+/* .welcome-chart-mount (015-welcome-page-dashboard) reuses .chart-container's card styling but
+   sits directly in the welcome grid, side by side with .welcome-primary, instead of below a
+   .view-header. .chart-container's own margin-top (spacing from that header everywhere else)
+   has nothing to push away from here - worse, being the top margin of .welcome-secondary's sole
+   child, it collapses into .welcome-secondary's own top edge, pulling the whole card down and
+   throwing it out of alignment with .welcome-primary beside it. */
+.welcome-chart-mount.chart-container {
+  margin-top: 0;
+}
+
 /* Header row above the chart: the optional "Gesamt"/per-inverter breakdown toggle on the left,
    the "show as table" toggle (feature 014) pinned to the right via its own margin-left: auto. */
 .chart-container__header {

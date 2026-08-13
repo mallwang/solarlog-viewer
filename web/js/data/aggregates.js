@@ -205,6 +205,72 @@ export function addMissingDays(total, dailyBreakdown) {
   return { ...total, perInverter };
 }
 
+function sumInverterWh(perInverter) {
+  return Object.values(perInverter).reduce((sum, v) => sum + (v?.yieldWh ?? v ?? 0), 0);
+}
+
+/**
+ * Derives today/month/year/lifetime yield (kWh) plus lifetime CO2 saved and lifetime feed-in
+ * revenue from the same already-parsed/merged sources dashboard.js's widgets and total-view.js's
+ * stats panel each derive independently (days.js's today entry, days_hist.js+days.js merged into
+ * one daily series, months.js, years.js) - shared here so the welcome page's stats card agrees
+ * with them by construction instead of drifting. Mirrors month-view.js/year-view.js's
+ * addMissingDays/addTodayYield use throughout: months.js/years.js are only written at day
+ * rollover, so the in-progress month/year is always missing at least today's live yield until
+ * the next sync.
+ * @param {{ todayEntry: ReturnType<typeof parseDailyTotalsFile>[number] | undefined,
+ *   dailyHist: ReturnType<typeof parseDailyTotalsFile>, months: ReturnType<typeof parseMonthsFile>,
+ *   years: ReturnType<typeof parseYearsFile>, year: number, monthKey: string,
+ *   tariffRatePerKwh: number }} args - `dailyHist` is days_hist.js's totals (data.ok ? [] :
+ *   already merged with days.js is done internally); `year`/`monthKey` (e.g. "2026-08")
+ *   identify "today" so the right month/year get today's live yield folded in.
+ * @returns {{ todayKwh: number, monthKwh: number, yearKwh: number, totalKwh: number,
+ *   co2SavedKg: number, feedInTotal: number }}
+ */
+export function deriveYieldSummary({
+  todayEntry,
+  dailyHist,
+  months,
+  years,
+  year,
+  monthKey,
+  tariffRatePerKwh,
+}) {
+  const todayKwh = todayEntry ? sumInverterWh(todayEntry.perInverter) / 1000 : 0;
+
+  const monthDailyBreakdown = mergeDailyTotals(dailyHist, todayEntry ? [todayEntry] : []).filter(
+    (d) => d.date.startsWith(monthKey),
+  );
+  const thisMonth = addMissingDays(
+    months.find((m) => m.month === monthKey) ?? { month: monthKey, perInverter: {} },
+    monthDailyBreakdown,
+  );
+  const monthKwh = sumInverterWh(thisMonth.perInverter) / 1000;
+
+  const monthsInYear = months.filter((m) => m.month.startsWith(String(year)));
+  const monthlyBreakdown = monthsInYear.some((m) => m.month === monthKey)
+    ? monthsInYear.map((m) => (m.month === monthKey ? thisMonth : m))
+    : [...monthsInYear, thisMonth];
+  const yearKwh = monthlyBreakdown.reduce((sum, m) => sum + sumInverterWh(m.perInverter), 0) / 1000;
+
+  const yearsWithToday = years.some((y) => y.year === year)
+    ? years
+    : [...years, { year, perInverter: {} }];
+  const yearsForLifetime = yearsWithToday.map((y) =>
+    y.year === year ? addTodayYield(y, todayEntry) : y,
+  );
+  const lifetime = deriveLifetimeSummary(yearsForLifetime, tariffRatePerKwh);
+
+  return {
+    todayKwh,
+    monthKwh,
+    yearKwh,
+    totalKwh: lifetime.totalYieldWh / 1000,
+    co2SavedKg: lifetime.co2SavedKg,
+    feedInTotal: lifetime.feedInTotal,
+  };
+}
+
 export function deriveLifetimeSummary(yearlyTotals, tariffRatePerKwh) {
   const totalYieldWh = yearlyTotals.reduce(
     (sum, y) => sum + Object.values(y.perInverter).reduce((s, wh) => s + wh, 0),

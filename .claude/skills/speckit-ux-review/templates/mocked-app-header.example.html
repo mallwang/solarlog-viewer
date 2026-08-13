@@ -1,0 +1,98 @@
+<!--
+  WORKED EXAMPLE, not a template to copy verbatim — this is a snapshot of the mocked app-header
+  from the 015-welcome-page-dashboard mockup (2026-08), showing the *pattern* for representing
+  the real app chrome inside a mockup canvas:
+
+    - Reproduce the real header's structure/classes loosely (brand, nav, actions) so the mockup
+      reads as "inside the app," not a generic page.
+    - Pull colors from the CURRENT web/css/tokens.css, not from this file — tokens.css may have
+      changed since this example was written.
+    - Keep it decorative/non-interactive: no real nav links, no real data. It exists to give the
+      feature content below it visual context, not to be reviewed itself.
+    - Collapse it for the mobile viewport the same way the real header does (see the
+      `.stage-frame[data-viewport='mobile'] .app-nav { display: none }` rule) rather than
+      inventing new mobile header behavior.
+
+  Re-check web/index.html's actual header markup before reusing this — it may have gained new
+  elements (e.g. the info panel, transparency toggle) that changed since this snapshot.
+-->
+<div class="app-header">
+  <a class="app-header__brand" href="#">
+    <span class="app-header__logo" aria-hidden="true"></span>
+    <h2 class="app-header__title">PV Allwang</h2>
+  </a>
+  <nav class="app-nav">
+    <span>Tag</span><span>Monat</span><span>Jahr</span><span>Gesamt</span>
+  </nav>
+  <div class="app-header__actions">
+    <div class="header-yield">
+      <span>Heute</span>
+      <strong>14,2 kWh</strong>
+    </div>
+  </div>
+</div>
+
+<style>
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-family);
+  }
+
+  .app-header__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  .app-header__logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  }
+
+  .app-header__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .app-nav {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .stage-frame[data-viewport='mobile'] .app-nav {
+    display: none;
+  }
+
+  .app-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .header-yield {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+  }
+
+  .header-yield strong {
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

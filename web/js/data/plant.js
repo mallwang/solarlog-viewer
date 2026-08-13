@@ -25,6 +25,25 @@ function commissionedDateToIso(ddMmYyyy) {
 }
 
 /**
+ * Patches specific known encoding corruption in this device's base_vars.js export: some earlier
+ * re-save of the file already collapsed non-ASCII bytes into U+FFFD (the "replacement
+ * character") before we ever see it, so the original byte is gone from this text - there's no
+ * decoding fix that recovers it, and re-syncing from the SolarLog reproduces the same corrupted
+ * export. Patches the exact substrings observed (the degree sign in HPAusricht, "März" in
+ * BannerZeile3, the Euro sign in Currency) rather than a blanket "any U+FFFD -> X" substitution,
+ * which could as easily mangle some other field that happens to contain U+FFFD for an unrelated
+ * reason.
+ * @param {string} fileText
+ * @returns {string}
+ */
+function fixKnownMojibake(fileText) {
+  return fileText
+    .replaceAll(/(\d) ?�/g, '$1°')
+    .replaceAll('M�rz', 'März')
+    .replaceAll('Currency ="�"', 'Currency ="€"');
+}
+
+/**
  * Parses `var sollMonth = new Array(2,6,9,...)` — 12 numbers, index 0 = January, giving each
  * month's percentage share of SollYearKWP's yearly specific-yield target (sums to 100).
  * @param {string} fileText
@@ -39,12 +58,16 @@ function parseSollMonth(fileText) {
 /**
  * Parses base_vars.js into PlantMetadata, deriving inverters dynamically from WRInfo[]
  * rather than trusting AnzahlWR (FR-006: never hard-code inverter/string structure).
- * @param {string} fileText - Raw base_vars.js content.
+ * @param {string} rawFileText - Raw base_vars.js content.
  * @returns {{ title: string, location: string, operator: string, capacityKwp: number,
  *   commissionedDate: string, tariffRatePerKwh: number, sollYearKwp: number, sollMonth: number[],
- *   inverters: { index: number, model: string, stringCount: number }[] }} PlantMetadata
+ *   moduleType: string, orientation: string, deviceName: string, firmware: string,
+ *   firmwareDate: string,
+ *   inverters: { index: number, type: string, model: string, stringCount: number }[] }}
+ *   PlantMetadata
  */
-export function parseBaseVars(fileText) {
+export function parseBaseVars(rawFileText) {
+  const fileText = fixKnownMojibake(rawFileText);
   const inverters = [];
   for (const line of fileText.split('\n')) {
     const match = WR_INFO_LINE.exec(line.trim());
@@ -52,11 +75,14 @@ export function parseBaseVars(fileText) {
     const args = match[2].split(',').map(parseArrayArg);
     inverters.push({
       index: Number.parseInt(match[1], 10) + 1,
+      type: args[0],
       model: args[4],
       stringCount: args[5],
     });
   }
   inverters.sort((a, b) => a.index - b.index);
+
+  const slType = extractQuotedVar(fileText, 'SLTyp');
 
   return {
     title: extractQuotedVar(fileText, 'HPTitel'),
@@ -67,6 +93,11 @@ export function parseBaseVars(fileText) {
     tariffRatePerKwh: extractNumericVar(fileText, 'Verguetung') / 10000,
     sollYearKwp: extractNumericVar(fileText, 'SollYearKWP'),
     sollMonth: parseSollMonth(fileText),
+    moduleType: extractQuotedVar(fileText, 'HPModul'),
+    orientation: extractQuotedVar(fileText, 'HPAusricht'),
+    deviceName: slType ? `SolarLog ${slType}` : '',
+    firmware: extractQuotedVar(fileText, 'Firmware'),
+    firmwareDate: extractQuotedVar(fileText, 'FirmwareDate'),
     inverters,
   };
 }

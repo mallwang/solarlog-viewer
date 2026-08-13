@@ -570,6 +570,71 @@ function buildDayYieldOptions(data, colors, { lang } = {}) {
 }
 
 /**
+ * Minimal single-series day chart for the welcome page (015-welcome-page-dashboard): today's
+ * combined feed-in total on the existing fixed `DAY_CHART_AXES.feedInW` axis only - no
+ * Wirkungsgrad/UDC series or axes at all (not merely hidden), unlike `buildDayOptions`, so there
+ * is nothing a legend click could reveal (FR-014/015/016). Deliberately its own small
+ * option-builder rather than a flag on `buildDayOptions`, reusing that function's own
+ * `sumPerInverter`/`dayXAxisRange`/`fixedAxisRange` helpers (research.md §3).
+ * @param {{ readings: object[] }} data
+ * @param {string[]} colors
+ * @param {{ lang?: string }} [config]
+ * @returns {object} ApexCharts options.
+ */
+function buildDayTotalOptions(data, colors, { lang } = {}) {
+  const timestamps = data.readings.map((r) => new Date(r.timestamp).getTime());
+  const series = [
+    {
+      name: t('chart.feedInAxis'),
+      type: 'area',
+      unit: 'W',
+      data: data.readings.map((r, i) => ({
+        x: timestamps[i],
+        y: sumPerInverter(Object.values(r.perInverter).map((inv) => inv?.pacW)),
+      })),
+    },
+  ];
+
+  return {
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'area' },
+    stroke: { width: 2, curve: 'smooth' },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        type: 'vertical',
+        shade: 'light',
+        shadeIntensity: 0.3,
+        opacityFrom: 0.8,
+        opacityTo: 0.25,
+      },
+    },
+    markers: { size: 0, hover: { size: 5 } },
+    series,
+    xaxis: {
+      type: 'datetime',
+      title: { text: t('chart.timeAxis') },
+      labels: { datetimeUTC: false, format: 'HH:mm' },
+      ...dayXAxisRange(timestamps),
+    },
+    yaxis: {
+      title: { text: t('chart.feedInAxis') },
+      ...fixedAxisRange(DAY_CHART_AXES.feedInW),
+      labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+    },
+    tooltip: {
+      x: { format: 'HH:mm' },
+      y: {
+        formatter: (value) =>
+          value === null || value === undefined
+            ? '—'
+            : `${formatNumber(value, { decimals: 0, lang })} W`,
+      },
+    },
+  };
+}
+
+/**
  * Human-readable label for an inverter-string key, used for stacked-bar series names/tooltip rows
  * (FR-011). Not previously surfaced as user-facing text (only used as the internal `perInverter`
  * object key `1`/`2`) — matches data-model.md's Inverter String Label table and generalizes to
@@ -824,6 +889,8 @@ function buildOptions(mode, data, colors, config) {
       return buildDayOptions(data, colors, config);
     case 'day-yield':
       return buildDayYieldOptions(data, colors, config);
+    case 'day-total':
+      return buildDayTotalOptions(data, colors, config);
     case 'month':
       return buildMonthOptions(data, colors, config);
     case 'year-months':
@@ -841,7 +908,7 @@ function buildOptions(mode, data, colors, config) {
  * chart instance before mounting a fresh one — no stacked/duplicate charts.
  * @param {HTMLElement} container - A plain `<div>` (was `<canvas>` under Chart.js); ApexCharts
  *   renders an inline SVG into it.
- * @param {'day' | 'day-yield' | 'month' | 'year-months' | 'year'} mode
+ * @param {'day' | 'day-yield' | 'day-total' | 'month' | 'year-months' | 'year'} mode
  * @param {object} data - Same shape per mode as before (readings/dailyBreakdown/
  *   monthlyBreakdown/yearlyTotalsList).
  * @param {{ onDataPointClick?: (dataPointIndex: number) => void, breakdown?: 'total' |

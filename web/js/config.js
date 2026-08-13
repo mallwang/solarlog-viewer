@@ -73,3 +73,13 @@ export const DAY_CHART_X_AXIS_RANGE = 'data';
  * @type {number}
  */
 export const DAY_CHART_X_AXIS_PADDING_MINUTES = 15;
+
+/**
+ * Filenames under `web/img/plant/`, in carousel display order, shown by the welcome page's photo
+ * carousel (`web/js/views/photo-carousel.js`). Matches this file's existing manual-override
+ * pattern (`SITE_TITLE`, `SKY_LOCATION_OVERRIDE`): the operator drops a file into `web/img/plant/`
+ * and adds its filename here — no build/manifest-generation step. Empty (the default) shows the
+ * carousel's neutral placeholder state instead of any image.
+ * @type {string[]}
+ */
+export const PLANT_PHOTOS = ['plant-01.jpg', 'plant-02.jpg', 'plant-03.jpg', 'plant-04.jpg'];

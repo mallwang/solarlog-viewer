@@ -5,6 +5,7 @@ import {
   parseMonthsFile,
   parseYearsFile,
   deriveLifetimeSummary,
+  deriveYieldSummary,
   mergeDailyTotals,
   mergeMonthlyTotals,
   mergeYearlyTotals,
@@ -216,4 +217,77 @@ test('addMissingDays does not mutate the input total', () => {
   const dailyBreakdown = [{ date: '2026-08-12', perInverter: { 1: { yieldWh: 24170 } } }];
   addMissingDays(total, dailyBreakdown);
   assert.deepEqual(total.perInverter, { 1: 232337 });
+});
+
+test('deriveYieldSummary folds today into month/year (via months.js) and, separately, into the years.js-derived lifetime total (CO2/feed-in)', () => {
+  const todayEntry = { date: '2026-08-13', perInverter: { 1: { yieldWh: 20000, peakW: 4000 } } };
+  const months = [
+    // Checkpointed as of 08-12, so today (08-13) still needs folding in via dailyHist+todayEntry.
+    { month: '2026-08', asOfDate: '2026-08-12', perInverter: { 1: 100000 }, dailyBreakdown: [] },
+    { month: '2026-07', asOfDate: '2026-07-31', perInverter: { 1: 300000 }, dailyBreakdown: [] },
+  ];
+  // years.js is its own independent checkpoint (only written at rollover) - here it already
+  // covers July (300000 Wh), same as months.js, so lifetime and the month/year-derived figures
+  // agree; a years.js checkpoint lagging behind months.js is possible but out of scope here.
+  const years = [
+    { year: 2025, perInverter: { 1: 1000000 } },
+    { year: 2026, perInverter: { 1: 300000 } },
+  ];
+  const summary = deriveYieldSummary({
+    todayEntry,
+    dailyHist: [],
+    months,
+    years,
+    year: 2026,
+    monthKey: '2026-08',
+    tariffRatePerKwh: 0.5,
+  });
+
+  assert.equal(summary.todayKwh, 20);
+  assert.equal(summary.monthKwh, 120); // 100000 (checkpoint) + 20000 (today), in kWh
+  assert.equal(summary.yearKwh, 420); // this month (120) + July (300)
+  assert.equal(summary.totalKwh, 1320); // 2025 (1000) + 2026 (300 + 20 today = 320)
+  // 2026 has no published UBA factor yet, so the fallback (0.363 kg/kWh) applies to its 320 kWh;
+  // 2025's own factor (0.344) applies to its 1000 kWh.
+  assert.equal(summary.co2SavedKg, 320 * 0.363 + 1000 * 0.344);
+  assert.equal(summary.feedInTotal, 1320 * 0.5);
+});
+
+test('deriveYieldSummary handles the first day of a year (no months.js/years.js entry yet)', () => {
+  const todayEntry = { date: '2026-01-01', perInverter: { 1: { yieldWh: 5000, peakW: 1200 } } };
+  const summary = deriveYieldSummary({
+    todayEntry,
+    dailyHist: [],
+    months: [],
+    years: [],
+    year: 2026,
+    monthKey: '2026-01',
+    tariffRatePerKwh: 0.4,
+  });
+
+  assert.equal(summary.todayKwh, 5);
+  assert.equal(summary.monthKwh, 5);
+  assert.equal(summary.yearKwh, 5);
+  assert.equal(summary.totalKwh, 5);
+});
+
+test('deriveYieldSummary defaults to all zeros with no today entry and no history', () => {
+  const summary = deriveYieldSummary({
+    todayEntry: undefined,
+    dailyHist: [],
+    months: [],
+    years: [],
+    year: 2026,
+    monthKey: '2026-08',
+    tariffRatePerKwh: 0.5,
+  });
+
+  assert.deepEqual(summary, {
+    todayKwh: 0,
+    monthKwh: 0,
+    yearKwh: 0,
+    totalKwh: 0,
+    co2SavedKg: 0,
+    feedInTotal: 0,
+  });
 });

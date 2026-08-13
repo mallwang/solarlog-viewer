@@ -5,6 +5,7 @@
     "monthView": "Monthly Yields",
     "yearView": "Yearly Yields",
     "totalView": "Total Yields",
+    "welcomeView": "Plant Info",
     "ariaLabel": "Main navigation",
     "toggleLabel": "Toggle navigation",
     "transparencyToggleLabel": "Toggle transparency mode"
@@ -108,6 +109,33 @@
       "sollTotal": "Target",
       "ist": "Actual",
       "co2": "CO2 avoided"
+    }
+  },
+  "welcome": {
+    "title": "Welcome",
+    "plantDetailsUnavailable": "Plant details are currently unavailable.",
+    "chartUnavailable": "No data recorded for today yet.",
+    "carouselPlaceholder": "No plant photos added yet.",
+    "carouselPrev": "Previous photo",
+    "carouselNext": "Next photo",
+    "statsUnavailable": "Statistics are currently unavailable.",
+    "stats": {
+      "title": "Statistics"
+    },
+    "plantDetails": {
+      "title": "Plant",
+      "location": "Location",
+      "operator": "Operator",
+      "capacity": "Capacity",
+      "commissioned": "Commissioned",
+      "moduleType": "Modules",
+      "orientation": "Orientation",
+      "invertersTitle": "Inverters",
+      "inverterStrings": "Strings",
+      "monitoringTitle": "Monitoring",
+      "deviceName": "Device",
+      "firmware": "Firmware",
+      "firmwareDate": "Firmware date"
     }
   },
   "widget": {

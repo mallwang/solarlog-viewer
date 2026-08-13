@@ -1,0 +1,287 @@
+<!--
+  Reusable review-tool scaffold for /speckit-ux-review mockups.
+
+  This is TOOL chrome, not app content: the banner, viewport/state switcher, stage frame,
+  and footer are identical in shape across every feature's mockup, so this file is meant to
+  be copied wholesale into a new scratchpad file and filled in at the marked spots — not
+  regenerated from scratch each time.
+
+  What you MUST still author fresh per feature (do not copy from a previous mockup's output,
+  re-derive live each run — see SKILL.md step 3-4):
+    - <title> and the review-header copy
+    - The state-toggle buttons (one per state your spec's Edge Cases actually call out)
+    - The mocked app-header markup/colors — copy current classes/tokens from
+      web/index.html + web/css/tokens.css, not from an older mockup
+    - Everything inside #canvas (the actual feature layout)
+    - The [data-state=...] visibility CSS rules for whatever states you defined
+    - The footer's "fixed constraints" and "out of scope" notes
+
+  Placeholders below are marked {{LIKE_THIS}} — replace every one.
+-->
+<title>{{PAGE_TITLE}}</title>
+<style>
+  :root {
+    color-scheme: light;
+
+    /* Copy the app's current tokens.css values here verbatim (do not invent new ones) so the
+       mockup reads as the same product. Re-copy each run — this file is not the source of truth. */
+    {{APP_TOKENS}}
+
+    /* Review-tool-only tokens (not part of the app's own palette): keep these distinct from the
+       app tokens above so reviewers never mistake tool UI for the real page. Safe to reuse as-is
+       across mockups, or restyle if it's fighting the app's own accent. */
+    --review-bg: #f6f5f2;
+    --review-ink: #33312c;
+    --review-muted: #7a7669;
+    --review-line: #ddd9d0;
+    --review-accent: #b45f2c;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--review-bg);
+    color: var(--review-ink);
+    font-family: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, p {
+    text-wrap: balance;
+  }
+
+  /* ============ Review-tool chrome (reusable as-is) ============ */
+
+  .review-header {
+    padding: var(--space-lg, 1.5rem) var(--space-xl, 2rem) var(--space-md, 1rem);
+    border-bottom: 1px solid var(--review-line);
+  }
+
+  .review-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--review-accent);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs, 0.25rem);
+  }
+
+  .review-header h1 {
+    margin: 0 0 var(--space-xs, 0.25rem);
+    font-size: 1.375rem;
+    font-weight: 700;
+  }
+
+  .review-header p {
+    margin: 0;
+    color: var(--review-muted);
+    font-size: 0.9rem;
+    max-width: 62ch;
+  }
+
+  .review-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg, 1.5rem);
+    align-items: center;
+    padding: var(--space-md, 1rem) var(--space-xl, 2rem);
+    background: #fff;
+    border-bottom: 1px solid var(--review-line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm, 0.5rem);
+  }
+
+  .control-group span.label {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--review-muted);
+    font-weight: 600;
+  }
+
+  .segmented {
+    display: inline-flex;
+    border: 1px solid var(--review-line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: #fff;
+    color: var(--review-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    border-right: 1px solid var(--review-line);
+  }
+
+  .segmented button:last-child {
+    border-right: none;
+  }
+
+  .segmented button:hover {
+    background: #f1efe9;
+  }
+
+  .segmented button:focus-visible {
+    outline: 2px solid var(--review-accent);
+    outline-offset: -2px;
+  }
+
+  .segmented button[aria-pressed='true'] {
+    background: var(--review-accent);
+    color: #fff;
+  }
+
+  .review-stage {
+    padding: var(--space-xl, 2rem);
+    display: flex;
+    justify-content: center;
+  }
+
+  .stage-frame {
+    width: 100%;
+    max-width: 1180px;
+    background: #d9d4c8;
+    border-radius: 14px;
+    padding: var(--space-lg, 1.5rem);
+    transition: max-width 0.2s ease;
+  }
+
+  .stage-frame[data-viewport='mobile'] {
+    max-width: 400px;
+  }
+
+  .stage-frame-label {
+    font-size: 0.75rem;
+    color: var(--review-muted);
+    text-align: center;
+    margin: 0 0 var(--space-sm, 0.5rem);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .canvas {
+    background: var(--color-bg, #fff);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .review-footer {
+    padding: 0 var(--space-xl, 2rem) var(--space-xl, 2rem);
+    max-width: 1180px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--review-muted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs, 0.25rem);
+  }
+
+  .review-footer code {
+    background: #fff;
+    border: 1px solid var(--review-line);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    font-size: 0.8em;
+  }
+
+  /* ============ generic state-visibility mechanism (reusable as-is) ============
+     Give every state-dependent element a `data-show="<state-name>"` attribute; this hides it
+     by default and a per-state override (which YOU add below, one block per state) reveals it.
+     Elements with no data-show are always visible in every state. */
+
+  [data-state] [data-show] {
+    display: none;
+  }
+
+  /* ---- {{FEATURE_NAME}}: per-state visibility overrides ---- */
+  {{STATE_VISIBILITY_RULES}}
+
+  /* ============ {{FEATURE_NAME}}: layout-specific styles ============ */
+  {{FEATURE_STYLES}}
+</style>
+
+<header class="review-header">
+  <p class="review-eyebrow">Non-functional review mockup</p>
+  <h1>{{FEATURE_TITLE}} — layout review ({{FEATURE_SLUG}})</h1>
+  <p>{{REVIEW_INTRO}}</p>
+</header>
+
+<div class="review-controls">
+  <div class="control-group">
+    <span class="label">Viewport</span>
+    <div class="segmented" id="viewport-toggle">
+      <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+      <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="label">Content state</span>
+    <div class="segmented" id="state-toggle">
+      <!-- One button per state your spec's Edge Cases call out. First one aria-pressed="true". -->
+      {{STATE_BUTTONS}}
+    </div>
+  </div>
+</div>
+
+<div class="review-stage">
+  <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+    <p class="stage-frame-label" id="stage-frame-label">Desktop — split layout</p>
+    <div class="canvas" data-state="{{DEFAULT_STATE}}" id="canvas">
+      <!-- Mocked app header: rebuild from the CURRENT web/index.html + tokens.css, don't copy
+           an older mockup's version verbatim — it may have drifted from the real header. -->
+      {{MOCKED_APP_HEADER}}
+
+      <!-- The actual feature layout under review. -->
+      {{FEATURE_MARKUP}}
+    </div>
+  </div>
+</div>
+
+<footer class="review-footer">
+  {{FOOTER_NOTES}}
+</footer>
+
+<script>
+  // Reusable as-is: wires any .segmented button group to a target element's data-* attribute.
+  const canvas = document.getElementById('canvas');
+  const stageFrame = document.getElementById('stage-frame');
+  const stageLabel = document.getElementById('stage-frame-label');
+
+  function wire(groupId, attr, target, onChange) {
+    const group = document.getElementById(groupId);
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-' + attr + ']');
+      if (!btn) return;
+      const value = btn.getAttribute('data-' + attr);
+      target.setAttribute('data-' + attr, value);
+      [...group.querySelectorAll('button')].forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)),
+      );
+      if (onChange) onChange(value);
+    });
+  }
+
+  wire('viewport-toggle', 'viewport', stageFrame, (value) => {
+    stageLabel.textContent =
+      value === 'mobile' ? 'Mobile — stacked layout' : 'Desktop — split layout';
+  });
+  wire('state-toggle', 'state', canvas);
+
+  {{EXTRA_SCRIPT}}
+</script>

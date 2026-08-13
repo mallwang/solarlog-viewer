@@ -1,16 +1,11 @@
 /**
- * The dashboard view is temporarily disabled pending a redesign (see dashboard.js) - empty/
- * unrecognized hashes and the brand-logo link fall back to today's day view instead, so this
- * builds a fresh Route each time (not a module-level constant) in case the date has rolled over
- * since the page loaded.
- * @returns {{ view: 'day', params: { year: number, month: number, day: number } }}
+ * Empty/unrecognized hashes and the brand-logo link resolve to the welcome page (015-welcome-
+ * page-dashboard) rather than any specific period view - it has no params of its own, but this
+ * stays a function (not a module-level constant) for symmetry with the other route builders.
+ * @returns {{ view: 'welcome', params: {} }}
  */
 function defaultRoute() {
-  const now = new Date();
-  return {
-    view: 'day',
-    params: { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() },
-  };
+  return { view: 'welcome', params: {} };
 }
 
 function pad2(n) {
@@ -28,8 +23,7 @@ function isValidDate(year, month, day) {
  * Parses the current location.hash into a Route.
  * @param {string} hash
  * @returns {{ view: string, params: { year?: number, month?: number, day?: number } }}
- *   Defaults to today's day view (see defaultRoute) for empty/unrecognized hashes, while the
- *   dashboard view is disabled.
+ *   Defaults to the welcome page (see defaultRoute) for empty/unrecognized hashes.
  */
 export function parseRoute(hash) {
   const path = (hash ?? '').replace(/^#\/?/, '');
@@ -94,6 +88,7 @@ export function formatRoute(route) {
       return `#/year/${params.year}`;
     case 'total':
       return '#/total';
+    case 'welcome':
     default:
       return '#/';
   }

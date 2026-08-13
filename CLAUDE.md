@@ -2,7 +2,7 @@
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/013-chart-udc-inverter-toggles/plan.md
+at specs/015-welcome-page-dashboard/plan.md
 <!-- SPECKIT END -->
 
 ## Local Development Server

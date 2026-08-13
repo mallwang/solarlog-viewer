@@ -19,7 +19,12 @@ var HPTitel="Photovoltaikanlage Allwang"
 var HPBetreiber="Hubert Allwang"
 var HPStandort="92266 Ensdorf-Wolfsbach"
 var HPInbetrieb="15.03.2006"
+var HPModul="Sanyo HIP 205/210 NHE1"
+var HPAusricht="Dachneigung 45°, 195° SSW"
 var Verguetung=5180
+var Firmware = "2.8.4 Build 56"
+var FirmwareDate = "27.01.2014"
+var SLTyp = "500"
 `;
 
 test('parses plant metadata scalars', () => {
@@ -29,6 +34,18 @@ test('parses plant metadata scalars', () => {
   assert.equal(plant.location, '92266 Ensdorf-Wolfsbach');
   assert.equal(plant.capacityKwp, 6200);
   assert.equal(plant.commissionedDate, '2006-03-15');
+  assert.equal(plant.moduleType, 'Sanyo HIP 205/210 NHE1');
+  assert.equal(plant.orientation, 'Dachneigung 45°, 195° SSW');
+  assert.equal(plant.deviceName, 'SolarLog 500');
+  assert.equal(plant.firmware, '2.8.4 Build 56');
+  assert.equal(plant.firmwareDate, '27.01.2014');
+});
+
+test('patches known mojibake (degree sign, "März", the Euro sign) collapsed to U+FFFD upstream', () => {
+  // Matches the real base_vars.js export byte-for-byte: no space before the first replacement
+  // character, one before the second.
+  const plant = parseBaseVars('var HPAusricht="Dachneigung 45�, 195 � SSW"\nvar Currency ="�"');
+  assert.equal(plant.orientation, 'Dachneigung 45°, 195° SSW');
 });
 
 test('converts the feed-in tariff from 0.1ct/kWh to Euro/kWh', () => {
@@ -51,8 +68,18 @@ test('defaults sollMonth to 12 zeros when the variable is absent', () => {
 test('derives inverters dynamically from WRInfo[], never hard-coded', () => {
   const plant = parseBaseVars(FIXTURE);
   assert.equal(plant.inverters.length, 2);
-  assert.deepEqual(plant.inverters[0], { index: 1, model: 'SB 4200 TL', stringCount: 2 });
-  assert.deepEqual(plant.inverters[1], { index: 2, model: 'SB 2100TL', stringCount: 1 });
+  assert.deepEqual(plant.inverters[0], {
+    index: 1,
+    type: 'WR42MS05',
+    model: 'SB 4200 TL',
+    stringCount: 2,
+  });
+  assert.deepEqual(plant.inverters[1], {
+    index: 2,
+    type: 'WR21TL06',
+    model: 'SB 2100TL',
+    stringCount: 1,
+  });
 });
 
 test('handles a single-inverter plant', () => {
