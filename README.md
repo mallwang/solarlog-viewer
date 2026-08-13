@@ -54,19 +54,33 @@ is available and non-zero — omitted rather than showing a misleading 0%/∞ wh
 detail view (`#/day/YYYY/MM/DD`) shows the same efficiency figure as a second curve on a secondary
 y-axis alongside the power curve, gapped wherever PDC is zero/missing, and absent entirely for
 backfilled/archived days that only have a reconstructed yield curve. The day chart also carries a
-"UDC" (DC string voltage, summed across strings) series in its legend, hidden by default and
-revealed via a click on the legend entry, omitted entirely on days with no voltage data. That
-shown/hidden choice is remembered (`localStorage`) and applied to the next day chart opened. The
-month/year/total (lifetime) bar charts offer a persisted "Gesamt" / "Wechselrichter" toggle above
-the chart: "Gesamt" (default) shows the single combined bar exactly as before this feature;
-switching to "Wechselrichter" stacks one segment per inverter string instead, with the tooltip
-then showing the combined total plus each string's value. The selection is remembered
-(`localStorage`) across reloads and between the three views. Drill-down-by-click still works on
-any bar/segment in either mode. Clicking the weather/forecast
-area opens a wetteronline.de search for the installation's configured address in a new tab — the plant
-owner's usual weather source. Production and weather/forecast each show an independent
-"unavailable" state if their own data source can't be retrieved, without affecting the other.
-See `specs/010-global-info-panel/` for the full spec/plan.
+single "UDC" (DC string voltage) legend entry with its own right-hand axis, drawn as a bold average
+line (averaged rather than summed across reporting strings — a sum would produce an implausible
+reading above 1000 V) with a soft shaded band behind it spanning that point's min/max across
+strings; internally these are two ApexCharts series (a rangeArea band plus a line), but the band's
+own legend row is hidden (via a CSS rule keyed to its runtime legend index — see
+`hideUdcRangeLegendEntry` in `web/js/charts/chart-factory.js`) and its visibility is kept in
+lockstep with the line's on every click, so the pair behaves as one activation point. Hidden by
+default and revealed via a click on the legend entry, omitted entirely on days with no voltage
+data. That shown/hidden choice is remembered (`localStorage`) and applied to the next day chart
+opened. The tooltip shows the average in bold with a "Min: … / Max: …" detail line beneath whenever
+UDC is visible. The day chart's three y-axes (feed-in W, Wirkungsgrad %, UDC V) use fixed
+ranges/tick steps rather than scaling to
+each day's own data, so days are visually comparable at a glance and the scale doesn't jump around
+while paging between days; the x-axis defaults to spanning just that day's actual data (padded a
+configurable number of minutes on each side so the line's start/end aren't flush against the plot
+edge) but can be switched to always span the full 00:00–24:00 day instead — all configurable via
+`DAY_CHART_AXES`, `DAY_CHART_X_AXIS_RANGE`, and `DAY_CHART_X_AXIS_PADDING_MINUTES` in
+`web/js/config.js`. The month/year/total (lifetime) bar charts offer a persisted "Gesamt" /
+"Wechselrichter" toggle above the chart: "Gesamt" (default) shows the single combined bar exactly
+as before this feature; switching to "Wechselrichter" stacks one segment per inverter string
+instead, with the tooltip then showing the combined total plus each string's value. The selection
+is remembered (`localStorage`) across reloads and between the three views. Drill-down-by-click
+still works on any bar/segment in either mode. Clicking the weather/forecast area opens a
+wetteronline.de search for the installation's configured address in a new tab — the plant owner's
+usual weather source. Production and weather/forecast each show an independent "unavailable" state
+if their own data source can't be retrieved, without affecting the other. See
+`specs/010-global-info-panel/` for the full spec/plan.
 
 ## Dev server
 

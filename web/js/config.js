@@ -34,3 +34,42 @@ export const SITE_TITLE = 'PV Allwang';
 // recognized place name on its own. Resolved instead from the postal code alone (92266 →
 // Ensdorf, Landkreis Amberg-Sulzbach, Bavaria), which is coarse enough for weather purposes.
 export const SKY_LOCATION_OVERRIDE = { lat: 49.34062, lon: 11.93587 };
+
+/**
+ * Fixed axis ranges for the day chart's (Tagesertrag) three y-axes, each as `{ max, step }` — the
+ * axis always runs from 0 to `max` in `step`-sized gridlines, rather than each day scaling its own
+ * axis to that day's data. A low-yield day previously stretched to fill the same chart height as a
+ * high-yield day, and the scale jumped around while paging between days; fixed ranges keep every
+ * day visually comparable. `max` must be evenly divisible by `step` (used as
+ * `tickAmount = max / step` — ApexCharts has no direct "step size" option).
+ * @type {{
+ *   feedInW: { max: number, step: number },
+ *   efficiencyPercent: { max: number, step: number },
+ *   udcV: { max: number, step: number },
+ * }}
+ */
+export const DAY_CHART_AXES = {
+  feedInW: { max: 6000, step: 1000 },
+  efficiencyPercent: { max: 100, step: 20 },
+  udcV: { max: 500, step: 100 },
+};
+
+/**
+ * Day chart (Tagesertrag) x-axis time range:
+ * - `'data'` (default) — spans only the timestamps actually present in that day's min*.js file
+ *   (e.g. 06:15–20:45 on a short-daylight day), so the plotted line fills the chart width.
+ * - `'fullDay'` — always spans the full 00:00–24:00 local day, so the sunrise/sunset position is
+ *   comparable at a glance across days rather than the axis itself shifting day to day.
+ * @type {'data' | 'fullDay'}
+ */
+export const DAY_CHART_X_AXIS_RANGE = 'data';
+
+/**
+ * Minutes of empty margin added before the first and after the last data point when
+ * `DAY_CHART_X_AXIS_RANGE` is `'data'` (ignored in `'fullDay'` mode, which already has its own
+ * fixed margin down to midnight). Without it the first/last points sit flush against the plot's
+ * left/right edge, making the line's actual start/end hard to see and the edge points awkward to
+ * hover. `0` disables the padding.
+ * @type {number}
+ */
+export const DAY_CHART_X_AXIS_PADDING_MINUTES = 15;

@@ -127,6 +127,7 @@
     "feedInAxis": "Feed-in (W)",
     "efficiencyAxis": "Efficiency (%)",
     "udcAxis": "UDC (V)",
+    "udcRangeAxis": "UDC Range",
     "total": "Total",
     "breakdownToggleLabel": "Chart view",
     "breakdownTotal": "Total",

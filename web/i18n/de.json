@@ -127,6 +127,7 @@
     "feedInAxis": "Einspeisung (W)",
     "efficiencyAxis": "Wirkungsgrad (%)",
     "udcAxis": "UDC (V)",
+    "udcRangeAxis": "UDC-Bereich",
     "total": "Gesamt",
     "breakdownToggleLabel": "Diagrammansicht",
     "breakdownTotal": "Gesamt",

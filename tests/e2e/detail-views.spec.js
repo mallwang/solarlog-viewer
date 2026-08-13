@@ -219,85 +219,102 @@ test.describe('Day view UDC toggle (US1 — 013-chart-udc-inverter-toggles)', ()
     );
   });
 
-  test('legend shows a UDC entry but no UDC line is drawn on first load', async ({ page }) => {
-    await page.goto('/#/day/2020/06/22');
-    await page.waitForLoadState('networkidle');
-    const legend = page.locator('.chart-container .apexcharts-legend-text');
-    await expect(legend).toHaveCount(3);
-    await expect(legend.last()).toHaveText(/UDC/);
-    // The UDC series has its own SVG group like the other two (ApexCharts doesn't remove hidden
-    // series from the DOM), but it's marked collapsed and its legend entry is marked hidden —
-    // that's what "not drawn on the chart" means here, per FR-002.
-    await expect(page.locator('.chart-container .apexcharts-series')).toHaveCount(3);
-    await expect(page.locator('.chart-container .apexcharts-series').last()).toHaveClass(
-      /apexcharts-series-collapsed/,
-    );
-    await expect(page.locator('.apexcharts-legend-series', { hasText: 'UDC' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-  });
-
-  test('clicking the UDC legend entry reveals the line; clicking again hides it', async ({
+  test('legend shows a single UDC entry but nothing UDC-related is drawn on first load', async ({
     page,
   }) => {
     await page.goto('/#/day/2020/06/22');
     await page.waitForLoadState('networkidle');
-    const udcLegendItem = page.locator('.apexcharts-legend-series', { hasText: 'UDC' });
-    const udcSeries = page.locator('.chart-container .apexcharts-series').last();
-
-    await udcLegendItem.click();
-    await expect(udcSeries).not.toHaveClass(/apexcharts-series-collapsed/);
-    await expect(udcLegendItem).toHaveAttribute('aria-pressed', 'false');
-    // Other two series are unaffected by the toggle (FR-003).
+    // Internally there are two UDC series (a rangeArea band and a line — see chart-factory.js'
+    // `hideUdcRangeLegendEntry`), but the band's own legend row is hidden via CSS so only 3
+    // entries are ever visible: Einspeisung, Wirkungsgrad, UDC (V) — one activation point for UDC.
+    const visibleLegend = page.locator('.chart-container .apexcharts-legend-series:visible');
+    await expect(visibleLegend).toHaveCount(3);
+    await expect(visibleLegend.last()).toHaveText('UDC (V)');
+    // Both UDC series exist in the DOM (ApexCharts doesn't remove hidden series), but both start
+    // collapsed — that's what "nothing UDC-related is drawn" means here, per FR-002.
+    await expect(page.locator('.chart-container .apexcharts-series')).toHaveCount(4);
     await expect(
-      page.locator('.chart-container .apexcharts-series.apexcharts-series-collapsed'),
-    ).toHaveCount(0);
+      page.locator('.chart-container .apexcharts-series[seriesName="UDC-Bereich"]'),
+    ).toHaveClass(/apexcharts-series-collapsed/);
+    await expect(
+      page.locator('.chart-container .apexcharts-series[data\\:realIndex="3"]'),
+    ).toHaveClass(/apexcharts-series-collapsed/);
+    await expect(
+      page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('clicking the UDC legend entry reveals both the line and its min/max band together; clicking again hides both', async ({
+    page,
+  }) => {
+    await page.goto('/#/day/2020/06/22');
+    await page.waitForLoadState('networkidle');
+    const udcLegendItem = page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' });
+    const lineSeries = page.locator('.chart-container .apexcharts-series[data\\:realIndex="3"]');
+    const bandSeries = page.locator(
+      '.chart-container .apexcharts-series[seriesName="UDC-Bereich"]',
+    );
 
     await udcLegendItem.click();
-    await expect(udcSeries).toHaveClass(/apexcharts-series-collapsed/);
+    await expect(lineSeries).not.toHaveClass(/apexcharts-series-collapsed/);
+    // The band has no legend entry of its own — it's kept in sync with the line's single toggle
+    // (see `legendClick`'s `toggleSeries` call in buildDayOptions) rather than being independently
+    // controllable.
+    await expect(bandSeries).not.toHaveClass(/apexcharts-series-collapsed/);
+    await expect(udcLegendItem).toHaveAttribute('aria-pressed', 'false');
+
+    await udcLegendItem.click();
+    await expect(lineSeries).toHaveClass(/apexcharts-series-collapsed/);
+    await expect(bandSeries).toHaveClass(/apexcharts-series-collapsed/);
     await expect(udcLegendItem).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('tooltip includes a UDC row while the series is visible', async ({ page }) => {
+  test('tooltip includes a UDC row with a Min/Max detail line while UDC is visible', async ({
+    page,
+  }) => {
     await page.goto('/#/day/2020/06/22');
     await page.waitForLoadState('networkidle');
-    await page.locator('.apexcharts-legend-series', { hasText: 'UDC' }).click();
+    await page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' }).click();
 
     const box = await page.locator('.chart-container .apexcharts-svg').boundingBox();
     await page.mouse.move(box.x + box.width * 0.5, box.y + box.height / 2);
 
     const tooltip = page.locator('.apexcharts-tooltip');
     await expect(tooltip).toBeVisible();
-    await expect(tooltip).toContainText('UDC');
-    await expect(tooltip).toContainText('V');
+    await expect(tooltip).toContainText('UDC (V)');
+    await expect(tooltip).toContainText(/Min: \d+ V \/ Max: \d+ V/);
   });
 
-  test('revealed UDC line stays visible after a reload and on a different day (persisted)', async ({
+  test('revealed UDC (line + band) stays visible after a reload and on a different day (persisted)', async ({
     page,
   }) => {
     await page.goto('/#/day/2020/06/22');
     await page.waitForLoadState('networkidle');
-    await page.locator('.apexcharts-legend-series', { hasText: 'UDC' }).click();
+    await page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' }).click();
 
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.apexcharts-legend-series', { hasText: 'UDC' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
-    await expect(page.locator('.chart-container .apexcharts-series').last()).not.toHaveClass(
-      /apexcharts-series-collapsed/,
-    );
+    await expect(
+      page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' }),
+    ).toHaveAttribute('aria-pressed', 'false');
+    await expect(
+      page.locator('.chart-container .apexcharts-series[data\\:realIndex="3"]'),
+    ).not.toHaveClass(/apexcharts-series-collapsed/);
+    await expect(
+      page.locator('.chart-container .apexcharts-series[seriesName="UDC-Bereich"]'),
+    ).not.toHaveClass(/apexcharts-series-collapsed/);
 
     // Hide it again; the hidden choice is persisted too, and a fresh browser context (no prior
     // localStorage) still defaults to hidden per FR-002.
-    await page.locator('.apexcharts-legend-series', { hasText: 'UDC' }).click();
+    await page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' }).click();
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.chart-container .apexcharts-series').last()).toHaveClass(
-      /apexcharts-series-collapsed/,
-    );
+    await expect(
+      page.locator('.chart-container .apexcharts-series[data\\:realIndex="3"]'),
+    ).toHaveClass(/apexcharts-series-collapsed/);
+    await expect(
+      page.locator('.chart-container .apexcharts-series[seriesName="UDC-Bereich"]'),
+    ).toHaveClass(/apexcharts-series-collapsed/);
   });
 
   test('a backfilled/yield-only day (day-yield fallback) offers no UDC legend entry', async ({
@@ -343,10 +360,15 @@ test.describe('Day view Wirkungsgrad toggle', () => {
     await page.waitForLoadState('networkidle');
     const effLegendItem = page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' });
     await expect(effLegendItem).toHaveAttribute('aria-pressed', 'false');
-    // Series order is feed-in, efficiency, UDC — efficiency is index 1 in total mode.
-    await expect(page.locator('.chart-container .apexcharts-series').nth(1)).not.toHaveClass(
-      /apexcharts-series-collapsed/,
-    );
+    // Selected by `data:realIndex` (the series' position in the `series` array ApexCharts was
+    // built from) rather than DOM position or `seriesName`: ApexCharts groups area/rangeArea and
+    // line series into separate paint-order clusters (so `.apexcharts-series` elements don't
+    // appear in build order), and sanitizes `seriesName` attribute values by replacing spaces/
+    // parens with "x" (e.g. "Wirkungsgrad (%)" → "Wirkungsgradxxxx"), making both unreliable
+    // selectors. Series order here (single "Gesamt" feed-in segment) is feed-in=0, efficiency=1.
+    await expect(
+      page.locator('.chart-container .apexcharts-series[data\\:realIndex="1"]'),
+    ).not.toHaveClass(/apexcharts-series-collapsed/);
   });
 
   test('hidden state persists across a reload and on a different day, without affecting UDC', async ({
@@ -355,7 +377,7 @@ test.describe('Day view Wirkungsgrad toggle', () => {
     await page.goto('/#/day/2020/06/27');
     await page.waitForLoadState('networkidle');
     const effLegendItem = page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' });
-    const udcLegendItem = page.locator('.apexcharts-legend-series', { hasText: 'UDC' });
+    const udcLegendItem = page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' });
 
     await effLegendItem.click();
     await expect(effLegendItem).toHaveAttribute('aria-pressed', 'true');
@@ -367,10 +389,9 @@ test.describe('Day view Wirkungsgrad toggle', () => {
     await expect(
       page.locator('.apexcharts-legend-series', { hasText: 'Wirkungsgrad' }),
     ).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('.apexcharts-legend-series', { hasText: 'UDC' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    await expect(
+      page.locator('.apexcharts-legend-series', { hasText: 'UDC (V)' }),
+    ).toHaveAttribute('aria-pressed', 'true');
 
     await page.goto('/#/day/2020/06/28');
     await page.waitForLoadState('networkidle');
