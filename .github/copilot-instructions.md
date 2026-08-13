@@ -2,5 +2,5 @@
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/013-chart-udc-inverter-toggles/plan.md
+at /home/markus/projects/solarlog-viewer/specs/014-chart-data-table-toggle/plan.md
 <!-- SPECKIT END -->
