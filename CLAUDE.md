@@ -9,6 +9,8 @@ at specs/015-welcome-page-dashboard/plan.md
 
 Always use `npm start` to serve the site — it uses `browser-sync` with hot-reload on HTML/CSS/JS changes (SolarLog data files excluded). Copy the URL from the terminal into your browser; WSL2 cannot auto-open a browser. **Do not use the VS Code built-in preview** — it returns 404s for the frameset.
 
+`bs-config.cjs` proxies `/data/*` requests to the live device (`https://wolfsbach.synology.me`) instead of serving `web/data/` from disk, so the dev server always reflects current readings — see the "Dev server" section in `README.md` for details. Filesystem-reading scripts (backfill, `gap:detect`, sqlite sync, `sync-ftp`) are unaffected and still need `web/data/` kept in sync separately.
+
 ## Debugging with Playwright
 
 When the site behaves unexpectedly (wrong view, blank page, redirect), use Playwright to diagnose before guessing:
