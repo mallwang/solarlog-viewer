@@ -47,9 +47,14 @@ Bedingungen aber weiterhin über statische Hinweise wider. Siehe
 
 Ein dauerhaftes Panel im Header (nur ab Desktop-Breiten ab 768px sichtbar) zeigt die aktuelle
 Leistung der Anlage, das aktuelle Wetter und die Restprognose für den heutigen Tag am Standort
-der Anlage — sichtbar in jeder Ansicht, nicht nur im Dashboard. Es fragt `data/min_cur.js` und
-[Open-Meteo](https://open-meteo.com) alle ~10 Minuten ab, passend zum minimalen
-Aktualisierungsintervall des SolarLog-Geräts selbst. Eine kleine pulsierende Anzeige neben dem
+der Anlage — sichtbar in jeder Ansicht, nicht nur im Dashboard. Es fragt `data/min_cur.js` (sowie
+`days.js`/`months.js` für die Ertragswerte) alle `DATA_REFRESH_INTERVAL_MS` ab (`web/js/config.js`,
+Standard 1 Minute) — dieselbe Konstante, die auch die automatische Aktualisierung der Tagesansicht
+verwendet (siehe unten), sodass Nav-Leiste und Tagesdiagramm nie auseinanderlaufen.
+[Open-Meteo](https://open-meteo.com) wird separat und seltener abgefragt, alle
+`WEATHER_REFRESH_INTERVAL_MS` (Standard 10 Minuten) — das Wetter ändert sich nicht minütlich
+merklich, eine so häufige Abfrage wie bei den PV-Daten wäre also verschwendet. Eine kleine
+pulsierende Anzeige neben dem
 Leistungswert skaliert Größe/Geschwindigkeit mit `currentPacW / capacityKwp` (ruhig nahe null,
 am aktivsten nahe der konfigurierten Spitzenleistung der Anlage). Neben dem Leistungswert zeigt
 das Panel außerdem den aktuellen Wirkungsgrad des Wechselrichters (ΣPAC ÷ ΣPDC, z. B. „1234 W ·
@@ -89,9 +94,8 @@ nicht abgerufen werden kann, ohne den anderen Bereich zu beeinträchtigen. Siehe
 `specs/010-global-info-panel/` für die vollständige Spezifikation/Planung.
 
 Die Tagesansicht (`#/day/YYYY/MM/DD`) aktualisiert sich auf dieselbe Art, solange sie _den
-heutigen Tag_ zeigt: alle `DAY_VIEW_REFRESH_INTERVAL_MS` (`web/js/config.js`, Standard 1 Minute —
-unabhängig vom Poll-Intervall des Infopanels konfigurierbar, auch wenn beide dieselbe rollierende
-`min_day.js`-Datei lesen) fragt sie die Tageswerte erneut ab und zeichnet Statistikpanel, Diagramm
+heutigen Tag_ zeigt: alle `DATA_REFRESH_INTERVAL_MS` (dieselbe Konstante, die auch das Infopanel
+oben verwendet) fragt sie `min_day.js` erneut ab und zeichnet Statistikpanel, Diagramm
 und Datentabelle direkt neu — die Seite kann so stundenlang geöffnet bleiben (z. B. auf einem
 Wandmonitor) und zeigt neue Messwerte ohne manuelles Neuladen. Vergangene Tage werden nicht
 abgefragt, da ihre min-Dateien nach der Archivierung statisch sind. Ein fehlgeschlagener

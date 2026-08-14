@@ -75,16 +75,30 @@ export const DAY_CHART_X_AXIS_RANGE = 'data';
 export const DAY_CHART_X_AXIS_PADDING_MINUTES = 15;
 
 /**
- * How often the day detail view (`#/day/YYYY/MM/DD`, Tagesertrag) re-fetches `min_day.js` and
- * redraws its stats panel/chart/table while showing *today* (see `views/day-view.js`'s render()).
- * Defaults to 10 minutes, matching the SolarLog device's own minimum data-file update interval
- * (and `info-panel/info-panel-controller.js`'s own poll interval, so the nav bar's "W"/"Stand"
- * and the day chart move in lockstep by default) — polling more often would not surface newer
- * data. Past days never poll regardless of this value, since their min files are static once
- * archived.
+ * How often every "live PV data" auto-refresh cycle re-polls its data source: the global info
+ * panel's production/yield figures (`info-panel/info-panel-controller.js`, reading
+ * `data/min_cur.js` + `days.js`/`months.js`) and the day detail view's stats panel/chart/table
+ * while showing *today* (`views/day-view.js`, reading `min_day.js`). One shared constant so both
+ * stay in lockstep — the nav bar's "W"/"Stand"/"Tagesertrag" and the day chart always reflect the
+ * same reading age, rather than two independently-tuned timers drifting apart. Defaults to
+ * 1 minute; the SolarLog device's own minimum data-file update interval is 10 minutes, so most of
+ * the values in that default range of settings just re-confirm the same reading — harmless, and
+ * keeps the UI feeling live even between the device's own file writes. The info panel's weather/
+ * forecast poll (Open-Meteo) and the sky background's separate weather poll are unrelated to PV
+ * data and keep their own longer intervals (see `sky/sky-controller.js`'s own `POLL_INTERVAL_MS`).
  * @type {number}
  */
-export const DAY_VIEW_REFRESH_INTERVAL_MS = 1 * 60 * 1000;
+export const DATA_REFRESH_INTERVAL_MS = 1 * 60 * 1000;
+
+/**
+ * How often the global info panel re-polls the current weather condition + today's forecast
+ * (Open-Meteo — see `info-panel/info-panel-controller.js`). Kept separate from
+ * `DATA_REFRESH_INTERVAL_MS`: weather doesn't change meaningfully minute to minute, so polling it
+ * that often would just waste requests against the free Open-Meteo API for no visible benefit.
+ * Defaults to 10 minutes.
+ * @type {number}
+ */
+export const WEATHER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 
 /**
  * Filenames under `web/img/plant/`, in carousel display order, shown by the welcome page's photo

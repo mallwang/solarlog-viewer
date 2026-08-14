@@ -3,7 +3,7 @@ import { parseMinFile } from '../data/min-file.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { sourceDirForDate } from '../data/data-source.js';
-import { DATA_DIR, DAY_VIEW_REFRESH_INTERVAL_MS } from '../config.js';
+import { DATA_DIR, DATA_REFRESH_INTERVAL_MS } from '../config.js';
 import { formatRoute } from '../router.js';
 import { addDays, isFutureDay, parentOfDay, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
@@ -101,7 +101,7 @@ async function fetchDayTrace(params, isToday) {
 /**
  * Mounts the Mode 0 day detail view: fetches and renders the routed date's 5-minute trace,
  * or the "no data" state if the min file doesn't exist (FR-019). For today's date, re-fetches
- * `min_day.js` every `DAY_VIEW_REFRESH_INTERVAL_MS` (config.js) and re-renders the stats panel +
+ * `min_day.js` every `DATA_REFRESH_INTERVAL_MS` (config.js) and re-renders the stats panel +
  * chart + table in place so a page left open keeps reflecting new readings without a manual
  * reload.
  * @param {HTMLElement} container
@@ -201,7 +201,7 @@ export async function render(container, { route, plant }) {
     currentTrace = freshTrace;
     updateStatsPanel(freshTrace);
     drawChart();
-  }, DAY_VIEW_REFRESH_INTERVAL_MS);
+  }, DATA_REFRESH_INTERVAL_MS);
 
   return () => clearInterval(intervalId);
 }

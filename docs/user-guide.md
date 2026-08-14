@@ -61,9 +61,11 @@ while the cloud density/sun-moon state still updates.
 
 At desktop widths (768px and above), a panel in the header — visible on every view, not just
 the dashboard — shows the plant's current production alongside the current weather condition
-and today's remaining forecast for the installation's location. It refreshes both every ~10
-minutes (matching the SolarLog device's own minimum update interval, so a faster refresh
-wouldn't find newer data anyway). A small pulsing dot next to the production value gets larger
+and today's remaining forecast for the installation's location. Production (and the "Today's
+yield"/"Month's yield" figures) refreshes on the same schedule as the day view's chart (see "Day
+view auto-refresh" below) — one shared setting, so the two never drift out of sync. The weather/
+forecast side refreshes on its own, slower schedule (every ~10 minutes by default), since weather
+doesn't change meaningfully minute to minute. A small pulsing dot next to the production value gets larger
 and pulses faster the closer current output is to the plant's configured peak capacity, and
 calms to idle near zero (e.g. at night). Next to the production wattage, the panel shows the
 inverter's current efficiency (AC output ÷ DC input, e.g. "1234 W · 94%") whenever DC input is
@@ -83,9 +85,12 @@ periodically re-fetches today's readings and redraws the stats panel, the chart,
 table in place — so you can leave the page open for hours (e.g. on a wall display) and it will
 keep showing new readings without a manual reload. A failed refresh attempt is skipped silently,
 leaving the last good reading on screen rather than clearing the view. Days other than today never
-auto-refresh, since their data is archived and no longer changes. The refresh interval defaults to
-1 minute and can be changed by a site administrator via `DAY_VIEW_REFRESH_INTERVAL_MS` in
-`web/js/config.js`.
+auto-refresh, since their data is archived and no longer changes. This uses the same refresh
+interval as the info panel's production/yield figures above — one setting for both, so the nav bar
+and the day chart always show data of the same age. The interval defaults to 1 minute and can be
+changed by a site administrator via `DATA_REFRESH_INTERVAL_MS` in `web/js/config.js` (the info
+panel's weather/forecast poll has its own separate, slower interval,
+`WEATHER_REFRESH_INTERVAL_MS`).
 
 ## CO2 avoidance figures
 

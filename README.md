@@ -45,8 +45,13 @@ reflecting real conditions through static cues. See
 A persistent panel in the header (visible at desktop widths only, `768px` and above) shows the
 plant's current production, the current weather condition, and today's remaining forecast for
 the installation's location — visible from every view, not just the dashboard. It polls
-`data/min_cur.js` and [Open-Meteo](https://open-meteo.com) every ~10 minutes, matching the
-SolarLog device's own minimum data-file update interval. A small pulsing indicator next to the
+`data/min_cur.js` (plus `days.js`/`months.js` for the yield figures) every
+`DATA_REFRESH_INTERVAL_MS` (`web/js/config.js`, default 1 minute) — the same constant the day
+detail view's own auto-refresh uses (see below), so the nav bar and the day chart never drift out
+of sync with each other. [Open-Meteo](https://open-meteo.com) polls separately on its own, slower
+`WEATHER_REFRESH_INTERVAL_MS` (default 10 minutes) — weather doesn't change meaningfully minute to
+minute, so polling it as often as the PV data would just waste requests. A small pulsing indicator
+next to the
 production value scales its size/speed with `currentPacW / capacityKwp` (idle near zero, most
 active near the plant's configured peak output). Next to the production wattage, the panel also
 shows the inverter's current efficiency (ΣPAC ÷ ΣPDC, e.g. "1234 W · 94%") whenever DC input data
@@ -83,10 +88,9 @@ if their own data source can't be retrieved, without affecting the other. See
 `specs/010-global-info-panel/` for the full spec/plan.
 
 The day detail view (`#/day/YYYY/MM/DD`) auto-refreshes itself the same way when it's showing
-_today_: every `DAY_VIEW_REFRESH_INTERVAL_MS` (`web/js/config.js`, default 1 minute — configurable
-independently of the info panel's own poll interval, though it reads the same `min_day.js` rolling
-file) it re-fetches the day's readings and redraws the stats panel, the chart, and the data table
-in place — so the page can be left open for hours (e.g. on a wall display) and keep reflecting new
+_today_: every `DATA_REFRESH_INTERVAL_MS` (the same constant the info panel uses, above) it
+re-fetches `min_day.js` and redraws the stats panel, the chart, and the data table in place — so
+the page can be left open for hours (e.g. on a wall display) and keep reflecting new
 readings without a manual reload. Past days don't poll, since their min files are static once
 archived. A failed refresh is skipped silently, leaving the last good reading on screen rather than
 clearing the view.
