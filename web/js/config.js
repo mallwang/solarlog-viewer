@@ -90,7 +90,7 @@ export const DAY_CHART_X_AXIS_PADDING_MINUTES = 15;
  * `sky/sky-controller.js`'s own `POLL_INTERVAL_MS`).
  * @type {number}
  */
-export const DATA_REFRESH_INTERVAL_MS = 1 * 60 * 1000;
+export const DATA_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 
 /**
  * How often the global info panel re-polls the current weather condition + today's forecast
