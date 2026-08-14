@@ -1601,10 +1601,12 @@ html[data-transparency='on'] {
    labels remain crisp instead of washing out along with the backdrop (using the CSS `opacity`
    property here would dim the content too, not just the card fill). `.chart-container`'s own
    `background:` declaration above and `.stats-panel`'s Tailwind `bg-bg-elevated` utility are both
-   overridden by this color-mix, same unlayered-beats-layered reasoning as above. */
+   overridden by this color-mix, same unlayered-beats-layered reasoning as above.
+   `.events-table-wrap` is deliberately NOT included here (user correction) — a dense data table
+   reads poorly with a fading backdrop showing through its rows, so the events table stays fully
+   opaque at all times regardless of the toggle; see its own solid `background-color:` below. */
 .chart-container,
-.stats-panel,
-.events-table-wrap {
+.stats-panel {
   background-color: color-mix(
     in srgb,
     var(--color-bg-elevated) calc(var(--transparency-panel-opacity) * 100%),
@@ -1621,9 +1623,12 @@ html[data-transparency='on'] {
   /* Same min-width: 0 override as .chart-table above — without it this flex/block item refuses
      to shrink below the table's intrinsic width, defeating overflow-x-auto (Principle IV). */
   min-width: 0;
-  /* Card padding matching .chart-container/.stats-panel — the background-color (and its
-     transparency-mode fade) is declared once, below, alongside those two selectors. */
+  /* Card padding matching .chart-container/.stats-panel. */
   padding: var(--space-md);
+  /* Always fully opaque — unaffected by --transparency-panel-opacity, unlike .chart-container/
+     .stats-panel above (user correction: transparency over a dense event table hurts legibility
+     more than it's worth). */
+  background-color: var(--color-bg-elevated);
 }
 
 .events-table {
@@ -1638,11 +1643,12 @@ html[data-transparency='on'] {
 }
 
 /* Sticky header so a long, scrolled event list keeps its column labels (and sort affordance)
-   in view — background matches the page so rows don't show through underneath it. */
+   in view — background matches the page so rows don't show through underneath it. Always solid,
+   like .events-table-wrap, since the whole events table opts out of transparency mode. */
 .events-table thead th {
   position: sticky;
   top: 0;
-  background: var(--color-bg-elevated);
+  background-color: var(--color-bg-elevated);
   z-index: 1;
 }
 
