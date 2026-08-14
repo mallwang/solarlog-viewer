@@ -125,6 +125,30 @@
         <div class="sky-snow-flake" style="--left: 78%; --duration: 9.5s; --delay: -5s"></div>
         <div class="sky-snow-flake" style="--left: 92%; --duration: 6.8s; --delay: -0.8s"></div>
       </div>
+      <!-- Starfield (User Story 2) + falling star (User Story 3): purely CSS-gated via
+           `.sky-clouds[data-sky='night'][data-weather='sunny'|'mixed']` (app.css) — twelve fixed
+           placeholder dots (design.md: no runtime placement algorithm) plus one
+           `.sky-falling-star` element that lives inside the starfield layer, "only ever present
+           alongside the starfield" per design.md. sky-controller.js never toggles `.sky-star`
+           elements directly; it only toggles the falling star's `--play` replay class
+           (createFallingStarScheduler()). Placed after the rain/snow particle layers so it
+           paints above the night gradient but the drifting `.cloud` elements still paint in
+           front of it (same DOM-order-as-paint-order convention used throughout this file). -->
+      <div class="sky-stars" aria-hidden="true">
+        <div class="sky-star" style="--top: 6%; --left: 8%; --size: 2px; --delay: 0s"></div>
+        <div class="sky-star" style="--top: 12%; --left: 22%; --size: 1.5px; --delay: -1.2s"></div>
+        <div class="sky-star" style="--top: 4%; --left: 35%; --size: 2px; --delay: -2.4s"></div>
+        <div class="sky-star" style="--top: 18%; --left: 48%; --size: 1.5px; --delay: -0.6s"></div>
+        <div class="sky-star" style="--top: 8%; --left: 60%; --size: 2.5px; --delay: -3.1s"></div>
+        <div class="sky-star" style="--top: 22%; --left: 72%; --size: 1.5px; --delay: -1.8s"></div>
+        <div class="sky-star" style="--top: 3%; --left: 85%; --size: 2px; --delay: -2.9s"></div>
+        <div class="sky-star" style="--top: 15%; --left: 92%; --size: 1.5px; --delay: -0.9s"></div>
+        <div class="sky-star" style="--top: 26%; --left: 15%; --size: 1.5px; --delay: -3.6s"></div>
+        <div class="sky-star" style="--top: 20%; --left: 30%; --size: 2px; --delay: -1.5s"></div>
+        <div class="sky-star" style="--top: 28%; --left: 55%; --size: 1.5px; --delay: -2.1s"></div>
+        <div class="sky-star" style="--top: 24%; --left: 80%; --size: 2px; --delay: -0.3s"></div>
+        <div class="sky-falling-star" aria-hidden="true"></div>
+      </div>
     </div>
     <!-- Sibling to .sky-clouds, not a descendant: flying-object sprites (User Story 3) need to
          stay crisp, unlike .sky-clouds's contrast-fused gooey clouds. Populated/emptied by

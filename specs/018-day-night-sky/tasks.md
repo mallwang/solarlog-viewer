@@ -67,39 +67,39 @@ day side and confirm today's appearance is byte-for-byte unchanged.
 
 ### Tests for User Story 1
 
-- [ ] T001 [P] [US1] Add `test.describe('Day/night sky background — User Story 1', ...)` to
+- [x] T001 [P] [US1] Add `test.describe('Day/night sky background — User Story 1', ...)` to
       `tests/e2e/sky.spec.js` per quickstart.md's Automated validation section: a night-window test
       asserting `data-sky="night"` plus moon crossfade while `.cloud`/`.sky-flying-objects` behavior
       is unchanged from existing day-mode assertions, and a day-window test asserting
       `data-sky="day"` with no visual change from today. Both tests MUST fail until T002–T004 land.
-- [ ] T002 [US1] Add a gradual-transition test to `tests/e2e/sky.spec.js`: mock `sunrise`/`sunset`
+- [x] T002 [US1] Add a gradual-transition test to `tests/e2e/sky.spec.js`: mock `sunrise`/`sunset`
       so "now" falls inside the existing 5-minute `CROSSFADE_WINDOW_MS` boundary window and assert
       `--night-crossfade` (or its rendered effect) reflects a partial blend, not a hard cut
       (quickstart.md step 4).
-- [ ] T003 [US1] Add a last-known-good test to `tests/e2e/sky.spec.js`: load with a working mock,
+- [x] T003 [US1] Add a last-known-good test to `tests/e2e/sky.spec.js`: load with a working mock,
       capture `data-sky`, force a subsequent poll failure (existing `mockOpenMeteo` failure pattern
       already used for the "weather fetch failure" test), and assert `data-sky` stays at its last
       value (FR-012, quickstart.md step 6).
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Implement `applyDayNightState(skyClouds, position)` in
+- [x] T004 [US1] Implement `applyDayNightState(skyClouds, position)` in
       `web/js/sky/sky-controller.js`: sets `data-sky = position.body === 'sun' ? 'day' : 'night'` on
       both `skyClouds` and `document.body` (mirrors `applyWeatherCategory()`'s dual-target pattern)
       and writes `--night-crossfade` from `position.crossfade` on `skyClouds`; call it from `tick()`
       alongside the existing `applySkyBodyPosition()` call, guarded by the same
       `if (!lastWeather || !sunEl || !moonEl) return;` early-out so a poll failure freezes
       `data-sky` (FR-012, data-model.md §Day/Night State).
-- [ ] T005 [P] [US1] Add night-appearance CSS to `web/css/app.css`: `body[data-sky='night']` /
+- [x] T005 [P] [US1] Add night-appearance CSS to `web/css/app.css`: `body[data-sky='night']` /
       `.sky-clouds[data-sky='night']` dark navy gradient (research.md §2/§4), blended in via
       `--night-crossfade` the same way `.sky-sun`/`.sky-moon` opacity is already blended, so the
       switch reads gradual across the existing crossfade window rather than an instant flip (FR-009).
-- [ ] T006 [P] [US1] Add moon-dimming-under-cloud-cover CSS to `web/css/app.css`: a
+- [x] T006 [P] [US1] Add moon-dimming-under-cloud-cover CSS to `web/css/app.css`: a
       `data-weather`-scoped rule dimming `.sky-moon` opacity to ~15% under
       `[data-sky='night'][data-weather='cloudy'|'rain'|'snow']`, following the exact
       selector-composition pattern the existing sun-dimming rule already uses (research.md §4,
       design.md's approved mockup values).
-- [ ] T007 [US1] Verify (no code change expected) that clouds/rain/snow/flying-object CSS and
+- [x] T007 [US1] Verify (no code change expected) that clouds/rain/snow/flying-object CSS and
       `spawnFlyingObject()`/`spawnPoll()` in `web/js/sky/sky-controller.js` make no reference to
       `data-sky` — confirms FR-003/SC-002 (day/night is orthogonal to `data-weather`) before layering
       US2/US3 on top.
@@ -120,18 +120,18 @@ stars ever render in the daytime appearance regardless of category.
 
 ### Tests for User Story 2
 
-- [ ] T008 [P] [US2] Add `test.describe('Starfield — User Story 2', ...)` to `tests/e2e/sky.spec.js`
+- [x] T008 [P] [US2] Add `test.describe('Starfield — User Story 2', ...)` to `tests/e2e/sky.spec.js`
       per quickstart.md: loop `CATEGORY_CODES` under the night-window mock and assert `.sky-star`
       visibility matches `['sunny', 'mixed'].includes(category)`; add a day-window test asserting no
       stars regardless of category. Tests MUST fail until T009–T010 land.
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Add starfield markup to `web/index.html`: ~12 fixed `<div class="sky-star">` dots
+- [x] T009 [US2] Add starfield markup to `web/index.html`: ~12 fixed `<div class="sky-star">` dots
       (fixed placeholder positions per design.md — no runtime placement algorithm) inside
       `.sky-clouds`, placed after the rain/snow particle layers so it paints above the night
       gradient but below the clouds (data-model.md §Starfield, plan.md's file-by-file notes).
-- [ ] T010 [US2] Add starfield CSS to `web/css/app.css`: `.sky-clouds[data-sky='night'][data-weather='sunny']`
+- [x] T010 [US2] Add starfield CSS to `web/css/app.css`: `.sky-clouds[data-sky='night'][data-weather='sunny']`
       / `[data-weather='mixed']` visibility (hidden in every other `data-sky`/`data-weather`
       combination per FR-004–FR-006) plus a per-star twinkle `@keyframes` (opacity/scale pulse);
       fade the starfield in/out via `--night-crossfade` alongside the night gradient from T005 so it
@@ -155,11 +155,11 @@ stars aren't showing (day, or night+cloudy/rain/snow) or when reduced motion is 
 
 ### Tests for User Story 3
 
-- [ ] T011 [P] [US3] Write `web/js/sky/falling-star-scheduler.test.js` (fails until T012 lands),
+- [x] T011 [P] [US3] Write `web/js/sky/falling-star-scheduler.test.js` (fails until T012 lands),
       following `flying-objects.test.js`'s pattern: injectable `now`/`rng`, asserts `poll(nowMs)`
       returns no replay before the next randomized fire time and exactly one replay at/after it,
       then reschedules to a new randomized future time (data-model.md §Falling Star Event).
-- [ ] T012 [P] [US3] Add `test.describe('Falling star — User Story 3', ...)` to
+- [x] T012 [P] [US3] Add `test.describe('Falling star — User Story 3', ...)` to
       `tests/e2e/sky.spec.js` per quickstart.md: a reduced-motion test
       (`page.emulateMedia({ reducedMotion: 'reduce' })`) asserting `.sky-falling-star` never gains
       its play class while `.sky-star` dots stay visible, and a test asserting the falling star never
@@ -167,20 +167,20 @@ stars aren't showing (day, or night+cloudy/rain/snow) or when reduced motion is 
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Implement `createFallingStarScheduler({ now, rng })` in
+- [x] T013 [US3] Implement `createFallingStarScheduler({ now, rng })` in
       `web/js/sky/falling-star-scheduler.js`: internal `nextFireAtMs` initialized to a randomized
       infrequent offset from `now()`, `poll(nowMs)` returns whether to fire now and reschedules on
       fire — same shape as `flying-objects.js`'s scheduler (data-model.md §Falling Star Event), to
       satisfy T011.
-- [ ] T014 [US3] Add `.sky-falling-star` element markup to `web/index.html`, inside the starfield
+- [x] T014 [US3] Add `.sky-falling-star` element markup to `web/index.html`, inside the starfield
       layer added in T009 (design.md: "lives inside the starfield layer... only ever present
       alongside the starfield").
-- [ ] T015 [P] [US3] Add falling-star CSS to `web/css/app.css`: a streak `@keyframes` animation
+- [x] T015 [P] [US3] Add falling-star CSS to `web/css/app.css`: a streak `@keyframes` animation
       triggered by a replay class (e.g. `.sky-falling-star--play`) on
       `[data-sky='night'][data-weather='sunny'|'mixed']`, suppressed under
       `[data-reduce-motion='true']` per the existing reduced-motion pattern (FR-011 — motion only;
       the static starfield from T010 stays visible).
-- [ ] T016 [US3] Wire the scheduler into `web/js/sky/sky-controller.js`: create a
+- [x] T016 [US3] Wire the scheduler into `web/js/sky/sky-controller.js`: create a
       `createFallingStarScheduler()` instance alongside the existing flying-object `scheduler`, poll
       it only while `data-sky === 'night'` and `data-weather` is `'sunny'`/`'mixed'` and
       `!reducedMotion` (same gating style `spawnPoll()` already uses), toggle the
@@ -198,15 +198,15 @@ visible and motion isn't reduced; US1/US2 behavior unchanged.
 
 **Purpose**: Final validation across all three stories
 
-- [ ] T017 [P] Run `node --test web/js/sky/falling-star-scheduler.test.js` and confirm it passes.
-- [ ] T018 [P] Run `npx playwright test tests/e2e/sky.spec.js --reporter=line` and confirm every new
+- [x] T017 [P] Run `node --test web/js/sky/falling-star-scheduler.test.js` and confirm it passes.
+- [x] T018 [P] Run `npx playwright test tests/e2e/sky.spec.js --reporter=line` and confirm every new
       and existing test in the file passes, with no new console errors in any scenario (quickstart.md
       Expected outcomes).
-- [ ] T019 Run `npm run lint` and `npm run format:check`; fix any reported issues across
+- [x] T019 Run `npm run lint` and `npm run format:check`; fix any reported issues across
       `web/index.html`, `web/css/app.css`, `web/js/sky/sky-controller.js`,
       `web/js/sky/falling-star-scheduler.js`, and `tests/e2e/sky.spec.js` until both exit 0
       (quickstart.md Expected outcomes).
-- [ ] T020 Walk through quickstart.md's Manual validation steps 1–6 locally against `npm start`
+- [x] T020 Walk through quickstart.md's Manual validation steps 1–6 locally against `npm start`
       (with a scratch Playwright script or the automated suite) to confirm the feature reads
       correctly end-to-end, including the 320px–2560px no-horizontal-scroll check (constitution
       Principle IV).

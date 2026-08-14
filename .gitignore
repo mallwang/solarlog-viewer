@@ -14,5 +14,8 @@ previewConfig.json
 .ftp-sync-diff.json
 .ftp-sync-diff.html
 
+# Tests
+test-results
+
 # Security
 security/security-report.csv

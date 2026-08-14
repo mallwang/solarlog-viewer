@@ -197,6 +197,144 @@ test.describe('Dynamic sky background — User Story 2 (sun/moon track real time
   });
 });
 
+test.describe('Day/night sky background — User Story 1', () => {
+  test('night window renders data-sky="night" with moon crossfade, clouds unaffected', async ({
+    page,
+  }) => {
+    // "mixed" (not cloudy/rain/snow) so the moon isn't also under the separate
+    // night+overcast dimming rule (T006) — this test is only about data-sky/crossfade.
+    await mockOpenMeteo(page, { weatherCode: 2 });
+    await page.clock.install({ time: new Date('2026-08-10T01:00:00') });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const skyClouds = page.locator('.sky-clouds');
+    await expect(skyClouds).toHaveAttribute('data-sky', 'night');
+    await expect(page.locator('body')).toHaveAttribute('data-sky', 'night');
+    await expect(skyClouds).toHaveAttribute('data-weather', 'mixed');
+
+    await expect(page.locator('.sky-moon')).toHaveCSS('opacity', '1');
+    await expect(page.locator('.sky-sun')).toHaveCSS('opacity', '0');
+
+    // Clouds are unaffected by data-sky — same visible-count behavior as the existing
+    // day-mode assertions elsewhere in this file.
+    await expect(page.locator('.cloud:not([hidden])')).toHaveCount(10);
+  });
+
+  test('day window renders data-sky="day" unchanged from today', async ({ page }) => {
+    await mockOpenMeteo(page);
+    await page.clock.install({ time: new Date('2026-08-09T13:00:00') });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const skyClouds = page.locator('.sky-clouds');
+    await expect(skyClouds).toHaveAttribute('data-sky', 'day');
+    await expect(page.locator('body')).toHaveAttribute('data-sky', 'day');
+    await expect(page.locator('.sky-sun')).toHaveCSS('opacity', '1');
+    await expect(page.locator('.sky-moon')).toHaveCSS('opacity', '0');
+    await expect(page.locator('.sky-star')).toHaveCount(12);
+    await expect(page.locator('.sky-star').first()).toBeHidden();
+  });
+
+  test('a gradual transition inside the crossfade window is a partial blend, not a hard cut', async ({
+    page,
+  }) => {
+    // sunset is 2026-08-09T20:30 — 2 minutes after that falls inside the 5-minute
+    // CROSSFADE_WINDOW_MS boundary window (solar-arc.js), so crossfade should be a partial
+    // value strictly between 0 and 1, not snapped to either end.
+    await mockOpenMeteo(page);
+    await page.clock.install({ time: new Date('2026-08-09T20:32:00') });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const skyClouds = page.locator('.sky-clouds');
+    await expect(skyClouds).toHaveAttribute('data-sky', 'night');
+    const crossfade = await skyClouds.evaluate((el) =>
+      Number(getComputedStyle(el).getPropertyValue('--night-crossfade')),
+    );
+    expect(crossfade).toBeGreaterThan(0);
+    expect(crossfade).toBeLessThan(1);
+  });
+
+  test('a subsequent poll failure leaves data-sky at its last-known-good value', async ({
+    page,
+  }) => {
+    await mockOpenMeteo(page);
+    await page.clock.install({ time: new Date('2026-08-10T01:00:00') });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const skyClouds = page.locator('.sky-clouds');
+    await expect(skyClouds).toHaveAttribute('data-sky', 'night');
+
+    // Force every subsequent weather poll to fail, then fast-forward past the next 15-minute
+    // poll interval (POLL_INTERVAL_MS in sky-controller.js) under fake timers.
+    await page.unroute('**/api.open-meteo.com/**');
+    await page.route('**/api.open-meteo.com/**', (route) => route.abort());
+    await page.clock.fastForward(16 * 60 * 1000);
+
+    await expect(skyClouds).toHaveAttribute('data-sky', 'night');
+  });
+});
+
+test.describe('Starfield — User Story 2', () => {
+  for (const [category, weatherCode] of Object.entries(CATEGORY_CODES)) {
+    test(`night + ${category}: starfield visible only for sunny/mixed`, async ({ page }) => {
+      await mockOpenMeteo(page, { weatherCode });
+      await page.clock.install({ time: new Date('2026-08-10T01:00:00') });
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
+
+      const star = page.locator('.sky-star').first();
+      if (['sunny', 'mixed'].includes(category)) {
+        await expect(star).toBeVisible();
+      } else {
+        await expect(star).toBeHidden();
+      }
+    });
+  }
+
+  test('day window: no stars regardless of category', async ({ page }) => {
+    await mockOpenMeteo(page, { weatherCode: 0 }); // sunny — would show stars at night
+    await page.clock.install({ time: new Date('2026-08-09T13:00:00') });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.locator('.sky-star').first()).toBeHidden();
+  });
+});
+
+test.describe('Falling star — User Story 3', () => {
+  test('reduced motion suppresses the falling-star replay, starfield stays visible', async ({
+    page,
+  }) => {
+    await mockOpenMeteo(page, { weatherCode: 0 }); // sunny
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.clock.install({ time: new Date('2026-08-10T01:00:00') });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.locator('.sky-star').first()).toBeVisible();
+
+    // Fast-forward well past the falling-star scheduler's infrequent replay band.
+    await page.clock.fastForward(10 * 60 * 1000);
+
+    await expect(page.locator('.sky-falling-star')).not.toHaveClass(/--play/);
+    await expect(page.locator('.sky-star').first()).toBeVisible();
+  });
+
+  test('never plays during day or night+cloudy/rain/snow', async ({ page }) => {
+    await mockOpenMeteo(page, { weatherCode: 3 }); // cloudy — starfield never shows
+    await page.clock.install({ time: new Date('2026-08-10T01:00:00') });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    await page.clock.fastForward(10 * 60 * 1000);
+
+    await expect(page.locator('.sky-falling-star')).not.toHaveClass(/--play/);
+  });
+});
+
 test.describe('Dynamic sky background — User Story 3 (flying objects) and reduced motion', () => {
   test('a bird spawns within its ~10-25s cadence band when motion is not reduced', async ({
     page,
