@@ -100,6 +100,13 @@ Startet den Dev-Server unter http://localhost:3000 — Einstiegspunkt ist `web/i
 startet die Tailwind-CLI im `--watch`-Modus parallel zu `browser-sync`, sodass auch CSS-Änderungen
 per Hot-Reload übernommen werden. Mit `npm run open` wird der Viewer im Standardbrowser geöffnet.
 
+`bs-config.cjs` leitet jede `/data/*`-Anfrage direkt an das aktive SolarLog-Gerät unter
+`https://wolfsbach.synology.me` weiter, statt `web/data/` von der Festplatte zu bedienen — der
+Dev-Server zeigt so immer aktuelle Messwerte, ohne dass manuell synchronisiert werden muss. Das gilt
+nur für `npm start` — Skripte, die `web/data/` direkt vom Dateisystem lesen (Backfill,
+`gap:detect`, `validate:plausibility`, Sqlite-Sync, das `sync-ftp`-Skill), benötigen weiterhin
+separat synchronisierte lokale Dateien.
+
 `npm run build:css` kompiliert `web/css/tailwind.css` zur eingecheckten statischen Datei
 `web/css/tailwind.generated.css`, die produktiv genutzt wird — kein CDN-/Runtime-Skript.
 
