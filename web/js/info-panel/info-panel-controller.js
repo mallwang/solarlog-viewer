@@ -1,9 +1,13 @@
 /**
  * @file DOM-glue orchestrator for the global info panel. Resolves the installation's location,
  * fetches current production (`data/min_cur.js`, same path `dashboard.js`'s widget already
- * uses), today's/this month's yield-so-far (`data/days.js` + `months.js`, same figures the
- * disabled dashboard used to show — see renderYield below), and current weather + today's
- * forecast (Open-Meteo) on mount and every ~10 minutes (FR-004), renders all three, drives the
+ * uses) and today's/this month's yield-so-far (`data/days.js` + `months.js`, same figures the
+ * disabled dashboard used to show — see renderYield below) on mount and every
+ * `DATA_REFRESH_INTERVAL_MS` (config.js; FR-004) — the same constant `views/day-view.js` uses for
+ * its own today-only auto-refresh, so the nav bar's "W"/"Stand"/yield figures and the day chart
+ * stay in lockstep rather than drifting on two independently-tuned timers. Current weather +
+ * today's forecast (Open-Meteo) poll separately on their own, slower `WEATHER_REFRESH_INTERVAL_MS`
+ * (weather doesn't change meaningfully minute to minute). Renders all three, drives the
  * production-animation pulse's size/speed tier (`data-intensity`) and its continuous
  * red→orange→yellow→green color (`--pulse-color`, from `productionColor()`), links the
  * production value to today's day view (mirroring `dashboard.js`'s widget), and wires the
@@ -42,8 +46,7 @@ import {
 } from './production-animation.js';
 import { buildWetteronlineSearchUrl } from './wetteronline-link.js';
 import { t } from '../i18n.js';
-
-const POLL_INTERVAL_MS = 10 * 60 * 1000;
+import { DATA_REFRESH_INTERVAL_MS, WEATHER_REFRESH_INTERVAL_MS } from '../config.js';
 
 /**
  * @returns {{ year: number, month: number, day: number }} Today's date in Route-param shape
@@ -256,12 +259,13 @@ function renderWeather({ linkEls, currentEls, forecastEls }, weather) {
 }
 
 /**
- * Mounts the global info panel: fetches production + weather/forecast immediately, then every
- * `POLL_INTERVAL_MS`. Call once, after `bootstrap()`'s initial render, per plan.md's
- * dynamic-import wiring in `main.js`.
+ * Mounts the global info panel: fetches production + yield + weather/forecast immediately, then
+ * re-polls production/yield every `DATA_REFRESH_INTERVAL_MS` and weather/forecast every (slower)
+ * `WEATHER_REFRESH_INTERVAL_MS` on two separate timers (config.js). Call once, after
+ * `bootstrap()`'s initial render, per plan.md's dynamic-import wiring in `main.js`.
  * @param {{ plant: { location?: string, capacityKwp?: number } | null,
  *   locationOverride?: { lat: number, lon: number } | null }} ctx
- * @returns {() => void} Cleanup function that stops the poll interval.
+ * @returns {() => void} Cleanup function that stops both poll intervals.
  */
 export async function initInfoPanelController({ plant, locationOverride } = {}) {
   if (document.querySelectorAll('[data-info-panel]').length === 0) return () => {};
@@ -320,11 +324,14 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
   pollProduction();
   pollYield();
   pollWeather();
-  const intervalId = setInterval(() => {
+  const dataIntervalId = setInterval(() => {
     pollProduction();
     pollYield();
-    pollWeather();
-  }, POLL_INTERVAL_MS);
+  }, DATA_REFRESH_INTERVAL_MS);
+  const weatherIntervalId = setInterval(pollWeather, WEATHER_REFRESH_INTERVAL_MS);
 
-  return () => clearInterval(intervalId);
+  return () => {
+    clearInterval(dataIntervalId);
+    clearInterval(weatherIntervalId);
+  };
 }

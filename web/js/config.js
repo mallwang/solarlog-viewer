@@ -75,6 +75,34 @@ export const DAY_CHART_X_AXIS_RANGE = 'data';
 export const DAY_CHART_X_AXIS_PADDING_MINUTES = 15;
 
 /**
+ * How often every "live PV data" auto-refresh cycle re-polls its data source: the global info
+ * panel's production/yield figures (`info-panel/info-panel-controller.js`, reading
+ * `data/min_cur.js` + `days.js`/`months.js`), the day detail view's stats panel/chart/table while
+ * showing *today* (`views/day-view.js`, reading `min_day.js`), and the welcome page's today-chart
+ * + yield-summary stats card (`views/welcome-view.js`, reading the same files as the other two).
+ * One shared constant so all three stay in lockstep — the nav bar, the day chart, and the welcome
+ * page always reflect the same reading age, rather than independently-tuned timers drifting
+ * apart. Defaults to 1 minute; the SolarLog device's own minimum data-file update interval is
+ * 10 minutes, so most of the values in that default range of settings just re-confirm the same
+ * reading — harmless, and keeps the UI feeling live even between the device's own file writes.
+ * The info panel's weather/forecast poll (Open-Meteo) and the sky background's separate weather
+ * poll are unrelated to PV data and keep their own longer intervals (see
+ * `sky/sky-controller.js`'s own `POLL_INTERVAL_MS`).
+ * @type {number}
+ */
+export const DATA_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+
+/**
+ * How often the global info panel re-polls the current weather condition + today's forecast
+ * (Open-Meteo — see `info-panel/info-panel-controller.js`). Kept separate from
+ * `DATA_REFRESH_INTERVAL_MS`: weather doesn't change meaningfully minute to minute, so polling it
+ * that often would just waste requests against the free Open-Meteo API for no visible benefit.
+ * Defaults to 10 minutes.
+ * @type {number}
+ */
+export const WEATHER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+
+/**
  * Filenames under `web/img/plant/`, in carousel display order, shown by the welcome page's photo
  * carousel (`web/js/views/photo-carousel.js`). Matches this file's existing manual-override
  * pattern (`SITE_TITLE`, `SKY_LOCATION_OVERRIDE`): the operator drops a file into `web/img/plant/`

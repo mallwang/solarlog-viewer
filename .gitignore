@@ -13,3 +13,6 @@ previewConfig.json
 .ftp-sync.json
 .ftp-sync-diff.json
 .ftp-sync-diff.html
+
+# Security
+security/security-report.csv
