@@ -160,6 +160,54 @@ body[data-weather='snow'] .sky-overcast {
     radial-gradient(ellipse 50% 45% at 45% 85%, rgb(0 0 0 / 5%), transparent 55%), #96a6b5;
 }
 
+/* Night + overcast: `.sky-overcast` is an *opaque* flat-color layer (unlike `.sky-clouds`,
+   which paints nothing behind its transparent gaps), so left alone it fully hides the dark
+   navy gradient `body[data-sky='night'][data-weather='cloudy'|'rain'|'snow']` above paints on
+   <body> underneath it — the night appearance would only ever show through for `sunny`/`mixed`,
+   which have no `.sky-overcast` layer at all. Same fix as that body rule: a dark navy gradient
+   layered on top of each category's own day radials/base color, its alpha driven by the same
+   `--night-crossfade` custom property (0-1, set by sky-controller.js's tick() on `.sky-clouds`
+   *and* <body> — `.sky-overcast` reads the inherited <body> value) so the transition matches the
+   sun/moon crossfade and the plain night-sky darkening exactly. */
+body[data-sky='night'][data-weather='cloudy'] .sky-overcast {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(32 42 66 / calc(1 - var(--night-crossfade, 0))) 0%,
+      rgb(43 55 82 / calc(1 - var(--night-crossfade, 0))) 55%,
+      rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
+    ),
+    radial-gradient(ellipse 60% 40% at 15% 25%, rgb(255 255 255 / 30%), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 75% 55%, rgb(0 0 0 / 5%), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 40% 85%, rgb(255 255 255 / 15%), transparent 55%), #62a1cb;
+}
+
+body[data-sky='night'][data-weather='rain'] .sky-overcast {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(32 42 66 / calc(1 - var(--night-crossfade, 0))) 0%,
+      rgb(43 55 82 / calc(1 - var(--night-crossfade, 0))) 55%,
+      rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
+    ),
+    radial-gradient(ellipse 60% 40% at 15% 25%, rgb(255 255 255 / 12%), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 75% 55%, rgb(0 0 0 / 10%), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 40% 85%, rgb(255 255 255 / 8%), transparent 55%), #96a6b5;
+}
+
+body[data-sky='night'][data-weather='snow'] .sky-overcast {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(32 42 66 / calc(1 - var(--night-crossfade, 0))) 0%,
+      rgb(43 55 82 / calc(1 - var(--night-crossfade, 0))) 55%,
+      rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
+    ),
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgb(255 255 255 / 25%), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 70% 50%, rgb(255 255 255 / 15%), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 45% 85%, rgb(0 0 0 / 5%), transparent 55%), #96a6b5;
+}
+
 /* Cloud-ceiling accent band (`cloudy`/`rain`/`snow`) — markup in index.html, a fixed 120px strip
    pinned right below the nav bar, painted on top of `.sky-overcast`/`.sky-clouds` (later in DOM
    order, same z-index, so it paints last). Built from `.sky-ceiling__puff` blobs packed
@@ -224,7 +272,17 @@ body[data-weather='snow'] .sky-ceiling {
   height: 50px;
   background: #fff;
   border-radius: 50%;
-  opacity: var(--opacity, 0.9);
+  /* Fully opaque (not the softer 0.9 this used to carry): `.cloud` sits inside `.sky-clouds`'s
+     shared subtree with `.sky-sun`/`.sky-moon`, painted after them so it's meant to fully hide
+     whichever body is showing (FR-008's "clouds pass in front of the sun/moon, not behind it").
+     At 0.9 the 10% see-through let the body underneath bleed into the composited pixel; against
+     a bright daytime sky that leak stayed close enough to white to disappear under `contrast(30)`,
+     but at night the leak sat far from the cloud's night-tinted composite and got amplified into
+     a bright halo — the moon visibly punching through instead of hiding behind the cloud. Full
+     opacity here still reads as a soft puff: the antialiased edges of the overlapping circles
+     (this shape plus its `::before`/`::after`) are what `contrast(30)` fuses into one shape, and
+     those edges stay soft regardless of the fill's own opacity. */
+  opacity: var(--opacity, 1);
   transform: scale(var(--scale, 1)) translateX(-180px);
   animation: cloud-drift var(--duration, 60s) linear var(--delay, 0s) infinite;
   will-change: transform;
