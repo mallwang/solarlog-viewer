@@ -6,6 +6,7 @@
     "yearView": "Jahreserträge",
     "totalView": "Gesamterträge",
     "welcomeView": "Anlageninfo",
+    "eventsView": "Ereignisse",
     "ariaLabel": "Hauptnavigation",
     "toggleLabel": "Navigation ein-/ausblenden",
     "transparencyToggleLabel": "Transparenzmodus umschalten"
@@ -165,6 +166,60 @@
     "tableToggleOff": "Als Tabelle anzeigen",
     "tableNoData": "Keine Daten für diesen Zeitraum",
     "tableCaption": "Datentabelle"
+  },
+  "events": {
+    "title": "Ereignisse",
+    "count": {
+      "totalSuffix": "Ereignisse",
+      "of": "von",
+      "filteredSuffix": "Ereignissen"
+    },
+    "filters": {
+      "inverter": "Wechselrichter",
+      "day": "Tag",
+      "status": "Status",
+      "error": "Fehler",
+      "all": "Alle",
+      "reset": "Filter zurücksetzen"
+    },
+    "table": {
+      "start": "Von – Bis",
+      "inverter": "WR",
+      "duration": "Dauer",
+      "status": "Status",
+      "error": "Fehler"
+    },
+    "ongoing": "aktiv",
+    "noError": "—",
+    "unknownCodePrefix": "Code",
+    "unknownCodeSuffix": "(unbekannt)",
+    "inverterFallbackPrefix": "Wechselrichter",
+    "noData": "Es sind noch keine Ereignisse aufgezeichnet.",
+    "emptyFiltered": "Keine Ereignisse gefunden",
+    "emptyFilteredHint": "Versuchen Sie, die Filter zurückzusetzen.",
+    "statusNames": {
+      "offset": "Offset (Kalibrierung)",
+      "stop": "Stop",
+      "stop1": "Stop 1",
+      "gridMonitoring": "Netzüberwachung",
+      "waiting": "Warten",
+      "deratingInverterTemp": "Leistungsreduzierung (WR-Temperatur)",
+      "deratingDcTemp": "Leistungsreduzierung (DC-Temperatur)",
+      "deratingDcCurrent": "Leistungsreduzierung (DC-Strom)",
+      "insulationTest": "Isolationswiderstandsprüfung",
+      "mppFeedIn": "Einspeisung (MPP-Betrieb)",
+      "mppSearch": "MPP-Suche",
+      "mppPeak": "MPP-Spitzenwertsuche",
+      "fault": "Störung",
+      "error": "Fehler",
+      "constantVoltage": "Konstantspannungsbetrieb",
+      "constantCurrent": "Konstantstrombetrieb",
+      "derating": "Leistungsreduzierung",
+      "r12": "R12",
+      "gridConnect": "Netzzuschaltung",
+      "acVoltageRelay": "Netzspannungs-/Relaisprüfung",
+      "calibration": "Kalibrierung"
+    }
   },
   "infoPanel": {
     "unavailable": "Nicht verfügbar",

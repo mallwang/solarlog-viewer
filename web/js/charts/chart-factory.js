@@ -105,6 +105,9 @@ function baseOptions(colors) {
       height: '100%',
       width: '100%',
       toolbar: { show: false },
+      // Pinch/drag zoom is disabled everywhere: on mobile it fights the page's own
+      // finger-scroll over the chart rather than being a usable gesture.
+      zoom: { enabled: false },
       animations: { enabled: false },
       fontFamily: 'inherit',
       foreColor: 'var(--color-text-muted)',

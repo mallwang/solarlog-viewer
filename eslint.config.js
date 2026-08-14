@@ -39,6 +39,7 @@ export default [
         window: 'readonly',
         document: 'readonly',
         getComputedStyle: 'readonly',
+        Event: 'readonly',
       },
     },
   },

@@ -6,6 +6,7 @@
     "yearView": "Yearly Yields",
     "totalView": "Total Yields",
     "welcomeView": "Plant Info",
+    "eventsView": "Events",
     "ariaLabel": "Main navigation",
     "toggleLabel": "Toggle navigation",
     "transparencyToggleLabel": "Toggle transparency mode"
@@ -165,6 +166,60 @@
     "tableToggleOff": "Show as table",
     "tableNoData": "No data for this period",
     "tableCaption": "Data table"
+  },
+  "events": {
+    "title": "Events",
+    "count": {
+      "totalSuffix": "events",
+      "of": "of",
+      "filteredSuffix": "events"
+    },
+    "filters": {
+      "inverter": "Inverter",
+      "day": "Day",
+      "status": "Status",
+      "error": "Error",
+      "all": "All",
+      "reset": "Reset filters"
+    },
+    "table": {
+      "start": "From – To",
+      "inverter": "Inv.",
+      "duration": "Duration",
+      "status": "Status",
+      "error": "Error"
+    },
+    "ongoing": "active",
+    "noError": "—",
+    "unknownCodePrefix": "Code",
+    "unknownCodeSuffix": "(unknown)",
+    "inverterFallbackPrefix": "Inverter",
+    "noData": "No events have been recorded yet.",
+    "emptyFiltered": "No events found",
+    "emptyFilteredHint": "Try resetting the filters.",
+    "statusNames": {
+      "offset": "Offset (calibration)",
+      "stop": "Stopped",
+      "stop1": "Stopped (1)",
+      "gridMonitoring": "Grid monitoring",
+      "waiting": "Waiting",
+      "deratingInverterTemp": "Derating (inverter temperature)",
+      "deratingDcTemp": "Derating (DC temperature)",
+      "deratingDcCurrent": "Derating (DC current)",
+      "insulationTest": "Insulation resistance test",
+      "mppFeedIn": "Feeding in (MPP tracking)",
+      "mppSearch": "MPP search",
+      "mppPeak": "MPP peak search",
+      "fault": "Fault",
+      "error": "Error",
+      "constantVoltage": "Constant-voltage mode",
+      "constantCurrent": "Constant-current mode",
+      "derating": "Derating",
+      "r12": "R12",
+      "gridConnect": "Grid connect",
+      "acVoltageRelay": "AC voltage / relay check",
+      "calibration": "Calibration"
+    }
   },
   "infoPanel": {
     "unavailable": "Unavailable",

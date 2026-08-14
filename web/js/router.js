@@ -34,6 +34,8 @@ export function parseRoute(hash) {
 
   if (kind === 'total' && rest.length === 0) return { view: 'total', params: {} };
 
+  if (kind === 'events' && rest.length === 0) return { view: 'events', params: {} };
+
   if (kind === 'year' && rest.length === 1) {
     const year = Number.parseInt(rest[0], 10);
     if (Number.isInteger(year) && /^\d{4}$/.test(rest[0]))
@@ -88,6 +90,8 @@ export function formatRoute(route) {
       return `#/year/${params.year}`;
     case 'total':
       return '#/total';
+    case 'events':
+      return '#/events';
     case 'welcome':
     default:
       return '#/';

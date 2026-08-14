@@ -36,6 +36,7 @@ const NAV_ITEMS = [
     },
   },
   { view: 'total', labelKey: 'nav.totalView', icon: 'presentationChartBar', params: {} },
+  { view: 'events', labelKey: 'nav.eventsView', icon: 'listBullet', params: {} },
 ];
 
 let plant = null;
@@ -184,6 +185,7 @@ const viewModules = {
   month: () => import('./views/month-view.js'),
   year: () => import('./views/year-view.js'),
   total: () => import('./views/total-view.js'),
+  events: () => import('./views/events-view.js'),
 };
 
 let currentViewCleanup = null;

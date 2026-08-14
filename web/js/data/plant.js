@@ -1,4 +1,5 @@
 const WR_INFO_LINE = /^WRInfo\[(\d+)]\s*=\s*new Array\((.*)\)\s*$/;
+const STATUS_OR_ERROR_CODES_LINE = /^(StatusCodes|FehlerCodes)\[(\d+)]\s*=\s*"([^"]*)"/;
 
 function extractQuotedVar(fileText, name) {
   const match = new RegExp(`var ${name}\\s*=\\s*"([^"]*)"`).exec(fileText);
@@ -56,6 +57,26 @@ function parseSollMonth(fileText) {
 }
 
 /**
+ * Parses `StatusCodes[i] = "..."` / `FehlerCodes[i] = "..."` lines (016-events-datatable
+ * research.md R2) into per-inverter (0-based, matching the events files' `WR` field directly)
+ * comma-split label lists. Missing index -> `[]`, never `undefined`, so callers
+ * (`resolveStatusLabel`/`resolveErrorLabel` in `data/events.js`) can safely index without a null
+ * check.
+ * @param {string} fileText
+ * @param {'StatusCodes' | 'FehlerCodes'} varName
+ * @returns {string[][]}
+ */
+function parseCodeLists(fileText, varName) {
+  const codes = [];
+  for (const line of fileText.split('\n')) {
+    const match = STATUS_OR_ERROR_CODES_LINE.exec(line.trim());
+    if (match?.[1] !== varName) continue;
+    codes[Number.parseInt(match[2], 10)] = match[3].split(',');
+  }
+  return Array.from(codes, (list) => list ?? []);
+}
+
+/**
  * Parses base_vars.js into PlantMetadata, deriving inverters dynamically from WRInfo[]
  * rather than trusting AnzahlWR (FR-006: never hard-code inverter/string structure).
  * @param {string} rawFileText - Raw base_vars.js content.
@@ -63,8 +84,8 @@ function parseSollMonth(fileText) {
  *   commissionedDate: string, tariffRatePerKwh: number, sollYearKwp: number, sollMonth: number[],
  *   moduleType: string, orientation: string, deviceName: string, firmware: string,
  *   firmwareDate: string,
- *   inverters: { index: number, type: string, model: string, stringCount: number }[] }}
- *   PlantMetadata
+ *   inverters: { index: number, type: string, model: string, stringCount: number }[],
+ *   statusCodes: string[][], errorCodes: string[][] }} PlantMetadata
  */
 export function parseBaseVars(rawFileText) {
   const fileText = fixKnownMojibake(rawFileText);
@@ -99,5 +120,7 @@ export function parseBaseVars(rawFileText) {
     firmware: extractQuotedVar(fileText, 'Firmware'),
     firmwareDate: extractQuotedVar(fileText, 'FirmwareDate'),
     inverters,
+    statusCodes: parseCodeLists(fileText, 'StatusCodes'),
+    errorCodes: parseCodeLists(fileText, 'FehlerCodes'),
   };
 }

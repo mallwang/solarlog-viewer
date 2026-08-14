@@ -32,6 +32,10 @@ test('parses the total route', () => {
   assert.deepEqual(parseRoute('#/total'), { view: 'total', params: {} });
 });
 
+test('parses the events route', () => {
+  assert.deepEqual(parseRoute('#/events'), { view: 'events', params: {} });
+});
+
 test('falls back to the welcome page for a malformed hash', () => {
   assert.deepEqual(parseRoute('#/day/not-a-date'), welcomeRoute);
   assert.deepEqual(parseRoute('#/nonsense'), welcomeRoute);
@@ -51,6 +55,7 @@ test('formatRoute round-trips each view', () => {
   assert.equal(formatRoute({ view: 'month', params: { year: 2019, month: 7 } }), '#/month/2019/07');
   assert.equal(formatRoute({ view: 'year', params: { year: 2019 } }), '#/year/2019');
   assert.equal(formatRoute({ view: 'total', params: {} }), '#/total');
+  assert.equal(formatRoute({ view: 'events', params: {} }), '#/events');
 });
 
 test('formatRoute serializes the welcome view to "#/"', () => {
