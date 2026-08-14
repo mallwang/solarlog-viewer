@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](design.md) — approved layout mockup and requirement traceability
+
 **Input**: User description: "I would like to add a new page called \"Ereignisse\", which parses the web/data/events.js and web/data/events_day.js and displays them in a sortable and filterable datatable. It uses its own data format which is not documented yet, therefore some research is required to figure out the different event types and its meaning. The only source for this is in the legacy-site, which contains all historical parsing and algorithms."
 
 ## User Scenarios & Testing _(mandatory)_
