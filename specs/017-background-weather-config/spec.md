@@ -49,15 +49,15 @@ As the site operator, I can set a single configuration value to turn the weather
 
 ### User Story 3 - Operator forces a fixed weather background (Priority: P3)
 
-As the site operator, I can set the configuration value to one specific weather condition (e.g. "sunny" or "rain"), so the dashboard always shows that background and matching nav bar text, regardless of the live API response — useful for showcasing the site, screenshotting it, or personal preference.
+As the site operator, I can set the configuration value to one specific weather condition (e.g. "sunny" or "rain"), so the dashboard always shows that background regardless of the live API response — useful for showcasing the site, screenshotting it, or personal preference. The nav bar's weather text keeps reporting real, live conditions independently of this override, since that information is relevant to visitors on its own.
 
 **Why this priority**: A nice-to-have on top of P1/P2 — same mechanism as "off", just pinned to a specific visual instead of the plain default. Lower priority because it's a convenience/customization feature rather than something visitors notice.
 
-**Independent Test**: Set the configuration value to a fixed condition (e.g. "rain"), reload the site under a real weather condition that differs from it (e.g. actual sunny weather), and confirm the background and nav bar text both show "rain" regardless.
+**Independent Test**: Set the configuration value to a fixed condition (e.g. "rain"), reload the site under a real weather condition that differs from it (e.g. actual sunny weather), and confirm the background shows "rain" regardless while the nav bar's weather text keeps reporting the real, live condition (e.g. "sunny").
 
 **Acceptance Scenarios**:
 
-1. **Given** the configuration value is fixed to "snow", **When** the dashboard loads under any real weather condition, **Then** the "snow" background is shown and the nav bar's weather text reads the matching label.
+1. **Given** the configuration value is fixed to "snow", **When** the dashboard loads under any real weather condition, **Then** the "snow" background is shown regardless, and the nav bar's weather text keeps reporting the real, live condition unaffected.
 2. **Given** the configuration value is fixed to an invalid/unrecognized value, **When** the dashboard loads, **Then** the system falls back to automatic (API-driven) behavior rather than failing to render.
 
 ---
