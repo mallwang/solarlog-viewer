@@ -33,6 +33,61 @@ body[data-weather='snow'] {
   background: linear-gradient(to bottom, #96a6b5 0%, var(--color-bg-app) 100%);
 }
 
+/* Night appearance (Day/Night Sky Background, User Story 1): `sky-controller.js`'s
+   applyDayNightState() sets `data-sky="day"|"night"` (from computeSkyBodyPosition()'s `body`)
+   and `--night-crossfade` (from its `crossfade`, 0-1) on <body> alongside `.sky-clouds` every
+   tick() — same dual-target pattern as `data-weather` above. A dark navy gradient is layered on
+   top of the existing (day) gradient as a second background layer whose alpha is
+   `calc(1 - var(--night-crossfade))`: right at the sunset/sunrise instant (data-sky just
+   flipped, crossfade=1) the layer is fully transparent so the switch doesn't snap instantly;
+   over the same 5-minute CROSSFADE_WINDOW_MS (solar-arc.js) that already fades the sun/moon,
+   crossfade decays to 0 and the night layer reaches full opacity (FR-009, research.md §2).
+   `.sky-clouds` itself intentionally gets no background override here — it has none today (its
+   `.cloud` puffs are the only painted content) and its own `filter: contrast(30)` would distort
+   any color placed behind it, so the night backdrop lives entirely on <body>, which already
+   shows through `.sky-clouds`'s transparent areas. Compound day+weather selectors below win over
+   the single-attribute `body[data-weather=...]` rules above by specificity (two attributes vs
+   one) so the correct weather-appropriate day-gradient still shows through underneath. */
+body[data-sky='night'] {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(5 10 26 / calc(1 - var(--night-crossfade, 0))) 0%,
+      rgb(27 42 74 / calc(1 - var(--night-crossfade, 0))) 55%,
+      rgb(10 20 40 / calc(1 - var(--night-crossfade, 0))) 100%
+    ),
+    linear-gradient(to bottom, #0d99f5 0%, var(--color-bg-app) 100%);
+}
+
+/* Night + overcast (cloudy/rain/snow): a lighter, slightly warmer tint than the plain night
+   gradient above — reads as ambient light reflected off the cloud ceiling rather than pure
+   black (design.md's approved mockup). Layered the same way, over each category's own day
+   gradient. */
+body[data-sky='night'][data-weather='cloudy'],
+body[data-sky='night'][data-weather='rain'],
+body[data-sky='night'][data-weather='snow'] {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(32 42 66 / calc(1 - var(--night-crossfade, 0))) 0%,
+      rgb(43 55 82 / calc(1 - var(--night-crossfade, 0))) 55%,
+      rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
+    ),
+    linear-gradient(to bottom, #62a1cb 0%, var(--color-bg-app) 100%);
+}
+
+body[data-sky='night'][data-weather='rain'],
+body[data-sky='night'][data-weather='snow'] {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(32 42 66 / calc(1 - var(--night-crossfade, 0))) 0%,
+      rgb(43 55 82 / calc(1 - var(--night-crossfade, 0))) 55%,
+      rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
+    ),
+    linear-gradient(to bottom, #96a6b5 0%, var(--color-bg-app) 100%);
+}
+
 /* Animated cloud backdrop — a fixed sky layer drifting behind the main content: several
    overlapping circles per cloud (`.cloud` + its `::before`/`::after` puffs), fused into one soft
    fluffy blob via `contrast(30)`, which snaps the circles' anti-aliased edges back to crisp
@@ -105,6 +160,54 @@ body[data-weather='snow'] .sky-overcast {
     radial-gradient(ellipse 50% 45% at 45% 85%, rgb(0 0 0 / 5%), transparent 55%), #96a6b5;
 }
 
+/* Night + overcast: `.sky-overcast` is an *opaque* flat-color layer (unlike `.sky-clouds`,
+   which paints nothing behind its transparent gaps), so left alone it fully hides the dark
+   navy gradient `body[data-sky='night'][data-weather='cloudy'|'rain'|'snow']` above paints on
+   <body> underneath it — the night appearance would only ever show through for `sunny`/`mixed`,
+   which have no `.sky-overcast` layer at all. Same fix as that body rule: a dark navy gradient
+   layered on top of each category's own day radials/base color, its alpha driven by the same
+   `--night-crossfade` custom property (0-1, set by sky-controller.js's tick() on `.sky-clouds`
+   *and* <body> — `.sky-overcast` reads the inherited <body> value) so the transition matches the
+   sun/moon crossfade and the plain night-sky darkening exactly. */
+body[data-sky='night'][data-weather='cloudy'] .sky-overcast {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(32 42 66 / calc(1 - var(--night-crossfade, 0))) 0%,
+      rgb(43 55 82 / calc(1 - var(--night-crossfade, 0))) 55%,
+      rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
+    ),
+    radial-gradient(ellipse 60% 40% at 15% 25%, rgb(255 255 255 / 30%), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 75% 55%, rgb(0 0 0 / 5%), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 40% 85%, rgb(255 255 255 / 15%), transparent 55%), #62a1cb;
+}
+
+body[data-sky='night'][data-weather='rain'] .sky-overcast {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(32 42 66 / calc(1 - var(--night-crossfade, 0))) 0%,
+      rgb(43 55 82 / calc(1 - var(--night-crossfade, 0))) 55%,
+      rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
+    ),
+    radial-gradient(ellipse 60% 40% at 15% 25%, rgb(255 255 255 / 12%), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 75% 55%, rgb(0 0 0 / 10%), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 40% 85%, rgb(255 255 255 / 8%), transparent 55%), #96a6b5;
+}
+
+body[data-sky='night'][data-weather='snow'] .sky-overcast {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(32 42 66 / calc(1 - var(--night-crossfade, 0))) 0%,
+      rgb(43 55 82 / calc(1 - var(--night-crossfade, 0))) 55%,
+      rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
+    ),
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgb(255 255 255 / 25%), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 70% 50%, rgb(255 255 255 / 15%), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 45% 85%, rgb(0 0 0 / 5%), transparent 55%), #96a6b5;
+}
+
 /* Cloud-ceiling accent band (`cloudy`/`rain`/`snow`) — markup in index.html, a fixed 120px strip
    pinned right below the nav bar, painted on top of `.sky-overcast`/`.sky-clouds` (later in DOM
    order, same z-index, so it paints last). Built from `.sky-ceiling__puff` blobs packed
@@ -169,7 +272,17 @@ body[data-weather='snow'] .sky-ceiling {
   height: 50px;
   background: #fff;
   border-radius: 50%;
-  opacity: var(--opacity, 0.9);
+  /* Fully opaque (not the softer 0.9 this used to carry): `.cloud` sits inside `.sky-clouds`'s
+     shared subtree with `.sky-sun`/`.sky-moon`, painted after them so it's meant to fully hide
+     whichever body is showing (FR-008's "clouds pass in front of the sun/moon, not behind it").
+     At 0.9 the 10% see-through let the body underneath bleed into the composited pixel; against
+     a bright daytime sky that leak stayed close enough to white to disappear under `contrast(30)`,
+     but at night the leak sat far from the cloud's night-tinted composite and got amplified into
+     a bright halo — the moon visibly punching through instead of hiding behind the cloud. Full
+     opacity here still reads as a soft puff: the antialiased edges of the overlapping circles
+     (this shape plus its `::before`/`::after`) are what `contrast(30)` fuses into one shape, and
+     those edges stay soft regardless of the fill's own opacity. */
+  opacity: var(--opacity, 1);
   transform: scale(var(--scale, 1)) translateX(-180px);
   animation: cloud-drift var(--duration, 60s) linear var(--delay, 0s) infinite;
   will-change: transform;
@@ -470,6 +583,17 @@ body[data-weather='snow'] .sky-ceiling__puff:nth-child(even) {
   opacity: 0 !important;
 }
 
+/* Night + overcast (User Story 1): unlike daytime overcast, cloud cover at night doesn't hide
+   the moon completely — it dims to ~15% opacity (mirrors how the sun is fully hidden under
+   cloud cover today, per design.md's approved mockup, but the moon stays faintly visible
+   instead). `.sky-clouds[data-weather=...][data-sky='night']` is more specific (three attribute
+   selectors vs two on the rule above) so this wins despite both using `!important`. */
+.sky-clouds[data-weather='cloudy'][data-sky='night'] .sky-moon,
+.sky-clouds[data-weather='rain'][data-sky='night'] .sky-moon,
+.sky-clouds[data-weather='snow'][data-sky='night'] .sky-moon {
+  opacity: 0.15 !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sky-sun,
   .sky-moon {
@@ -551,6 +675,111 @@ body[data-weather='snow'] .sky-ceiling__puff:nth-child(even) {
 .sky-clouds[data-reduce-motion='true'] .sky-rain-drop,
 .sky-clouds[data-reduce-motion='true'] .sky-snow-flake {
   animation: none;
+}
+
+/* Starfield (Day/Night Sky Background, User Story 2): a fixed set of `.sky-star` dots (markup
+   in index.html, twelve fixed placeholder positions per design.md — no runtime placement
+   algorithm), shown purely via CSS attribute-selector gating — `sky-controller.js` never
+   queries or toggles `.sky-star` elements directly (data-model.md §Starfield). Visible only
+   while the night appearance is showing AND the effective weather category is sunny or mixed
+   (FR-004-FR-006); absent in every other combination, including the pre-feature/no-JS fallback
+   where neither attribute is set. Faded in/out via the same `--night-crossfade` custom property
+   as the night gradient above so it doesn't pop in/out abruptly at the sunrise/sunset boundary
+   (FR-009). */
+.sky-stars {
+  display: none;
+}
+
+.sky-clouds[data-sky='night'][data-weather='sunny'] .sky-stars,
+.sky-clouds[data-sky='night'][data-weather='mixed'] .sky-stars {
+  display: block;
+  opacity: calc(1 - var(--night-crossfade, 0));
+}
+
+.sky-star {
+  position: absolute;
+  top: var(--top, 10%);
+  left: var(--left, 10%);
+  width: var(--size, 2px);
+  height: var(--size, 2px);
+  border-radius: 50%;
+  background: #fff;
+  animation: star-twinkle var(--twinkle-duration, 3.2s) ease-in-out var(--delay, 0s) infinite;
+}
+
+/* The twinkle is a pure opacity/scale pulse — no positional motion — so it stays exempt from
+   `prefers-reduced-motion` per FR-011 (data-model.md §Starfield explicitly excludes it; only the
+   falling star's motion is suppressed below). */
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Falling star (User Story 3): a single `.sky-falling-star` element (markup in index.html,
+   inside the starfield layer — "only ever present alongside the starfield" per design.md)
+   replays a streak `@keyframes` animation once each time `sky-controller.js` toggles the
+   `--play` class (createFallingStarScheduler(), removed again on `animationend`, mirroring
+   `spawnFlyingObject()`'s cleanup idiom). Static (no `--play` class) it stays fully transparent,
+   so it never shows outside a replay. */
+.sky-falling-star {
+  position: absolute;
+  top: 12%;
+  left: 75%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sky-falling-star--play {
+  animation: falling-star-streak 1.1s linear;
+}
+
+@keyframes falling-star-streak {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(1);
+    box-shadow: none;
+  }
+
+  8% {
+    opacity: 1;
+    box-shadow: -10px -6px 6px 0 rgb(255 255 255 / 60%);
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-220px, 130px) scale(0.4);
+    box-shadow: none;
+  }
+}
+
+/* Suppress motion exactly like the cloud/rain/snow layers above — the falling star's streak
+   (motion) is suppressed, the static `.sky-star` twinkle above stays unaffected per FR-011. */
+@media (prefers-reduced-motion: reduce) {
+  .sky-falling-star--play {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+.sky-clouds[data-reduce-motion='true'] .sky-falling-star--play {
+  animation: none;
+  opacity: 0;
 }
 
 /* Flying objects (User Story 3): a separate fixed layer, sibling to `.sky-clouds` (markup in

@@ -21,6 +21,7 @@ import { WEATHER_CATEGORY_RENDER_CONFIG } from '../weather/weather-render-config
 import { WEATHER_CATEGORIES } from '../weather/weather-category.js';
 import { computeSkyBodyPosition } from './solar-arc.js';
 import { createFlyingObjectScheduler } from './flying-objects.js';
+import { createFallingStarScheduler } from './falling-star-scheduler.js';
 import { FLYING_OBJECT_RENDERERS } from './flying-object-renderers.js';
 import { BACKGROUND_WEATHER } from '../config.js';
 
@@ -106,6 +107,25 @@ function applyWeatherCategory(skyClouds, category) {
   clouds.forEach((cloud, index) => {
     cloud.hidden = index >= visibleCount;
   });
+}
+
+/**
+ * Sets `data-sky` (`'day'` when `position.body === 'sun'`, otherwise `'night'`) and the
+ * `--night-crossfade` custom property (from `position.crossfade`) on both `.sky-clouds` and
+ * `<body>` — same dual-target pattern `applyWeatherCategory()` already uses, since the night
+ * gradient lives on `<body>`'s own background (not a descendant of `.sky-clouds`) while the
+ * starfield/falling-star gating (data-model.md §Starfield/§Falling Star Event) lives on
+ * `.sky-clouds`. Reuses `computeSkyBodyPosition()`'s existing output as-is — no new fetch or
+ * pure function (research.md §1/§2).
+ * @param {HTMLElement} skyClouds
+ * @param {{ body: 'sun' | 'moon', crossfade: number }} position
+ */
+function applyDayNightState(skyClouds, position) {
+  const sky = position.body === 'sun' ? 'day' : 'night';
+  for (const el of [skyClouds, document.body]) {
+    el.dataset.sky = sky;
+    el.style.setProperty('--night-crossfade', String(position.crossfade));
+  }
 }
 
 /**
@@ -209,7 +229,9 @@ export async function initSkyController({ plant, locationOverride }) {
   const sunEl = skyClouds.querySelector('.sky-sun');
   const moonEl = skyClouds.querySelector('.sky-moon');
   const flyingObjectsEl = document.querySelector('.sky-flying-objects');
+  const fallingStarEl = skyClouds.querySelector('.sky-falling-star');
   let scheduler = createFlyingObjectScheduler();
+  let fallingStarScheduler = createFallingStarScheduler();
 
   /** Last-known-good weather reading; a failed poll leaves this untouched (FR-005). */
   let lastWeather = null;
@@ -253,6 +275,7 @@ export async function initSkyController({ plant, locationOverride }) {
     );
     currentBody = position.body;
     applySkyBodyPosition(sunEl, moonEl, position);
+    applyDayNightState(skyClouds, position);
   }
 
   function spawnPoll() {
@@ -304,25 +327,57 @@ export async function initSkyController({ plant, locationOverride }) {
     }
   }
 
+  /**
+   * Polls `fallingStarScheduler` only while the starfield is actually visible — `data-sky` is
+   * `'night'` and `data-weather` is `'sunny'`/`'mixed'` (FR-008) — and motion isn't reduced
+   * (FR-011), mirroring `spawnPoll()`'s own gating style. `data-sky`/`data-weather` are read
+   * directly off `skyClouds.dataset` rather than tracked in separate variables here, since
+   * `applyDayNightState()`/`applyWeatherCategory()` already keep them current. On fire, toggles
+   * the `--play` replay class and removes it again on `animationend` (mirrors
+   * `spawnFlyingObject()`'s cleanup idiom).
+   */
+  function fallingStarPoll() {
+    if (reducedMotion || !fallingStarEl) return;
+    const { sky, weather } = skyClouds.dataset;
+    if (sky !== 'night' || (weather !== 'sunny' && weather !== 'mixed')) return;
+    if (!fallingStarScheduler.poll()) return;
+    fallingStarEl.classList.add('sky-falling-star--play');
+    fallingStarEl.addEventListener(
+      'animationend',
+      () => fallingStarEl.classList.remove('sky-falling-star--play'),
+      { once: true },
+    );
+  }
+
   await poll();
   tick();
   spawnPoll();
+  fallingStarPoll();
 
   const pollTimer = setInterval(poll, POLL_INTERVAL_MS);
   const tickTimer = setInterval(tick, TICK_INTERVAL_MS);
-  let spawnPollTimer = setInterval(spawnPoll, SPAWN_POLL_INTERVAL_MS);
+  let spawnPollTimer = setInterval(() => {
+    spawnPoll();
+    fallingStarPoll();
+  }, SPAWN_POLL_INTERVAL_MS);
 
   // When the tab/window goes to the background the browser throttles setInterval heavily.
   // On return, deferred ticks would fire in a burst AND the scheduler's internal next-spawn
-  // timestamps would all be in the past — both combine to flood the sky with objects.
-  // Fix: stop the spawn poll while hidden; on return, recreate the scheduler (resets all
+  // timestamps would all be in the past — both combine to flood the sky with objects (and would
+  // let a throttled tab queue up a burst of falling-star replays the same way, per
+  // data-model.md §Falling Star Event Gating).
+  // Fix: stop the spawn poll while hidden; on return, recreate both schedulers (resets all
   // next-fire times to now + a fresh random delay) then restart the interval cleanly.
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       clearInterval(spawnPollTimer);
     } else {
       scheduler = createFlyingObjectScheduler();
-      spawnPollTimer = setInterval(spawnPoll, SPAWN_POLL_INTERVAL_MS);
+      fallingStarScheduler = createFallingStarScheduler();
+      spawnPollTimer = setInterval(() => {
+        spawnPoll();
+        fallingStarPoll();
+      }, SPAWN_POLL_INTERVAL_MS);
     }
   });
 
