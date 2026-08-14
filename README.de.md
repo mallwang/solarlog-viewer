@@ -6,12 +6,16 @@ Statischer Viewer für SolarLog-Datenexporte (HTML/JS/CSS). `web/` ist das einzi
 per FTP auf die Synology DiskStation übertragen wird — `web/index.html` ist ein Single-Page-
 Dashboard (vanilla ES-Module, Tailwind CSS als statische Build-Datei, ApexCharts) mit aktueller
 Leistung und den vier Ertragssummen (Tag/Monat/Jahr/Gesamt) sowie Detailansichten über Hash-Routing
-(`#/day/JJJJ/MM/TT`, `#/month/JJJJ/MM`, `#/year/JJJJ`, `#/total`, `#/compare`). Alle sechs Ansichten
-teilen sich ein einheitliches Tailwind-Design in Hell- und Dunkelmodus. Ein responsives
-Navigationsmenü listet alle sechs Ansichten und hebt die aktive hervor — auf Desktop-Breiten
-dauerhaft sichtbar, unterhalb von ~768px als Hamburger-Menü, nutzbar von 320px bis 2560px Breite
-ohne horizontales Scrollen. Die Sprachauswahl (DE/EN) bleibt über Neuladen hinweg erhalten. Die
-frühere Frameset-Website liegt schreibgeschützt unter `legacy-site/`.
+(`#/day/JJJJ/MM/TT`, `#/month/JJJJ/MM`, `#/year/JJJJ`, `#/total`, `#/compare`) sowie eine
+"Ereignisse"-Seite (`#/events`) mit jedem Wechselrichter-Status-/Fehlerereignis aus
+`web/data/events.js`/`web/data/events_day.js`, filterbar nach Wechselrichter/Tag/Status/Fehler und
+sortierbar nach Startzeit/Wechselrichter/Dauer — siehe
+[Ereignisse-Seite](#ereignisse-seite) weiter unten. Alle Ansichten teilen sich ein einheitliches
+Tailwind-Design in Hell- und Dunkelmodus. Ein responsives Navigationsmenü listet alle Ansichten
+und hebt die aktive hervor — auf Desktop-Breiten dauerhaft sichtbar, unterhalb von ~768px als
+Hamburger-Menü, nutzbar von 320px bis 2560px Breite ohne horizontales Scrollen. Die Sprachauswahl
+(DE/EN) bleibt über Neuladen hinweg erhalten. Die frühere Frameset-Website liegt schreibgeschützt
+unter `legacy-site/`.
 
 Die SolarLog-Daten sind aufgeteilt auf `web/hist/` (eingefrorene historische Daten bis
 einschließlich 28.07.2026 vom alten Gerät) und `web/data/` (laufend überschriebene Live-Daten des
@@ -103,6 +107,22 @@ Aktualisierungsversuch wird stillschweigend übersprungen — der zuletzt bekann
 sichtbar, statt die Ansicht zu leeren. Die Startseite (`#/`, „Anlageninfo“) aktualisiert ihr
 Tagesdiagramm und die Statistikkarte im selben `DATA_REFRESH_INTERVAL_MS`-Takt, sodass alle drei
 „live“ Bereiche — Nav-Leiste, Tagesdiagramm, Startseite — immer gleich aktuell sind.
+
+## Ereignisse-Seite
+
+`#/events` zeigt jedes Wechselrichter-Status-/Fehlerereignis als eine dedupliziert Tabelle,
+neueste zuerst — historisches Archiv (`web/data/events.js`) und aktueller Tag
+(`web/data/events_day.js`) werden zusammengeführt. Ein Ereignis ohne Endzeit (das jüngste des
+aktuellen Tages) zeigt statt einer leeren Zelle ein pulsierendes „aktiv“-Badge. Status-/
+Fehlercodes werden pro Wechselrichter über `StatusCodes[]`/`FehlerCodes[]` in
+`web/data/base_vars.js` aufgelöst (derselbe Zahlencode bedeutet bei WR1 etwas anderes als bei
+WR2); ein Statuscode außerhalb des bekannten Bereichs fällt auf „Offline“ zurück, ein unbekannter
+Fehlercode zeigt seinen rohen Zahlenwert. Vier Dropdown-Filter (Wechselrichter/Tag/Status/Fehler,
+kombinierbar, mit entfernbaren Chips und einer Zurücksetzen-Schaltfläche) grenzen die Tabelle ein,
+ohne neu zu laden; die Spaltenköpfe Von–Bis/WR/Dauer sortieren (Klick wechselt die Richtung)
+innerhalb der aktuell gefilterten Menge. Siehe `web/js/data/events.js` (Parsen/Zusammenführen/
+Deduplizieren/Label-Auflösung, ohne DOM) und `web/js/views/events-view.js` (Rendering +
+Filter-/Sortierzustand).
 
 ## Entwicklungsserver
 

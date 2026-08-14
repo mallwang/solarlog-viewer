@@ -22,6 +22,12 @@ var HPInbetrieb="15.03.2006"
 var HPModul="Sanyo HIP 205/210 NHE1"
 var HPAusricht="Dachneigung 45°, 195° SSW"
 var Verguetung=5180
+var StatusCodes = new Array(2)
+var FehlerCodes = new Array(2)
+StatusCodes[0] = "Offset,Stop,Netzueb.,Warten,Mpp,Stoer.,Fehler,"
+FehlerCodes[0] = "-------,NUW-UAC,NUW-FAC,"
+StatusCodes[1] = "Offset,Stop,Mpp,Stoer.,Fehler,"
+FehlerCodes[1] = "-------,NUW-UAC,"
 var Firmware = "2.8.4 Build 56"
 var FirmwareDate = "27.01.2014"
 var SLTyp = "500"
@@ -80,6 +86,39 @@ test('derives inverters dynamically from WRInfo[], never hard-coded', () => {
     model: 'SB 2100TL',
     stringCount: 1,
   });
+});
+
+test('parses per-inverter statusCodes/errorCodes from StatusCodes[]/FehlerCodes[] lines', () => {
+  const plant = parseBaseVars(FIXTURE);
+  assert.deepEqual(plant.statusCodes[0], [
+    'Offset',
+    'Stop',
+    'Netzueb.',
+    'Warten',
+    'Mpp',
+    'Stoer.',
+    'Fehler',
+    '',
+  ]);
+  assert.deepEqual(plant.statusCodes[1], ['Offset', 'Stop', 'Mpp', 'Stoer.', 'Fehler', '']);
+  assert.deepEqual(plant.errorCodes[0], ['-------', 'NUW-UAC', 'NUW-FAC', '']);
+  assert.deepEqual(plant.errorCodes[1], ['-------', 'NUW-UAC', '']);
+});
+
+test('defaults statusCodes/errorCodes to [] when the variable is absent entirely', () => {
+  const plant = parseBaseVars('var HPTitel="No Codes"');
+  assert.deepEqual(plant.statusCodes, []);
+  assert.deepEqual(plant.errorCodes, []);
+});
+
+test('defaults a gap between inverter indices to [] rather than undefined', () => {
+  // Only index 0 is present; a second inverter (index 1) with no StatusCodes[1]/FehlerCodes[1]
+  // line at all must resolve to [], not leave a sparse-array hole callers could crash indexing.
+  const plant = parseBaseVars(
+    'StatusCodes[0] = "Offset,Stop,"\nFehlerCodes[0] = "-------,"\nStatusCodes[2] = "Offset,"\nFehlerCodes[2] = "-------,"',
+  );
+  assert.deepEqual(plant.statusCodes[1], []);
+  assert.deepEqual(plant.errorCodes[1], []);
 });
 
 test('handles a single-inverter plant', () => {

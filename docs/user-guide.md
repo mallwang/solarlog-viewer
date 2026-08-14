@@ -45,6 +45,31 @@ string's individual value. The chosen mode is remembered (stored in the browser)
 again automatically the next time any of these three views is opened. Clicking any part of a bar,
 in either mode, still drills into the next-finer view exactly as before.
 
+## Ereignisse (events) page
+
+`#/events` ("Ereignisse" in the nav, after "Gesamt") lists every recorded inverter status/fault
+event as one table, most recent first — combining the historical archive
+(`web/data/events.js`) with today's log (`web/data/events_day.js`) and removing exact duplicates
+between the two. An event still in progress (no end time yet) shows a small pulsing "aktiv"
+badge next to its start time instead of a blank end-time cell. Each row shows the combined
+start–end time ("Von – Bis", end shown as just a time-of-day when it's the same calendar day as
+the start), the inverter (a colored dot plus WR label), duration, a colored status pill, and the
+fault/error (a muted dash when there was none, a bold red label when there was).
+
+Four dropdown filters sit above the table — Wechselrichter (inverter), Tag (day), Status, Fehler
+(error) — and can be combined; each active filter also shows as a removable pill chip, and
+"Filter zurücksetzen" clears them all at once. The title row's count ("401 Ereignisse" or
+"18 von 401 Ereignissen") always reflects how many rows the current filters leave visible. If a
+filter combination matches nothing, the table is replaced with a "Keine Ereignisse gefunden"
+message instead of an empty grid.
+
+The Von–Bis, WR, and Dauer column headers are clickable to sort: click once to sort by that
+column (an arrow in the header shows the direction), click again to reverse it. Sorting only
+reorders the rows already passing the active filters — it never changes which events are shown.
+Status and Fehler are filter targets, not sort targets. On narrow screens the filter bar wraps
+onto multiple rows and the table scrolls horizontally within its own frame rather than widening
+the page.
+
 ## Dynamic sky background
 
 The cloud backdrop behind the dashboard changes with the installation's real current weather

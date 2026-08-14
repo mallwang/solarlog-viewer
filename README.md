@@ -7,11 +7,15 @@ the Synology DiskStation — `web/index.html` is a single-page dashboard (vanill
 Tailwind CSS compiled to a static file, ApexCharts) showing current production plus the four
 summary totals (today/month/year/lifetime), with hash-routed detail views for daily, monthly,
 yearly, lifetime, and year-over-year comparison charts (`#/day/YYYY/MM/DD`, `#/month/YYYY/MM`,
-`#/year/YYYY`, `#/total`, `#/compare`). All six views share one Tailwind-based visual design in
-both light and dark mode. A responsive navigation menu lists all six views and highlights the
-active one — persistent at desktop widths, a hamburger-triggered menu below ~768px, usable from
-320px to 2560px wide with no horizontal scrolling. DE/EN language selection persists across
-reloads. The previous frameset-based site is preserved read-only under `legacy-site/`.
+`#/year/YYYY`, `#/total`, `#/compare`), plus an "Ereignisse" (events) page (`#/events`) listing
+every inverter status/fault event from `web/data/events.js`/`web/data/events_day.js`, filterable
+by inverter/day/status/error and sortable by start time/inverter/duration — see
+[Ereignisse (events) page](#ereignisse-events-page) below. All views share one Tailwind-based
+visual design in both light and dark mode. A responsive navigation menu lists all views and
+highlights the active one — persistent at desktop widths, a hamburger-triggered menu below
+~768px, usable from 320px to 2560px wide with no horizontal scrolling. DE/EN language selection
+persists across reloads. The previous frameset-based site is preserved read-only under
+`legacy-site/`.
 
 SolarLog data is split across `web/hist/` (frozen historical data through 2026-07-28, from the
 original device) and `web/data/` (the current device's live, continuously-overwritten output
@@ -96,6 +100,20 @@ archived. A failed refresh is skipped silently, leaving the last good reading on
 clearing the view. The welcome page (`#/`, "Anlageninfo") auto-refreshes its today-chart and
 yield-summary stats card on the same `DATA_REFRESH_INTERVAL_MS` cycle, so all three "live" surfaces
 — nav bar, day chart, welcome page — always agree on how current their figures are.
+
+## Ereignisse (events) page
+
+`#/events` renders every inverter status/fault event as one deduplicated, most-recent-first
+table, combining the historical archive (`web/data/events.js`) and the current day's log
+(`web/data/events_day.js`) — an event still without an end time (today's most recent one) shows
+a pulsing "aktiv" badge instead of a blank cell. Status/error codes are decoded per-inverter via
+`StatusCodes[]`/`FehlerCodes[]` in `web/data/base_vars.js` (the same numeric code means different
+things on WR1 vs. WR2); an out-of-range status code falls back to "Offline", an out-of-range
+error code shows its raw numeric code. Four dropdown filters (Wechselrichter/Tag/Status/Fehler,
+combinable, with removable chips and a reset button) narrow the table without re-fetching; the
+Von–Bis/WR/Dauer column headers sort (click to toggle direction) within whatever the filters
+currently show. See `web/js/data/events.js` (parsing/merge/dedupe/label-resolution, no DOM) and
+`web/js/views/events-view.js` (rendering + filter/sort state).
 
 ## Dev server
 

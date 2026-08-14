@@ -52,6 +52,32 @@ Browser gespeichert) und beim nächsten Öffnen einer dieser drei Ansichten auto
 angewendet. Ein Klick auf einen beliebigen Teil eines Balkens führt in beiden Ansichten weiterhin
 genau wie zuvor zur nächstfeineren Ansicht.
 
+## Ereignisse-Seite
+
+`#/events` ("Ereignisse" in der Navigation, nach "Gesamt") listet jedes erfasste
+Wechselrichter-Status-/Fehlerereignis als eine Tabelle, neueste zuerst — das historische Archiv
+(`web/data/events.js`) wird mit dem heutigen Protokoll (`web/data/events_day.js`)
+zusammengeführt, exakte Duplikate zwischen beiden werden entfernt. Ein noch laufendes Ereignis
+(ohne Endzeit) zeigt statt einer leeren Endzeit-Zelle ein kleines pulsierendes „aktiv“-Badge neben
+der Startzeit. Jede Zeile zeigt die kombinierte Start–Ende-Zeit ("Von – Bis", das Ende nur als
+Uhrzeit, wenn es auf denselben Kalendertag wie der Start fällt), den Wechselrichter (farbiger
+Punkt plus WR-Bezeichnung), die Dauer, einen farbigen Status-Pill sowie den Fehler (ein
+gedämpfter Strich, wenn keiner vorlag, ein fett-rotes Label, wenn doch).
+
+Oberhalb der Tabelle stehen vier Dropdown-Filter — Wechselrichter, Tag, Status, Fehler —, die
+sich kombinieren lassen; jeder aktive Filter erscheint zusätzlich als entfernbarer Chip, und
+„Filter zurücksetzen“ löscht alle auf einmal. Die Zählung in der Titelzeile ("401 Ereignisse"
+bzw. "18 von 401 Ereignissen") zeigt immer, wie viele Zeilen die aktuellen Filter übrig lassen.
+Passt keine Kombination zu Ereignissen, erscheint statt einer leeren Tabelle die Meldung „Keine
+Ereignisse gefunden“.
+
+Die Spaltenköpfe Von–Bis, WR und Dauer sind klickbar und sortieren: ein Klick sortiert nach
+dieser Spalte (ein Pfeil im Kopf zeigt die Richtung), ein weiterer Klick kehrt sie um. Das
+Sortieren ordnet nur die bereits gefilterten Zeilen um — es ändert nie, welche Ereignisse
+angezeigt werden. Status und Fehler sind Filterziele, keine Sortierziele. Auf schmalen
+Bildschirmen bricht die Filterleiste in mehrere Zeilen um, und die Tabelle scrollt horizontal
+innerhalb ihres eigenen Rahmens, statt die Seite zu verbreitern.
+
 ## Dynamischer Himmel-Hintergrund
 
 Die Wolkenkulisse hinter dem Dashboard ändert sich mit dem realen aktuellen Wetter und der

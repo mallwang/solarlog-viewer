@@ -1230,10 +1230,199 @@ html[data-transparency='on'] {
    `background:` declaration above and `.stats-panel`'s Tailwind `bg-bg-elevated` utility are both
    overridden by this color-mix, same unlayered-beats-layered reasoning as above. */
 .chart-container,
-.stats-panel {
+.stats-panel,
+.events-table-wrap {
   background-color: color-mix(
     in srgb,
     var(--color-bg-elevated) calc(var(--transparency-panel-opacity) * 100%),
     transparent
   );
+}
+
+/* .events-page (016-events-datatable, views/events-view.js) — everything Tailwind utility
+   classes inline don't already cover: the sticky table header, status/error pill color buckets,
+   the ongoing "aktiv" badge's pulse animation, and select/chip/button chrome matching the
+   existing .chart-breakdown-toggle/.lang-switcher button convention above. */
+.events-table-wrap {
+  max-width: 100%;
+  /* Same min-width: 0 override as .chart-table above — without it this flex/block item refuses
+     to shrink below the table's intrinsic width, defeating overflow-x-auto (Principle IV). */
+  min-width: 0;
+  /* Card padding matching .chart-container/.stats-panel — the background-color (and its
+     transparency-mode fade) is declared once, below, alongside those two selectors. */
+  padding: var(--space-md);
+}
+
+.events-table {
+  font-size: var(--font-size-sm);
+}
+
+.events-table th,
+.events-table td {
+  text-align: left;
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Sticky header so a long, scrolled event list keeps its column labels (and sort affordance)
+   in view — background matches the page so rows don't show through underneath it. */
+.events-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--color-bg-elevated);
+  z-index: 1;
+}
+
+.events-sort-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.events-inverter-dot {
+  display: inline-block;
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 50%;
+  margin-right: var(--space-xs);
+  background: var(--chart-color-1);
+}
+
+.events-inverter-dot--1 {
+  background: var(--chart-color-2);
+}
+
+.events-inverter-dot--2 {
+  background: var(--chart-color-3);
+}
+
+.events-inverter-dot--3 {
+  background: var(--chart-color-4);
+}
+
+.events-inverter-dot--4 {
+  background: var(--chart-color-5);
+}
+
+.events-inverter-dot--5 {
+  background: var(--chart-color-6);
+}
+
+/* Status pill color buckets (design.md): green-tinted for productive states, amber for
+   transitional/startup, red for fault states, grey for the "Offline"/unmatched-code fallback. */
+.events-status-pill {
+  display: inline-block;
+  padding: 0.1em 0.6em;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.events-status-pill--productive {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  color: var(--color-accent);
+}
+
+.events-status-pill--transitional {
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  color: var(--color-primary-dark);
+}
+
+.events-status-pill--fault {
+  background: color-mix(in srgb, var(--color-danger) 16%, transparent);
+  color: var(--color-danger);
+}
+
+.events-status-pill--neutral {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-muted);
+}
+
+.events-error-pill {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+/* Ongoing-event badge (FR-003, Edge Case "event still active"): a small pulsing dot next to the
+   start timestamp instead of a blank/malformed end cell. */
+.events-ongoing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.05em 0.5em;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  color: var(--color-accent);
+}
+
+.events-ongoing-badge::before {
+  content: '';
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: currentColor;
+  animation: events-ongoing-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes events-ongoing-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .events-ongoing-badge::before {
+    animation: none;
+  }
+}
+
+/* .events-table-caption / .events-filter-row (016-events-datatable follow-up): the count +
+   reset control moved into the table's own <caption>, and the per-column filter dropdowns into
+   a dedicated header row directly above the sortable column labels, replacing the former
+   standalone filter bar above the table. */
+.events-table-caption {
+  caption-side: top;
+  text-align: left;
+  padding-bottom: var(--space-sm);
+}
+
+.events-filter-row th {
+  /* Header cells default to bold via the browser UA stylesheet — the filter row is chrome, not
+     a label, so it shouldn't read as a second heading line. */
+  font-weight: normal;
+  /* Breathing room between the dropdowns and the sortable column labels directly below them. */
+  padding-bottom: var(--space-md);
+  border-bottom: none;
+}
+
+.events-filter-row select {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+  font: inherit;
+}
+
+.events-filter-reset {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
 }
