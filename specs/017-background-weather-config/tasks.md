@@ -28,7 +28,7 @@ and verified independently, in priority order.
 
 **Purpose**: Capture a clean baseline before touching shared modules.
 
-- [ ] T001 Run the existing baseline and record it passes before any change: `npm run lint`,
+- [x] T001 Run the existing baseline and record it passes before any change: `npm run lint`,
       `npm run format:check`, `node --test scripts/*.test.js "web/js/**/*.test.js"`,
       `npx playwright test --reporter=line` (repo root).
 
@@ -39,27 +39,27 @@ and verified independently, in priority order.
 **Purpose**: The shared classifier, renamed render-config, and new config export that every user
 story phase below reads from. **No user story task may start before this phase is complete.**
 
-- [ ] T002 [P] Create `web/js/weather/weather-category.js` exporting
+- [x] T002 [P] Create `web/js/weather/weather-category.js` exporting
       `weatherCodeToCategory(weatherCode)` and `WEATHER_CATEGORIES = ['sunny', 'mixed', 'cloudy',
 'rain', 'snow']`, implementing the WMO code table from research.md §3 (0,1→sunny; 2→mixed;
       3,45,48→cloudy; 51/53/55/56/57/61/63/65/66/67/80/81/82/95/96/99→rain;
       71/73/75/77/85/86→snow; any other code→cloudy). Pure function, no DOM (data-model.md
       §Weather Background Category).
-- [ ] T003 [P] Create `web/js/weather/weather-category.test.js` (`node:test`) asserting one
+- [x] T003 [P] Create `web/js/weather/weather-category.test.js` (`node:test`) asserting one
       representative `weatherCode` per bucket returns the correct category (all five covered) and
       an unrecognized code (e.g. `100`) falls back to `'cloudy'` (FR-004).
-- [ ] T004 [P] Rename `web/js/sky/cloud-density.js` → `web/js/weather/weather-render-config.js`:
+- [x] T004 [P] Rename `web/js/sky/cloud-density.js` → `web/js/weather/weather-render-config.js`:
       remove `cloudCoverToTier` (no longer needed), rename `CLOUD_TIER_RENDER_CONFIG` →
       `WEATHER_CATEGORY_RENDER_CONFIG` keyed by all five categories — `sunny`/`mixed`/`cloudy`
       carry over today's `clear`/`partly`/`overcast` `opacity`/`animationDurationScale`/
       `visibleCount` values unchanged (both `hasRainLayer`/`hasSnowLayer: false`); `rain`/`snow`
       reuse `cloudy`'s three values with `hasRainLayer: true`/`hasSnowLayer: true` respectively
       (research.md §4, data-model.md §`WEATHER_CATEGORY_RENDER_CONFIG`). Delete the old file.
-- [ ] T005 [P] Rename `web/js/sky/cloud-density.test.js` →
+- [x] T005 [P] Rename `web/js/sky/cloud-density.test.js` →
       `web/js/weather/weather-render-config.test.js`, updating assertions for the renamed export
       and asserting `hasRainLayer`/`hasSnowLayer` are `true` only for `rain`/`snow` respectively
       and `false` for the other three. Delete the old file.
-- [ ] T006 Add `BACKGROUND_WEATHER` export to `web/js/config.js`: `export const BACKGROUND_WEATHER
+- [x] T006 Add `BACKGROUND_WEATHER` export to `web/js/config.js`: `export const BACKGROUND_WEATHER
 = 'auto';` with a doc comment matching the file's existing `SITE_TITLE`/`SKY_LOCATION_OVERRIDE`
       pattern, documenting accepted values (`'auto'` default, `'off'`, or one of the five category
       names) and that an unrecognized value falls back to `'auto'` (FR-005, FR-008, FR-010,
@@ -83,16 +83,16 @@ that rain/snow render as their own animated (not static) treatments.
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Update `web/js/sky/weather-client.js`: change the Open-Meteo request from
+- [x] T007 [US1] Update `web/js/sky/weather-client.js`: change the Open-Meteo request from
       `current=cloud_cover` to `current=weather_code`; import `weatherCodeToCategory` from
       `../weather/weather-category.js`; parse the response into `{ weatherCode, category, sunrise,
 sunset, nextSunrise, fetchedAt }` (data-model.md §Sky Weather Reading), dropping
       `cloudCoverPercent`/`tier`; keep returning `null` on any fetch failure/malformed body
       (FR-009).
-- [ ] T008 [P] [US1] Update `web/js/sky/weather-client.test.js` fixtures/assertions for the new
+- [x] T008 [P] [US1] Update `web/js/sky/weather-client.test.js` fixtures/assertions for the new
       request URL and `{ weatherCode, category, ... }` response shape (mocked `fetch`, no real
       network call, per quickstart.md §1).
-- [ ] T009 [US1] Update `web/js/sky/sky-controller.js`: import `WEATHER_CATEGORY_RENDER_CONFIG`
+- [x] T009 [US1] Update `web/js/sky/sky-controller.js`: import `WEATHER_CATEGORY_RENDER_CONFIG`
       from `../weather/weather-render-config.js` in place of `./cloud-density.js`; rename
       `applyCloudDensity(skyClouds, tier)` to a category-based equivalent that sets
       `skyClouds.dataset.weather = category` (renamed from `dataset.cloudDensity`) and toggles the
@@ -102,48 +102,48 @@ sunset, nextSunrise, fetchedAt }` (data-model.md §Sky Weather Reading), droppin
 BACKGROUND_WEATHER : 'auto'` (data-model.md §Background Weather Setting); for this task, only
       wire the `'auto'` path (`poll()` applies `weather.category` on every successful poll) — the
       `'off'`/fixed paths are added in US2/US3 below without needing to revisit this block twice.
-- [ ] T010 [US1] Update `web/css/app.css`: rename the `[data-cloud-density]` attribute selector
+- [x] T010 [US1] Update `web/css/app.css`: rename the `[data-cloud-density]` attribute selector
       family to `[data-weather]` and its three values `clear`/`partly`/`overcast` to
       `sunny`/`mixed`/`cloudy` (same `opacity`/`animation-duration` values, including the
       dimmed-sun/moon `overcast`→`cloudy` rule), updating the surrounding comment block (~line
       113-133 and ~172-173) to reference `weather-render-config.js`/`WEATHER_CATEGORY_RENDER_CONFIG`
       instead of `cloud-density.js`/`CLOUD_TIER_RENDER_CONFIG`.
-- [ ] T011 [US1] Add two new CSS-only layers to `web/css/app.css`: a rain-streak layer
+- [x] T011 [US1] Add two new CSS-only layers to `web/css/app.css`: a rain-streak layer
       (`.sky-clouds[data-weather='rain'] .sky-rain` or equivalent) and a snow-flake layer
       (`.sky-clouds[data-weather='snow'] .sky-snow`), each with its own `@keyframes` animation
       matching `.cloud`'s technique (CSS custom properties for per-element variance, no canvas, no
       JS animation loop); suppress both under `prefers-reduced-motion: reduce` **and** under
       `.sky-clouds[data-reduce-motion='true']`, matching the existing dual mechanism `.cloud`
       already uses (~lines 91-110).
-- [ ] T012 [US1] Add the rain-streak and snow-flake child markup inside `.sky-clouds` in
+- [x] T012 [US1] Add the rain-streak and snow-flake child markup inside `.sky-clouds` in
       `web/index.html` (a handful of absolutely-positioned elements per layer, e.g.
       `.sky-rain-drop`/`.sky-snow-flake`, `aria-hidden="true"`, styled entirely via the CSS added
       in T011 — visibility driven by `data-weather` alone, no inline `hidden` toggling needed).
-- [ ] T013 [US1] Update `web/js/info-panel/weather-forecast-client.js`: replace
+- [x] T013 [US1] Update `web/js/info-panel/weather-forecast-client.js`: replace
       `weatherCodeToLabelKey`'s internal 7-bucket table with a thin wrapper around the shared
       `weatherCodeToCategory()` (imported from `../weather/weather-category.js`), returning
       `infoPanel.weatherCategory.<category>` keys (sunny/mixed/cloudy/rain/snow) in place of the
       old `infoPanel.weatherCode.*` keys.
-- [ ] T014 [P] [US1] Update `web/js/info-panel/weather-forecast-client.test.js` for the new
+- [x] T014 [P] [US1] Update `web/js/info-panel/weather-forecast-client.test.js` for the new
       `infoPanel.weatherCategory.*` key namespace and shared-classifier delegation (quickstart.md
       §1).
-- [ ] T015 [P] [US1] Update `web/i18n/en.json`: rename the `infoPanel.weatherCode` object (7 keys:
+- [x] T015 [P] [US1] Update `web/i18n/en.json`: rename the `infoPanel.weatherCode` object (7 keys:
       clear/cloudy/fog/rain/snow/storm/unknown) to `infoPanel.weatherCategory` with exactly 5 keys
       (sunny/mixed/cloudy/rain/snow), e.g. `"sunny": "Sunny"`, `"mixed": "Partly cloudy"`,
       `"cloudy": "Cloudy"`, `"rain": "Rain"`, `"snow": "Snow"`.
-- [ ] T016 [P] [US1] Update `web/i18n/de.json`: same key rename with German labels, e.g.
+- [x] T016 [P] [US1] Update `web/i18n/de.json`: same key rename with German labels, e.g.
       `"sunny": "Sonnig"`, `"mixed": "Wechselnd bewölkt"`, `"cloudy": "Bewölkt"`, `"rain":
 "Regen"`, `"snow": "Schnee"`.
-- [ ] T017 [US1] Extend `tests/e2e/sky.spec.js`: rename existing `data-cloud-density`
+- [x] T017 [US1] Extend `tests/e2e/sky.spec.js`: rename existing `data-cloud-density`
       assertions/values to `data-weather`/`sunny`/`cloudy`; add scenarios (mocked Open-Meteo
       `weather_code` response per bucket) for all five categories in `'auto'` mode, asserting
       `.sky-clouds` carries the matching `data-weather` value and that the rain-streak/snow-flake
       layer elements are present only for `rain`/`snow` and absent for the other three
       (quickstart.md §6).
-- [ ] T018 [US1] Extend `tests/e2e/info-panel.spec.js`: with the same mocked `weather_code` used
+- [x] T018 [US1] Extend `tests/e2e/info-panel.spec.js`: with the same mocked `weather_code` used
       in T017, assert the nav bar's weather text renders the matching `infoPanel.weatherCategory.*`
       label, confirming background and nav bar agree in `'auto'` mode (spec User Story 1 AS1-AS6).
-- [ ] T019 [US1] Extend `tests/e2e/sky.spec.js`'s reduced-motion block: with
+- [x] T019 [US1] Extend `tests/e2e/sky.spec.js`'s reduced-motion block: with
       `prefers-reduced-motion: reduce` emulated and weather mocked to `rain` then `snow`, assert
       the new layers render without animation (quickstart.md §5).
 
@@ -164,16 +164,26 @@ bar's weather text are unaffected.
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] In `web/js/sky/sky-controller.js`'s `poll()` (building on T009's `effectiveMode`):
+- [x] T020 [US2] In `web/js/sky/sky-controller.js`'s `poll()` (building on T009's `effectiveMode`):
       when `effectiveMode === 'off'`, skip applying `weather.category` to `data-weather` entirely
       (leave the attribute unset, reusing the pre-existing no-attribute CSS fallback per
       research.md §6) while the poll itself still runs and still updates `lastWeather` so
       `tick()`'s sun/moon positioning is unaffected (FR-007, edge cases).
-- [ ] T021 [P] [US2] Extend `tests/e2e/sky.spec.js`: with `BACKGROUND_WEATHER = 'off'` (test-time
+- [x] T021 [P] [US2] Extend `tests/e2e/sky.spec.js`: with `BACKGROUND_WEATHER = 'off'` (test-time
       override/injection) and weather mocked to any condition, assert `.sky-clouds` never carries
       a `data-weather` attribute and that sun/moon positioning still updates; extend
       `tests/e2e/info-panel.spec.js` in the same scenario to assert the nav bar still shows the
       real mocked condition (quickstart.md §6, spec User Story 2 AS1-AS2).
+- [x] T022 [US2] Revised post-implementation: operator feedback clarified `'off'` is meant as a
+      full escape hatch ("deactivating the heaven animation"), not just a way to skip weather
+      classification while sun/moon and flying objects kept animating (T020's original behavior).
+      `initSkyController()` now checks `effectiveMode === 'off'` immediately after resolving it —
+      before location resolution, weather polling, or any timer setup — and short-circuits via
+      `skyClouds.hidden = true; return;`, hiding clouds/sun/moon in one shot and guaranteeing no
+      flying object ever spawns either. `poll()`'s now-unreachable `'off'` branch was removed.
+      Updated FR-007/US2/data-model.md/research.md §6/quickstart.md to match; T021's test rewritten
+      to assert `.sky-clouds` is hidden and `.sky-flying-objects` stays empty, rather than
+      asserting sun/moon still updates.
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — auto mode and the off-switch are
 both correct.
@@ -192,17 +202,17 @@ condition; set an invalid value and confirm it behaves identically to `'auto'`.
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] In `web/js/sky/sky-controller.js`'s `poll()` (building on T009/T020): when
+- [x] T022 [US3] In `web/js/sky/sky-controller.js`'s `poll()` (building on T009/T020): when
       `effectiveMode` is one of `WEATHER_CATEGORIES`, always set `data-weather` to that fixed
       value (on the initial `await poll()` call and every subsequent poll), ignoring
       `weather.category`, while `lastWeather` still updates from the live response so `tick()`'s
       sun/moon positioning and the nav bar's independent poll remain unaffected (FR-006).
-- [ ] T023 [P] [US3] Extend `tests/e2e/sky.spec.js`: with `BACKGROUND_WEATHER` fixed to a category
+- [x] T023 [P] [US3] Extend `tests/e2e/sky.spec.js`: with `BACKGROUND_WEATHER` fixed to a category
       (e.g. `'snow'`) and weather mocked to a _different_ condition (e.g. sunny), assert
       `.sky-clouds` carries `data-weather="snow"` regardless; extend `tests/e2e/info-panel.spec.js`
       in the same scenario to assert the nav bar still shows the real mocked (sunny) condition
       (quickstart.md §6, spec User Story 3 AS1).
-- [ ] T024 [P] [US3] Extend `tests/e2e/sky.spec.js`: with `BACKGROUND_WEATHER` set to an invalid
+- [x] T024 [P] [US3] Extend `tests/e2e/sky.spec.js`: with `BACKGROUND_WEATHER` set to an invalid
       value (e.g. `'not-a-real-value'`), assert the background behaves identically to `'auto'`
       mode for a mocked condition (FR-008, spec User Story 3 AS2, SC-005).
 
@@ -215,13 +225,13 @@ modes, plus the invalid-value fallback.
 
 **Purpose**: Final regression pass and cleanup once all three stories are complete.
 
-- [ ] T025 [P] Grep the repo for any remaining references to the old names
+- [x] T025 [P] Grep the repo for any remaining references to the old names
       (`data-cloud-density`, `cloud-density.js`, `CLOUD_TIER_RENDER_CONFIG`, `cloudCoverToTier`,
       `infoPanel.weatherCode`) outside this feature's already-updated files (e.g. stray comments in
       other modules, docs) and fix or remove them.
-- [ ] T026 Confirm `web/js/config.js`'s `BACKGROUND_WEATHER` is left at `'auto'` (quickstart.md §4
+- [x] T026 Confirm `web/js/config.js`'s `BACKGROUND_WEATHER` is left at `'auto'` (quickstart.md §4
       step 4 — revert any test value used while validating US2/US3 manually).
-- [ ] T027 Run the full regression suite per quickstart.md §7 and confirm all pass: `npm run lint`,
+- [x] T027 Run the full regression suite per quickstart.md §7 and confirm all pass: `npm run lint`,
       `npm run format:check`, `npx playwright test --reporter=line`, `node --test scripts/*.test.js
 "web/js/**/*.test.js"`.
 
@@ -318,3 +328,35 @@ Task: "Update web/i18n/de.json weatherCategory keys"
   independently before moving to the next.
 - Avoid: editing `sky-controller.js`'s `poll()` out of order (T009 before T020 before T022 — same
   function, each building on the last).
+
+---
+
+## Post-implementation follow-up (outside the T001-T027 checklist above)
+
+After all tasks above shipped and passed the Phase 6 regression suite, a manual review round
+(prompted by the operator: "sunny is fine; mixed should show much more clouds; cloudy should
+show only clouds and no sun; rain should show dark gray clouds and no sun; snow should show
+mixed white/gray clouds and no sun; the sun should always be behind the clouds") judged the five
+render-config values from T004 too visually similar and asked for clearer separation. Implemented
+directly against the running code (not re-run through this task list) — see research.md §4's
+"Post-review refinement", data-model.md's "Sky Body Visibility"/"Full-coverage overcast backdrop"
+sections, and design.md's "Post-implementation visual refinement" for the full detail:
+
+- `web/index.html` — grew the `.cloud` pool from six to sixteen; reordered `.sky-sun`/`.sky-moon`
+  before the `.cloud` elements; added `.sky-overcast`/`.sky-ceiling` sibling layers.
+- `web/js/weather/weather-render-config.js` (+ its test) — raised `mixed`'s `visibleCount`/
+  `opacity`/`animationDurationScale` and `cloudy`/`rain`/`snow`'s `visibleCount` to match the
+  16-cloud pool.
+- `web/js/sky/sky-controller.js` — `applyWeatherCategory()` now also sets `data-weather` on
+  `<body>` (for `.sky-overcast`/`.sky-ceiling`, which aren't descendants of `.sky-clouds`).
+- `web/css/app.css` — sun/moon now fully hidden (not dimmed) for `cloudy`/`rain`/`snow`;
+  `body[data-weather]` background-gradient swap; `.sky-overcast`/`.sky-ceiling` rules; `rain`/
+  `snow` gray cloud tinting (with a lowered `contrast()` filter to keep it neutral gray).
+- `tests/e2e/sky.spec.js` — updated cloud-count assertions for the 16-cloud pool.
+- `tests/e2e/sky-birds.spec.js` — its own weather mock still used the pre-feature `cloud_cover`
+  field; updated to `weather_code` so bird-spawning (gated on a successful weather poll) isn't
+  silently broken by T007's field rename.
+
+`spec.md`'s functional requirements (FR-001–FR-010) and Key Entities were not affected — this
+refinement changed the _values_ the render config and CSS use to satisfy FR-003's "visually
+distinct, animated background per category", not the requirements themselves.

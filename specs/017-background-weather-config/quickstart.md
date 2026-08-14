@@ -36,15 +36,24 @@ sunrise, sunset, nextSunrise }`; failed/malformed response returns `null` (mocke
    `WEATHER_REFRESH_INTERVAL_MS`/`POLL_INTERVAL_MS` locally) to cycle through each of the five
    `weather_code` buckets from research.md §3 in turn, reloading between each — confirm the
    backdrop and nav bar text agree on every one, with no "unknown"/unclassified state ever
-   shown (SC-001).
+   shown (SC-001). Post-review refinement (research.md §4) to look for at each category:
+   - `sunny`: sparse clouds, sun/moon visible, default bright-blue page background.
+   - `mixed`: noticeably denser clouds than `sunny` (not just slightly more), sun/moon still
+     visible, clouds drifting in front of it.
+   - `cloudy`: sun/moon fully hidden (not just dimmed), a full "clouded heaven" look — no gaps
+     of blue sky between the drifting clouds, muted blue-grey page background.
+   - `rain`: same full-coverage look as `cloudy`, clouds tinted gray instead of white, darker
+     grey page background, diagonal rain streaks, sun/moon fully hidden.
+   - `snow`: same full-coverage look, clouds alternating between two grays, falling snowflakes,
+     sun/moon fully hidden.
 5. Block `api.open-meteo.com` entirely and reload → backdrop keeps its last-known-good category
    (or the plain default if this is the very first load), no console errors (FR-009).
 
 ## 3. Manual smoke test — `'off'` mode (User Story 2)
 
 1. Set `BACKGROUND_WEATHER = 'off'` in `config.js`, reload.
-2. Confirm the backdrop shows the pre-feature plain default appearance regardless of real
-   weather, while the sun/moon still positions correctly and flying objects still spawn.
+2. Confirm no sky visuals render at all regardless of real weather: no clouds, no sun/moon, no
+   flying objects.
 3. Confirm the nav bar's weather text is unaffected — still showing real, live conditions.
 
 ## 4. Manual smoke test — fixed override (User Story 3)
@@ -75,14 +84,20 @@ real-world weather at test run time):
 
 - Each of the five `weather_code` buckets, `BACKGROUND_WEATHER = 'auto'` → matching
   `data-weather` value on `.sky-clouds` AND matching nav bar text, for all five.
-- `BACKGROUND_WEATHER = 'off'` → no `data-weather` attribute regardless of mocked weather; nav
-  bar still shows the mocked live condition.
+- `BACKGROUND_WEATHER = 'off'` → `.sky-clouds` fully hidden (no clouds, sun/moon, or `data-weather`
+  attribute) and no flying objects spawn, regardless of mocked weather; nav bar still shows the
+  mocked live condition.
 - `BACKGROUND_WEATHER` fixed to a category → `data-weather` always that category regardless of
   mocked weather; nav bar still shows the mocked live condition.
 - Invalid `BACKGROUND_WEATHER` value → behaves identically to `'auto'`.
 - Weather fetch failure → last-known-good (or default) appearance retained, zero console errors.
 - `rain`/`snow` treatments → new streak/flake layer elements present; absent for the other three
   categories.
+- Cloud density per category (post-review refinement) → `sunny` shows 2 of 16 `.cloud` elements
+  visible, `cloudy`/`rain`/`snow` show all 16, matching the widened pool in
+  `weather-render-config.js`; `tests/e2e/sky-birds.spec.js`'s own weather mock uses `weather_code`
+  (not the pre-feature `cloud_cover` field) so bird-spawning (gated on a successful weather poll)
+  isn't silently broken by the field rename.
 
 ## 7. Regression check
 

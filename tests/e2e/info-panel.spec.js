@@ -23,15 +23,15 @@ async function mockProduction(page, { pacW = 3100, pdcW = [0, 0], aborted = fals
 }
 
 /**
- * Mocks Open-Meteo's forecast endpoint. Both the sky feature's `weather-client.js` (cloud
- * cover + sunrise/sunset) and this feature's `weather-forecast-client.js` (weather code +
+ * Mocks Open-Meteo's forecast endpoint. Both the sky feature's `weather-client.js` (weather
+ * code + sunrise/sunset) and this feature's `weather-forecast-client.js` (weather code +
  * temperatures) hit the same host/path with different query params — this responds with a
  * superset shape so both parse successfully, and `aborted: true` fails both, mirroring
  * quickstart.md §3.
  * @param {import('@playwright/test').Page} page
- * @param {{ aborted?: boolean }} [options]
+ * @param {{ aborted?: boolean, weatherCode?: number }} [options]
  */
-async function mockForecast(page, { aborted = false } = {}) {
+async function mockForecast(page, { aborted = false, weatherCode = 61 } = {}) {
   if (aborted) {
     await page.route('**/api.open-meteo.com/**', (route) => route.abort());
     return;
@@ -40,17 +40,38 @@ async function mockForecast(page, { aborted = false } = {}) {
     route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
-        current: { cloud_cover: 40, weather_code: 61, temperature_2m: 18.4 },
+        current: { weather_code: weatherCode, temperature_2m: 18.4 },
         daily: {
-          sunrise: ['2026-08-10T06:00'],
+          // Two sunrise entries: the sky feature's weather-client.js also hits this same mocked
+          // endpoint and requires today's *and* tomorrow's sunrise (nextSunrise) to parse
+          // successfully — see data-model.md §Sky Weather Reading.
+          sunrise: ['2026-08-10T06:00', '2026-08-11T06:02'],
           sunset: ['2026-08-10T20:30'],
-          weather_code: [61],
+          weather_code: [weatherCode],
           temperature_2m_max: [22],
           temperature_2m_min: [12],
         },
       }),
     }),
   );
+}
+
+/**
+ * Test-time override for `BACKGROUND_WEATHER` (a static `config.js` export) — see
+ * tests/e2e/sky.spec.js's identical helper for rationale.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} backgroundWeather
+ */
+async function overrideBackgroundWeather(page, backgroundWeather) {
+  await page.route('**/js/config.js', async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const patched = body.replace(
+      /export const BACKGROUND_WEATHER = '[^']*';/,
+      `export const BACKGROUND_WEATHER = '${backgroundWeather}';`,
+    );
+    await route.fulfill({ response, body: patched });
+  });
 }
 
 test.describe('Global info panel — desktop placement (beneath the header icons)', () => {
@@ -256,6 +277,46 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     await page.goto('/');
     const desktop = page.locator('[data-info-panel="desktop"]');
     await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText('');
+  });
+});
+
+test.describe('Global info panel weather text — background/nav-bar agreement (US1-US3)', () => {
+  test('in auto mode, the nav bar weather text names the same condition as the sky background', async ({
+    page,
+  }) => {
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 71 }); // snow
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="weather-current"]')).toContainText('Schnee');
+    await expect(page.locator('.sky-clouds')).toHaveAttribute('data-weather', 'snow');
+  });
+
+  test('BACKGROUND_WEATHER = "off" leaves the nav bar showing the real, live condition', async ({
+    page,
+  }) => {
+    await overrideBackgroundWeather(page, 'off');
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61 }); // rain
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="weather-current"]')).toContainText('Regen');
+    await expect(page.locator('.sky-clouds')).not.toHaveAttribute('data-weather', /.+/);
+  });
+
+  test('a fixed BACKGROUND_WEATHER override leaves the nav bar showing the real, live condition', async ({
+    page,
+  }) => {
+    await overrideBackgroundWeather(page, 'snow');
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 0 }); // sunny — differs from the fixed "snow"
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="weather-current"]')).toContainText('Sonnig');
+    await expect(page.locator('.sky-clouds')).toHaveAttribute('data-weather', 'snow');
   });
 });
 

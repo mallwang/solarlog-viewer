@@ -4,11 +4,11 @@ import { test, expect } from '@playwright/test';
  * Routes both Open-Meteo hosts used by the dynamic sky background.
  * Mocked so tests never depend on real network access, per quickstart.md §6.
  * @param {import('@playwright/test').Page} page
- * @param {{ cloudCover?: number, sunrise?: string, sunset?: string, nextSunrise?: string }} [options]
+ * @param {{ weatherCode?: number, sunrise?: string, sunset?: string, nextSunrise?: string }} [options]
  */
 async function mockOpenMeteo(page, options = {}) {
   const {
-    cloudCover = 10,
+    weatherCode = 0,
     sunrise = '2026-08-09T06:00',
     sunset = '2026-08-09T20:30',
     nextSunrise = '2026-08-10T06:02',
@@ -25,7 +25,7 @@ async function mockOpenMeteo(page, options = {}) {
     route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
-        current: { cloud_cover: cloudCover },
+        current: { weather_code: weatherCode },
         daily: { sunrise: [sunrise, nextSunrise], sunset: [sunset] },
       }),
     }),

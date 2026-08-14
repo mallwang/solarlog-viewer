@@ -3,15 +3,15 @@ import { test, expect } from '@playwright/test';
 /**
  * Routes both Open-Meteo hosts used by the dynamic sky background: geocoding (resolves the
  * demo plant's `HPStandort`, "92266 Ensdorf-Wolfsbach", to coordinates) and the forecast
- * endpoint (cloud cover + sunrise/sunset). Mocked so tests never depend on real network access
+ * endpoint (weather code + sunrise/sunset). Mocked so tests never depend on real network access
  * or real-world weather/time, per quickstart.md §6.
  * @param {import('@playwright/test').Page} page
- * @param {{ cloudCover?: number, sunrise?: string, sunset?: string, nextSunrise?: string,
+ * @param {{ weatherCode?: number, sunrise?: string, sunset?: string, nextSunrise?: string,
  *   forecastAborted?: boolean }} [options]
  */
 async function mockOpenMeteo(page, options = {}) {
   const {
-    cloudCover = 10,
+    weatherCode = 0,
     sunrise = '2026-08-09T06:00',
     sunset = '2026-08-09T20:30',
     nextSunrise = '2026-08-10T06:02',
@@ -34,28 +34,81 @@ async function mockOpenMeteo(page, options = {}) {
     route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
-        current: { cloud_cover: cloudCover },
+        current: { weather_code: weatherCode },
         daily: { sunrise: [sunrise, nextSunrise], sunset: [sunset] },
       }),
     }),
   );
 }
 
-test.describe('Dynamic sky background — User Story 1 (weather-driven cloud density)', () => {
-  test('a clear-sky mocked response renders sparse/no visible clouds', async ({ page }) => {
-    await mockOpenMeteo(page, { cloudCover: 5 });
+/**
+ * Test-time override for `BACKGROUND_WEATHER` (a static `config.js` export, not a
+ * runtime-reactive value — see data-model.md). Intercepts the `config.js` module request and
+ * serves a patched copy with the export's literal value substituted, since there is no runtime
+ * hook to override an ES module's binding from outside the page.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} backgroundWeather
+ */
+async function overrideBackgroundWeather(page, backgroundWeather) {
+  await page.route('**/js/config.js', async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const patched = body.replace(
+      /export const BACKGROUND_WEATHER = '[^']*';/,
+      `export const BACKGROUND_WEATHER = '${backgroundWeather}';`,
+    );
+    await route.fulfill({ response, body: patched });
+  });
+}
+
+/** One representative WMO weather_code per Weather Background Category (research.md §3). */
+const CATEGORY_CODES = {
+  sunny: 0,
+  mixed: 2,
+  cloudy: 3,
+  rain: 61,
+  snow: 71,
+};
+
+test.describe('Dynamic sky background — User Story 1 (auto mode matches live weather)', () => {
+  for (const [category, weatherCode] of Object.entries(CATEGORY_CODES)) {
+    test(`a mocked "${category}" weather_code renders the matching data-weather value`, async ({
+      page,
+    }) => {
+      await mockOpenMeteo(page, { weatherCode });
+      await page.goto('/');
+      const skyClouds = page.locator('.sky-clouds');
+      await expect(skyClouds).toHaveAttribute('data-weather', category);
+
+      const rainLayer = page.locator('.sky-rain-drop').first();
+      const snowLayer = page.locator('.sky-snow-flake').first();
+      if (category === 'rain') {
+        await expect(rainLayer).toBeVisible();
+      } else {
+        await expect(rainLayer).toBeHidden();
+      }
+      if (category === 'snow') {
+        await expect(snowLayer).toBeVisible();
+      } else {
+        await expect(snowLayer).toBeHidden();
+      }
+    });
+  }
+
+  test('a clear-sky (sunny) mocked response renders sparse visible clouds', async ({ page }) => {
+    await mockOpenMeteo(page, { weatherCode: 0 });
     await page.goto('/');
     const skyClouds = page.locator('.sky-clouds');
-    await expect(skyClouds).toHaveAttribute('data-cloud-density', 'clear');
+    await expect(skyClouds).toHaveAttribute('data-weather', 'sunny');
     await expect(page.locator('.cloud:not([hidden])')).toHaveCount(2);
   });
 
-  test('an overcast mocked response renders dense visible clouds', async ({ page }) => {
-    await mockOpenMeteo(page, { cloudCover: 95 });
+  test('an overcast (cloudy) mocked response renders dense visible clouds', async ({ page }) => {
+    await mockOpenMeteo(page, { weatherCode: 3 });
     await page.goto('/');
     const skyClouds = page.locator('.sky-clouds');
-    await expect(skyClouds).toHaveAttribute('data-cloud-density', 'overcast');
-    await expect(page.locator('.cloud:not([hidden])')).toHaveCount(6);
+    await expect(skyClouds).toHaveAttribute('data-weather', 'cloudy');
+    await expect(page.locator('.cloud:not([hidden])')).toHaveCount(16);
   });
 
   test('a weather fetch failure leaves the default unchanged appearance with no console errors', async ({
@@ -68,10 +121,49 @@ test.describe('Dynamic sky background — User Story 1 (weather-driven cloud den
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('.sky-clouds')).not.toHaveAttribute('data-cloud-density', /.+/);
-    await expect(page.locator('.cloud')).toHaveCount(6);
-    await expect(page.locator('.cloud[hidden]')).toHaveCount(0);
+    await expect(page.locator('.sky-clouds')).not.toHaveAttribute('data-weather', /.+/);
+    // Sixteen `.cloud` elements exist in the markup, but only the original six are visible by
+    // default (index.html marks the other ten `hidden`) — this is the pre-feature fallback look.
+    await expect(page.locator('.cloud')).toHaveCount(16);
+    await expect(page.locator('.cloud[hidden]')).toHaveCount(10);
     expect(errors).toEqual([]);
+  });
+});
+
+test.describe('Dynamic sky background — User Story 2 (BACKGROUND_WEATHER = "off")', () => {
+  test('hides the entire sky animation (clouds, sun/moon, flying objects) regardless of mocked weather', async ({
+    page,
+  }) => {
+    await overrideBackgroundWeather(page, 'off');
+    await mockOpenMeteo(page, { weatherCode: 61 }); // rain — should still not apply
+    await page.clock.install({ time: new Date('2026-08-09T13:00:00') });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.locator('.sky-clouds')).toBeHidden();
+    await expect(page.locator('.sky-clouds')).not.toHaveAttribute('data-weather', /.+/);
+    await expect(page.locator('.sky-flying-objects')).toBeEmpty();
+  });
+});
+
+test.describe('Dynamic sky background — User Story 3 (fixed override + invalid fallback)', () => {
+  test('a fixed category always shows that data-weather value regardless of mocked weather', async ({
+    page,
+  }) => {
+    await overrideBackgroundWeather(page, 'snow');
+    await mockOpenMeteo(page, { weatherCode: 0 }); // sunny — should be overridden
+    await page.goto('/');
+
+    await expect(page.locator('.sky-clouds')).toHaveAttribute('data-weather', 'snow');
+    await expect(page.locator('.sky-snow-flake').first()).toBeVisible();
+  });
+
+  test('an invalid BACKGROUND_WEATHER value behaves identically to auto mode', async ({ page }) => {
+    await overrideBackgroundWeather(page, 'not-a-real-value');
+    await mockOpenMeteo(page, { weatherCode: 61 }); // rain
+    await page.goto('/');
+
+    await expect(page.locator('.sky-clouds')).toHaveAttribute('data-weather', 'rain');
   });
 });
 
@@ -136,5 +228,33 @@ test.describe('Dynamic sky background — User Story 3 (flying objects) and redu
     // Fast-forward 20 minutes — past even the bird's ~3-8 min spawn band — under fake timers.
     await page.clock.fastForward(20 * 60 * 1000);
     await expect(page.locator('.sky-flying-object')).toHaveCount(0);
+  });
+
+  test('rain/snow layers render statically (no motion) under reduced motion', async ({ page }) => {
+    await overrideBackgroundWeather(page, 'rain');
+    await mockOpenMeteo(page);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const rainAnimationName = await page
+      .locator('.sky-rain-drop')
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName);
+    expect(rainAnimationName).toBe('none');
+  });
+
+  test('snow layer renders statically (no motion) under reduced motion', async ({ page }) => {
+    await overrideBackgroundWeather(page, 'snow');
+    await mockOpenMeteo(page);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const snowAnimationName = await page
+      .locator('.sky-snow-flake')
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName);
+    expect(snowAnimationName).toBe('none');
   });
 });

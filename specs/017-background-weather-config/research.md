@@ -130,6 +130,35 @@ mechanical renames.
   since precipitation and cloud density aren't actually independent in the five-category model
   (rain/snow always imply dense cloud). Rejected.
 
+**Post-review refinement (operator follow-up after initial implementation)**: The first
+implementation pass shipped `rain`/`snow` reusing `cloudy`'s carried-over `overcast` values
+exactly (opacity 0.95, six of six clouds visible) and left the sun/moon merely dimmed
+(`blur(3px) brightness(0.75)`) under all three dense categories. Manual review judged this too
+subtle — `mixed` barely read as cloudier than `sunny`, and a dimmed-not-hidden sun looked wrong
+for genuinely overcast/rainy/snowy sky. Follow-up changes (data-model.md's "Sky Weather Reading"
+render-config table and "Sky Body Visibility"/"Full-coverage overcast backdrop" sections have the
+current numbers):
+
+- Grew the `.cloud` pool from six to sixteen elements (`index.html`) so `cloudy`/`rain`/`snow`
+  can show a genuinely dense sky (`visibleCount: 16`) and `mixed` a noticeably denser one
+  (`visibleCount: 10`, up from a direct `partly` carry-over of 4) without cloud instances
+  overlapping identically.
+- `cloudy`/`rain`/`snow` now hide the sun/moon entirely (`opacity: 0 !important`) instead of
+  dimming it — real overcast/rain/snow skies block it out completely — and `.sky-sun`/
+  `.sky-moon` were reordered before the `.cloud` elements in `index.html` so clouds always visibly
+  drift in front of the sun/moon (for `sunny`/`mixed`, where it's still shown), not behind it.
+- Added two new sibling layers (`.sky-overcast`, a full-viewport flat color fill; `.sky-ceiling`,
+  a dense slow-drifting band below the nav bar) plus a `body[data-weather]` background-gradient
+  swap, so `cloudy`/`rain`/`snow` read as a "completely clouded heaven" rather than gaps of blue
+  sky showing between individual drifting `.cloud` puffs.
+- `rain`/`snow` additionally tint every cloud shape gray (`rain`: one flat gray; `snow`: two
+  alternating grays) instead of leaving them white, requiring `.sky-clouds`'s `contrast()` filter
+  to drop from 30 to 3 for those two categories specifically (see app.css's tint-rule comment for
+  why extreme contrast pushes a non-neutral color toward a hue instead of staying gray).
+
+This refinement changed _values_, not the render-config's _shape_ — `hasRainLayer`/`hasSnowLayer`
+and the rain-streak/snow-flake particle layers from the original decision above are unaffected.
+
 ## 5. Background-weather config setting
 
 **Decision**: New `web/js/config.js` export `BACKGROUND_WEATHER = 'auto'` (default), following
@@ -153,16 +182,30 @@ reload/deploy anyway.
   visitor preference (User Story 2/3 both say "as the site operator... without touching any
   code" / "config file", not "as a visitor").
 
-## 6. `'off'` mode's "plain default appearance"
+## 6. `'off'` mode fully disables the sky animation
 
-**Decision**: `'off'` renders the _pre-feature_ static appearance: `.sky-clouds` gets no
-`data-weather` attribute at all (the same no-attribute state FR-005 of the original 007 spec
-already defined as the fallback-on-failure appearance, and that app.css already implements: base
-`.cloud` opacity/duration, no rain/snow layer). Sun/moon positioning (`tick()`) and flying-object
-spawning continue polling/rendering exactly as today — only the `poll()`-driven
-`data-weather`/category assignment is skipped in `'off'` mode.
+**Decision (revised)**: `'off'` is a hard escape hatch, not just a way to skip weather
+classification. `initSkyController()` checks `effectiveMode === 'off'` immediately after
+resolving it — before location resolution, before any weather fetch — and if so sets
+`skyClouds.hidden = true` and returns. That hides `.sky-clouds` and every descendant (the
+`.cloud` elements, `.sky-sun`, `.sky-moon`, the rain/snow particle layers) in one shot;
+`.sky-overcast`/`.sky-ceiling` already default to `display: none` until a `data-weather` value
+they key off is set, which `'off'` never sets; and since no timers are ever started, no flying
+object ever spawns into `.sky-flying-objects` either. No geocoding lookup or weather poll
+happens in this mode.
 
-**Rationale**: Directly reuses an appearance and a code path (the "no attribute" CSS fallback)
-that already exists and is already exercised (weather-fetch-failure case), rather than inventing
-a sixth visual state. Satisfies FR-007 ("plain default appearance") and the edge case's
-requirement that sun/moon positioning stays unaffected, with no new CSS.
+**Rationale**: The original decision below (reusing the "no `data-weather` attribute" fallback
+appearance) conflated two different situations that should read differently to visitors: a
+_failed_ weather lookup (FR-005/FR-009, "keep the last known-good look") and a _deliberate_
+operator choice to turn the feature off (FR-007). The operator's own framing — "an escape hatch
+... to reduce visual noise" — implies turning the visuals off, not merely freezing them at the
+pre-feature default. Hiding the container outright is also simpler than the previous approach:
+one `hidden = true` assignment instead of routing every downstream call through an `effectiveMode
+=== 'off'` check.
+
+**Superseded originally-recorded decision** (kept for history): `'off'` renders the _pre-feature_
+static appearance: `.sky-clouds` gets no `data-weather` attribute at all (the same no-attribute
+state already defined as the fallback-on-failure appearance). Sun/moon positioning (`tick()`) and
+flying-object spawning would continue polling/rendering exactly as today — only the
+`poll()`-driven `data-weather`/category assignment was skipped in `'off'` mode. This is no longer
+correct; see the revised decision above.

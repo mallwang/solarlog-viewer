@@ -19,10 +19,27 @@ body {
   min-height: 100vh;
 }
 
-/* Animated cloud backdrop — a fixed sky layer drifting behind the main content, modelled on the
-   "gooey" CSS clouds technique (freefrontend.com/css-clouds "2021 Clouds"): several overlapping
-   circles per cloud, fused into one soft fluffy blob by blurring the whole layer and then
-   cranking contrast back up so edges stay crisp instead of hazy.
+/* Weather-driven body background (User Story 1 follow-up): `sky-controller.js` sets
+   `data-weather` on <body> alongside `.sky-clouds` (see applyWeatherCategory() in
+   sky-controller.js) so the page background itself darkens/grays with denser weather, instead of
+   keeping the same bright-blue gradient behind an overcast sky. `sunny`/`mixed` keep the default
+   gradient above — only the categories that read as "overcast" get a different top color. */
+body[data-weather='cloudy'] {
+  background: linear-gradient(to bottom, #62a1cb 0%, var(--color-bg-app) 100%);
+}
+
+body[data-weather='rain'],
+body[data-weather='snow'] {
+  background: linear-gradient(to bottom, #96a6b5 0%, var(--color-bg-app) 100%);
+}
+
+/* Animated cloud backdrop — a fixed sky layer drifting behind the main content: several
+   overlapping circles per cloud (`.cloud` + its `::before`/`::after` puffs), fused into one soft
+   fluffy blob via `contrast(30)`, which snaps the circles' anti-aliased edges back to crisp
+   silhouettes once they overlap. No `blur()` is needed for this — the fill color itself
+   (typically white) already reads as one solid shape; blur was previously stacked with contrast
+   for an even softer fusion, but was dropped as unnecessary once the shapes read cleanly on
+   their own.
    Markup lives in index.html as `.sky-clouds` right after <body>. It's clipped to start exactly
    at `--chrome-height` — the real measured height of the header+nav bar, kept in sync by
    `updateChromeHeight()` in main.js — so clouds only ever exist in the main-content area and
@@ -38,10 +55,113 @@ body {
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  filter: blur(6px) contrast(30);
+  filter: contrast(30);
 }
 
-.cloud {
+/* Static full-coverage overcast backdrop (`cloudy`/`rain`/`snow`) — markup in index.html, a
+   sibling of `.sky-clouds` placed just *before* it (like the standalone `.sky-sun`/`.sky-moon`
+   elements, it's its own fixed layer rather than living inside `.sky-clouds`) so it paints
+   behind the drifting `.cloud` puffs while sharing the same fixed positioning/clipping.
+   Deliberately kept OUTSIDE `.sky-clouds`'s contrast filter (that filter can't be selectively
+   disabled for a descendant — it's applied to the whole rendered subtree as one bitmap) so this
+   reads as a smooth, flat cloud ceiling instead of the gooey fused-circle look, and so gaps
+   between the moving `.cloud` elements show solid overcast instead of the page background
+   bleeding through. Driven by `data-weather` on <body> (set alongside `.sky-clouds`'s own
+   attribute by sky-controller.js's applyWeatherCategory()) since it isn't a descendant of
+   `.sky-clouds`. The soft radial gradients add a hint of texture so it doesn't read as a single
+   flat color block. */
+.sky-overcast {
+  position: fixed;
+  top: var(--chrome-height, 120px);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  pointer-events: none;
+  display: none;
+}
+
+body[data-weather='cloudy'] .sky-overcast {
+  display: block;
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 25%, rgb(255 255 255 / 30%), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 75% 55%, rgb(0 0 0 / 5%), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 40% 85%, rgb(255 255 255 / 15%), transparent 55%), #62a1cb;
+}
+
+body[data-weather='rain'] .sky-overcast {
+  display: block;
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 25%, rgb(255 255 255 / 12%), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 75% 55%, rgb(0 0 0 / 10%), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 40% 85%, rgb(255 255 255 / 8%), transparent 55%), #96a6b5;
+}
+
+body[data-weather='snow'] .sky-overcast {
+  display: block;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgb(255 255 255 / 25%), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 70% 50%, rgb(255 255 255 / 15%), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 45% 85%, rgb(0 0 0 / 5%), transparent 55%), #96a6b5;
+}
+
+/* Cloud-ceiling accent band (`cloudy`/`rain`/`snow`) — markup in index.html, a fixed 120px strip
+   pinned right below the nav bar, painted on top of `.sky-overcast`/`.sky-clouds` (later in DOM
+   order, same z-index, so it paints last). Built from `.sky-ceiling__puff` blobs packed
+   edge-to-edge across the full width and fused via the same `contrast()` trick as `.sky-clouds`
+   (see the shared shape/tint rules below, and the big comment above the `rain`/`snow` tint rules
+   for why the contrast value has to drop for those categories) — the same cloud material as the
+   drifting `.cloud` elements, just static and dense enough to read as a solid ceiling instead of
+   individual puffs. `overflow: hidden` clips each puff's `::before` (which pokes above the
+   120px band) to a clean bottom-anchored edge. Driven by `data-weather` on <body>, same as
+   `.sky-overcast`. */
+.sky-ceiling {
+  position: fixed;
+  top: var(--chrome-height, 120px);
+  right: 0;
+  left: 0;
+  height: 120px;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  display: none;
+  filter: contrast(30);
+}
+
+body[data-weather='cloudy'] .sky-ceiling {
+  display: block;
+}
+
+body[data-weather='rain'] .sky-ceiling,
+body[data-weather='snow'] .sky-ceiling {
+  display: block;
+  filter: contrast(3);
+}
+
+/* All three categories now use the drift puffs (see `.sky-ceiling__puff--drift` further below)
+   instead of the static packed band. Those are sized at 2x the static band's puffs, so their full
+   silhouette — including the `::before` bump that pokes well above the puff's own box — needs
+   more than 120px of vertical room to render without this container's `overflow: hidden` slicing
+   it off. Extending the container upward by 150px (bottom edge stays exactly where it was, since
+   height grows by the same 150px `top` moves up) borrows room from directly behind the opaque
+   header/nav bar — see the big comment on `.sky-clouds` about the header's own opaque background —
+   so nothing actually shows there; it just stops being clipped before it would've reached the
+   header anyway. */
+body[data-weather='cloudy'] .sky-ceiling,
+body[data-weather='rain'] .sky-ceiling,
+body[data-weather='snow'] .sky-ceiling {
+  top: calc(var(--chrome-height, 120px) - 150px);
+  height: 270px;
+}
+
+/* `.sky-ceiling__puff` (the static cloud-ceiling band) shares its base circle + `::before`/
+   `::after` puffs and weather tint with `.cloud` below — it's built from the exact same cloud
+   material as the drifting elements. Only its positioning differs (absolute/bottom/left/scale,
+   no drift animation); this override MUST come after the shared `.cloud, .sky-ceiling__puff`
+   rule further down (same specificity — declaration order decides the winner) so `bottom`/`left`/
+   `transform` win over that rule's `top`/`left`/`transform`/`animation`. */
+.cloud,
+.sky-ceiling__puff {
   position: absolute;
   top: var(--top, 10%);
   left: 0;
@@ -56,25 +176,151 @@ body {
 }
 
 .cloud::before,
-.cloud::after {
+.cloud::after,
+.sky-ceiling__puff::before,
+.sky-ceiling__puff::after {
   content: '';
   position: absolute;
   background: #fff;
   border-radius: 50%;
 }
 
-.cloud::before {
+.cloud::before,
+.sky-ceiling__puff::before {
   width: 75px;
   height: 75px;
   top: -38px;
   left: 12px;
 }
 
-.cloud::after {
+.cloud::after,
+.sky-ceiling__puff::after {
   width: 95px;
   height: 65px;
   top: -22px;
   left: 58px;
+}
+
+/* Sized in `vw` rather than inheriting `.cloud`'s fixed px box: the puffs are packed edge to
+   edge by percentage `--left` positions, so their *horizontal* footprint has to keep scaling with
+   viewport width or wide/ultra-wide windows spread the same px-sized puffs too far apart and blue
+   sky shows through the seams — so width/left stay pure `vw`, uncapped. Height and the vertical
+   `top` offsets are different: those aren't needed for horizontal coverage, and the band itself
+   stays a fixed 120px regardless of viewport, so left uncapped they'd grow past it on a
+   fullscreen/ultra-wide window and `overflow: hidden` on `.sky-ceiling` would slice the puffs'
+   bottoms off. Each is capped with `min()`/`max()` at exactly `.cloud`'s own px size (these
+   figures times a 800px-reference-viewport `vw`-to-px conversion) instead — a puff just reads as
+   a flatter, wider blob past that width rather than an oversized circle. Below the 800px
+   reference width every value here is the `vw` one and wins normally, so mobile/narrow-window
+   sizing (and the overlap it depends on) is unaffected either way. */
+.sky-ceiling__puff {
+  position: absolute;
+  /* Clears the shared `.cloud, .sky-ceiling__puff` rule's `top: var(--top, 10%)` above — with
+     `top`, `height`, and `bottom` all non-auto on an absolutely-positioned box, the spec makes the
+     browser ignore `bottom` and use `top` instead, which silently defeated the bottom-anchoring
+     below and let the band render near the *top* of `.sky-ceiling` (behind the header) instead of
+     its bottom. */
+  top: auto;
+  bottom: var(--bottom, 0);
+  left: var(--left, 0%);
+  width: 15vw;
+  height: min(6.25vw, 50px);
+  transform: scale(var(--scale, 1));
+  animation: none;
+}
+
+.sky-ceiling__puff::before {
+  width: 9.4vw;
+  height: min(9.4vw, 75px);
+  top: max(-4.75vw, -38px);
+  left: 1.5vw;
+}
+
+.sky-ceiling__puff::after {
+  width: 11.9vw;
+  height: min(8.1vw, 65px);
+  top: max(-2.75vw, -22px);
+  left: 7.25vw;
+}
+
+body[data-weather='rain'] .sky-ceiling__puff,
+body[data-weather='rain'] .sky-ceiling__puff::before,
+body[data-weather='rain'] .sky-ceiling__puff::after {
+  background: #838383;
+}
+
+body[data-weather='snow'] .sky-ceiling__puff,
+body[data-weather='snow'] .sky-ceiling__puff::before,
+body[data-weather='snow'] .sky-ceiling__puff::after {
+  background: var(--cloud-tint, #999999);
+}
+
+body[data-weather='snow'] .sky-ceiling__puff:nth-child(even) {
+  --cloud-tint: #848484;
+}
+
+/* All three categories that show `.sky-ceiling` (`cloudy`/`rain`/`snow`) use this slow-drifting
+   puff set (markup in index.html: sixteen of them, staggered by `--delay` at even steps around
+   one 180s loop) rather than a static packed band. Reusing the `.sky-ceiling__puff` shape/tint
+   rules above keeps this the same cloud material as each category's own `.cloud` color, just
+   animated; only position/animation differ here. The `-25vw`/`125vw` travel range (vs `.cloud`'s
+   fixed `-180px`/`100vw + 180px`) matches this band's `vw`-sized puffs so a puff is still fully
+   off-screen at each end regardless of viewport width. At sixteen puffs over 180s, a new one
+   enters roughly every 11.25s — comfortably inside one puff's ~12% dwell time across the full
+   travel range — so the next puff is always overlapping before the previous one clears,
+   keeping the band looking continuously covered instead of showing sixteen distinct clouds.
+   Unlike `.cloud`, `width` is capped here too (not just `height`/`top`) — a moving puff sweeps
+   the *entire* band width on its own over one drift cycle regardless of how wide that is, so it
+   doesn't need extra width to avoid gaps; capping both axes keeps it at `.cloud`'s original round
+   proportions instead of stretching into a flat ellipse on wide viewports.
+
+   Every figure here is exactly double the base `.sky-ceiling__puff` rule above (so these read as
+   noticeably chunkier clouds than the drifting `.cloud` elements further up the page) — sized
+   directly via width/height/top/left rather than a `transform: scale()` multiplier.
+   `transform: scale()` grows a box symmetrically from its own center, which pulls the main
+   ellipse's bottom down past `.sky-ceiling`'s `overflow: hidden` edge and pushes the `::before`
+   bump equally further above the top — clipping both ends of the very asymmetry that makes this
+   read as a cloud, and leaving only the smoothly fused middle behind (a plain oval, not the
+   cauliflower silhouette). Doubling the box model instead keeps each element's own anchoring
+   (`--bottom` on the main box, each pseudo's fixed offset) intact, so it grows from the same
+   anchored edges the 1x version did. */
+.sky-ceiling__puff--drift {
+  width: min(30vw, 240px);
+  height: min(12.5vw, 100px);
+  left: 0;
+  animation: sky-ceiling-drift var(--duration, 180s) linear var(--delay, 0s) infinite;
+}
+
+.sky-ceiling__puff--drift::before {
+  width: min(18.8vw, 150px);
+  height: min(18.8vw, 150px);
+  top: max(-9.5vw, -76px);
+  left: min(3vw, 24px);
+}
+
+.sky-ceiling__puff--drift::after {
+  width: min(23.8vw, 190px);
+  height: min(16.2vw, 130px);
+  top: max(-5.5vw, -44px);
+  left: min(14.5vw, 116px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-ceiling__puff--drift {
+    animation: none;
+    left: var(--left, 0%);
+    transform: scale(var(--scale, 1));
+  }
+}
+
+@keyframes sky-ceiling-drift {
+  from {
+    transform: scale(var(--scale, 1)) translateX(-25vw);
+  }
+
+  to {
+    transform: scale(var(--scale, 1)) translateX(125vw);
+  }
 }
 
 @keyframes cloud-drift {
@@ -110,26 +356,68 @@ body {
   transition: none;
 }
 
-/* Weather-driven cloud density (User Story 1): `sky-controller.js` sets
-   `data-cloud-density="clear|partly|overcast"` on `.sky-clouds` from the polled Open-Meteo
-   cloud-cover reading (see web/js/sky/cloud-density.js's CLOUD_TIER_RENDER_CONFIG, mirrored
-   here). No attribute (JS never ran, or location/weather resolution failed) keeps today's
-   existing static `.cloud` opacity/duration — the correct FR-005 fallback appearance, for
-   free. `sky-controller.js` also sets `hidden` on a subset of the six `.cloud` elements for
-   the `clear` tier; the browser's default `[hidden] { display: none }` handles that without
-   any CSS here. */
-.sky-clouds[data-cloud-density='clear'] .cloud {
+/* Weather-driven backdrop (User Story 1): `sky-controller.js` sets
+   `data-weather="sunny|mixed|cloudy|rain|snow"` on `.sky-clouds` from the polled Open-Meteo
+   weather code, classified by web/js/weather/weather-category.js and rendered per
+   web/js/weather/weather-render-config.js's WEATHER_CATEGORY_RENDER_CONFIG (mirrored here). No
+   attribute (JS never ran, location/weather resolution failed, or BACKGROUND_WEATHER is 'off')
+   keeps today's existing static `.cloud` opacity/duration — the correct FR-005/FR-007 fallback
+   appearance, for free. `sky-controller.js` also sets `hidden` on a subset of the six `.cloud`
+   elements for the `sunny` category; the browser's default `[hidden] { display: none }` handles
+   that without any CSS here. `rain`/`snow` reuse `cloudy`'s cloud opacity/duration (both
+   visually overcast) plus their own particle layer, added further below. */
+.sky-clouds[data-weather='sunny'] .cloud {
   opacity: 0.35;
   animation-duration: calc(var(--duration, 60s) * 0.85);
 }
 
-.sky-clouds[data-cloud-density='partly'] .cloud {
-  opacity: 0.7;
+.sky-clouds[data-weather='mixed'] .cloud {
+  opacity: 0.8;
+  animation-duration: calc(var(--duration, 60s) * 1.1);
 }
 
-.sky-clouds[data-cloud-density='overcast'] .cloud {
+.sky-clouds[data-weather='cloudy'] .cloud,
+.sky-clouds[data-weather='rain'] .cloud,
+.sky-clouds[data-weather='snow'] .cloud {
   opacity: 0.95;
   animation-duration: calc(var(--duration, 60s) * 1.3);
+}
+
+/* `rain`/`snow` tint the clouds gray instead of leaving them white. This needs two things,
+   not just a background-color swap — `.sky-clouds`'s own `filter: contrast(30)` (above) applies
+   to its *whole* rendered subtree as one bitmap, and `contrast(30)` is so extreme it's
+   effectively a per-channel black/white threshold. White survives it untouched because
+   R=G=B=255 stays equal under any contrast multiplier — but a color like Tailwind's `#6b7280`
+   has an uneven blue channel (107, 114, 128 — B highest), and amplifying that small per-channel
+   gap by 30x pushes R/G toward black while B alone survives toward white, producing a saturated
+   *blue*, not gray. Two fixes: (1) `contrast()` is knocked down to 3 for `rain`/`snow`
+   specifically (still enough to keep edges reasonably crisp, softer than the default 30) so a
+   midtone survives instead of getting crushed to a threshold extreme, and (2) every tint below
+   uses an exactly-neutral hex (equal R=G=B, e.g. `#838383`) so equal input channels stay equal
+   through the transform — no hue can appear regardless of the contrast value. `snow` alternates
+   two such neutral tones per cloud (`--cloud-tint`, set per `.cloud` element below) for a mixed,
+   wintery cloud bank rather than a flat block of color. `.cloud`'s own background plus its
+   `::before`/`::after` puffs all read this custom property so the tint applies uniformly across
+   a cloud's three overlapping shapes. */
+.sky-clouds[data-weather='rain'],
+.sky-clouds[data-weather='snow'] {
+  filter: contrast(3);
+}
+
+.sky-clouds[data-weather='rain'] .cloud,
+.sky-clouds[data-weather='rain'] .cloud::before,
+.sky-clouds[data-weather='rain'] .cloud::after {
+  background: #838383;
+}
+
+.sky-clouds[data-weather='snow'] .cloud,
+.sky-clouds[data-weather='snow'] .cloud::before,
+.sky-clouds[data-weather='snow'] .cloud::after {
+  background: var(--cloud-tint, #999999);
+}
+
+.sky-clouds[data-weather='snow'] .cloud:nth-child(even) {
+  --cloud-tint: #848484;
 }
 
 /* Sun/moon arc (User Story 2): `sky-controller.js` positions these via `--x-percent`/
@@ -167,11 +455,19 @@ body {
   background: radial-gradient(circle, #f4f6fb 0%, #d8dee9 70%, #aab2c0 100%);
 }
 
-/* Dense cloud cover dims and softens the sun/moon rather than hiding them entirely, so the
-   body stays at least partially visible behind overcast skies. */
-.sky-clouds[data-cloud-density='overcast'] .sky-sun,
-.sky-clouds[data-cloud-density='overcast'] .sky-moon {
-  filter: blur(3px) brightness(0.75);
+/* Overcast skies (cloudy/rain/snow) show no sun/moon at all — real cloud cover this dense
+   blocks it out completely, not just dims it. `!important` is required to win over the inline
+   `opacity` style `sky-controller.js`'s tick() sets every 60s. Combined with the sun/moon now
+   being placed *before* the `.cloud` elements in index.html's markup, the six cloud shapes also
+   paint on top of the sun/moon for `sunny`/`mixed` — so even while visible, the sun is always
+   behind the cloud layer, matching how it looks in the real sky. */
+.sky-clouds[data-weather='cloudy'] .sky-sun,
+.sky-clouds[data-weather='cloudy'] .sky-moon,
+.sky-clouds[data-weather='rain'] .sky-sun,
+.sky-clouds[data-weather='rain'] .sky-moon,
+.sky-clouds[data-weather='snow'] .sky-sun,
+.sky-clouds[data-weather='snow'] .sky-moon {
+  opacity: 0 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -179,6 +475,82 @@ body {
   .sky-moon {
     transition: none;
   }
+}
+
+/* Rain/snow particle layers (User Story 1): two new CSS-only animated treatments, children of
+   `.sky-clouds` (markup in index.html) so they share its fixed positioning/clipping and its
+   contrast "gooey" filter, matching `.cloud`'s own technique. Both wrappers are hidden by
+   default and shown only for their matching `data-weather` value — `sky-controller.js` never
+   toggles them directly, the same pattern as the `[data-weather]` cloud-opacity rules above. */
+.sky-rain,
+.sky-snow {
+  display: none;
+}
+
+.sky-clouds[data-weather='rain'] .sky-rain {
+  display: block;
+}
+
+.sky-clouds[data-weather='snow'] .sky-snow {
+  display: block;
+}
+
+.sky-rain-drop {
+  position: absolute;
+  top: -20%;
+  left: var(--left, 10%);
+  width: 2px;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, rgba(200, 220, 255, 0.75));
+  animation: rain-fall var(--duration, 0.8s) linear var(--delay, 0s) infinite;
+}
+
+@keyframes rain-fall {
+  from {
+    transform: translateY(-10%) translateX(0);
+  }
+
+  to {
+    transform: translateY(120vh) translateX(-40px);
+  }
+}
+
+.sky-snow-flake {
+  position: absolute;
+  top: -5%;
+  left: var(--left, 10%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: var(--opacity, 0.85);
+  animation: snow-fall var(--duration, 8s) linear var(--delay, 0s) infinite;
+}
+
+@keyframes snow-fall {
+  from {
+    transform: translateY(-10%) translateX(0);
+  }
+
+  to {
+    transform: translateY(120vh) translateX(30px);
+  }
+}
+
+/* Suppress motion exactly like `.cloud` does: both the browser's live media query and
+   sky-controller.js's own matchMedia-driven `data-reduce-motion` attribute (kept in sync so the
+   same signal governs cloud drift, sun/moon crossfade, flying-object spawning, and these two
+   layers). */
+@media (prefers-reduced-motion: reduce) {
+  .sky-rain-drop,
+  .sky-snow-flake {
+    animation: none;
+  }
+}
+
+.sky-clouds[data-reduce-motion='true'] .sky-rain-drop,
+.sky-clouds[data-reduce-motion='true'] .sky-snow-flake {
+  animation: none;
 }
 
 /* Flying objects (User Story 3): a separate fixed layer, sibling to `.sky-clouds` (markup in
@@ -842,8 +1214,9 @@ a {
 /* Production-animation pulse (User Story 4, FR-009/FR-010): a plain circular dot whose
    size/glow/animation-speed scale with `data-intensity` (from
    `web/js/info-panel/production-animation.js`'s `productionIntensity()`, discrete tiers
-   mirroring the sky feature's `cloud-density.js` → CSS-custom-property precedent, research.md
-   §4) and whose *color* scales continuously with `--pulse-color` (from that module's
+   mirroring the sky feature's `weather-render-config.js` (formerly `cloud-density.js`) →
+   CSS-custom-property precedent, research.md §4) and whose *color* scales continuously with
+   `--pulse-color` (from that module's
    `productionColor()` — gray for no production, otherwise a red→orange→yellow→green
    interpolation of how close current output is to the plant's capacity). The `transition`
    here (not just the `@keyframes` below) is what makes both a tier *and* a color change

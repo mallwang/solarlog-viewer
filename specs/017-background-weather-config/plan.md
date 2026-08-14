@@ -136,20 +136,32 @@ precedent of skipping `contracts/` for the same reason).
 
 ```text
 web/
+├── index.html                           # sky-clouds: sun/moon reordered before .cloud puffs;
+│                                           .cloud pool grown 6 → 16 (10 more, hidden by default);
+│                                           rain/snow particle markup; new .sky-overcast/
+│                                           .sky-ceiling sibling layers (post-review refinement)
 ├── css/
 │   └── app.css                          # rename data-cloud-density → data-weather; new
-│                                           .sky-clouds[data-weather='rain'|'snow'] layers
+│                                           .sky-clouds[data-weather='rain'|'snow'] particle
+│                                           layers; body[data-weather] gradient swap; sun/moon
+│                                           fully hidden (not dimmed) for cloudy/rain/snow;
+│                                           .sky-overcast/.sky-ceiling rules; rain/snow gray
+│                                           cloud tint (post-review refinement, see research.md §4)
 ├── js/
 │   ├── weather/                         # NEW directory — shared classification, used by
 │   │   │                                  both sky/ and info-panel/ (research.md §2)
 │   │   ├── weather-category.js          # NEW — weatherCodeToCategory(), WEATHER_CATEGORIES
 │   │   ├── weather-category.test.js     # NEW
 │   │   ├── weather-render-config.js     # renamed from sky/cloud-density.js — adds rain/snow
-│   │   │                                  entries (hasRainLayer/hasSnowLayer)
+│   │   │                                  entries (hasRainLayer/hasSnowLayer); mixed/cloudy/
+│   │   │                                  rain/snow visibleCount values raised to the 16-cloud
+│   │   │                                  pool (post-review refinement)
 │   │   └── weather-render-config.test.js # renamed from sky/cloud-density.test.js
 │   ├── sky/
-│   │   ├── sky-controller.js            # reads BACKGROUND_WEATHER; sets data-weather;
-│   │   │                                  imports weather/ instead of ./cloud-density.js
+│   │   ├── sky-controller.js            # reads BACKGROUND_WEATHER; sets data-weather on both
+│   │   │                                  .sky-clouds and <body> (post-review refinement, for
+│   │   │                                  .sky-overcast/.sky-ceiling); imports weather/ instead
+│   │   │                                  of ./cloud-density.js
 │   │   ├── weather-client.js            # fetch weather_code instead of cloud_cover; parses
 │   │   │                                  into { weatherCode, category, sunrise, sunset,
 │   │   │                                  nextSunrise, fetchedAt } (data-model.md)
@@ -167,14 +179,19 @@ web/
 
 tests/e2e/
 ├── sky.spec.js                          # extended: all 5 categories, off/fixed/invalid modes,
-│                                           rain/snow layer presence, reduced-motion
+│                                           rain/snow layer presence, reduced-motion, 16-cloud
+│                                           counts (post-review refinement)
+├── sky-birds.spec.js                    # weather mock updated to weather_code (was cloud_cover)
 └── info-panel.spec.js                   # extended: weather text uses shared category labels
 ```
 
 **Structure Decision**: One new directory, `web/js/weather/`, holding the logic FR-002 requires
 `sky/` and `info-panel/` to share (research.md §2) — neither existing directory is the right
 owner for shared classification logic. Everything else is an in-place rename/extension of
-existing modules; no new view, route, or chart-factory change.
+existing modules; no new view, route, or chart-factory change. A post-review pass (research.md
+§4's "Post-review refinement") later widened the visual distinctness between categories — more
+`.cloud` elements, fully-hidden (not dimmed) sun/moon under dense cover, and two new full-coverage
+backdrop layers — without changing this structural decision.
 
 ## Complexity Tracking
 

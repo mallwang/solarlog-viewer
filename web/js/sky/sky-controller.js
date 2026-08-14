@@ -1,22 +1,28 @@
 /**
  * @file DOM-glue orchestrator for the dynamic weather-driven sky background. Resolves the
  * installation's location, polls Open-Meteo for weather/solar-time data every 15 minutes,
- * drives the `.sky-clouds` backdrop's `data-cloud-density` attribute (User Story 1), positions
+ * drives the `.sky-clouds` backdrop's `data-weather` attribute (User Story 1) subject to the
+ * `BACKGROUND_WEATHER` config setting (auto/off/fixed — User Stories 2/3), positions
  * `.sky-sun`/`.sky-moon` on a 60-second tick (User Story 2), and schedules short-lived
  * `.sky-flying-object` elements on a faster poll so bird spawns (multiple times a minute)
- * actually get checked (User Story 3). Any failure at any stage (no location, fetch
- * failure, malformed response) leaves the sky untouched so the existing static CSS appearance
- * renders unchanged (FR-005); `prefers-reduced-motion` suppresses flying-object spawning
- * entirely (FR-013). Not unit-tested directly — covered by tests/e2e/sky.spec.js, per plan.md's
- * stated split between pure logic modules (unit-tested) and this DOM-effect layer (Playwright).
+ * actually get checked (User Story 3). `BACKGROUND_WEATHER = 'off'` is a hard escape hatch —
+ * it hides `.sky-clouds` (clouds + sun/moon) outright and skips location resolution, weather
+ * polling, and every timer, so flying objects never spawn either (FR-007). Any *unrequested*
+ * failure at any other stage (no location, fetch failure, malformed response) instead leaves
+ * the sky untouched so the existing static CSS appearance renders unchanged (FR-005);
+ * `prefers-reduced-motion` suppresses flying-object spawning entirely (FR-013). Not unit-tested
+ * directly — covered by tests/e2e/sky.spec.js, per plan.md's stated split between pure logic
+ * modules (unit-tested) and this DOM-effect layer (Playwright).
  */
 
 import { resolveInstallationLocation } from './location.js';
 import { fetchWeather } from './weather-client.js';
-import { CLOUD_TIER_RENDER_CONFIG } from './cloud-density.js';
+import { WEATHER_CATEGORY_RENDER_CONFIG } from '../weather/weather-render-config.js';
+import { WEATHER_CATEGORIES } from '../weather/weather-category.js';
 import { computeSkyBodyPosition } from './solar-arc.js';
 import { createFlyingObjectScheduler } from './flying-objects.js';
 import { FLYING_OBJECT_RENDERERS } from './flying-object-renderers.js';
+import { BACKGROUND_WEATHER } from '../config.js';
 
 const POLL_INTERVAL_MS = 15 * 60 * 1000;
 const TICK_INTERVAL_MS = 60 * 1000;
@@ -83,14 +89,19 @@ const KIND_LANE_RANGES = {
 };
 
 /**
- * Sets `data-cloud-density` on `.sky-clouds` and shows/hides the six existing `.cloud`
- * elements per the tier's `visibleCount` (fewer visible for the `clear` tier).
+ * Sets `data-weather` on `.sky-clouds` (driving cloud opacity/duration and the rain/snow layers
+ * via app.css) and shows/hides the sixteen `.cloud` elements per the category's `visibleCount`
+ * (fewer visible for the `sunny` category, all sixteen for `cloudy`/`rain`/`snow`). Also sets
+ * `data-weather` on `<body>` — the page background gradient and the `.sky-overcast` full-cover
+ * backdrop (a sibling of `.sky-clouds`, kept outside its contrast filter) both key off that
+ * instead of `.sky-clouds`, since `.sky-overcast` isn't a descendant of it.
  * @param {HTMLElement} skyClouds
- * @param {'clear' | 'partly' | 'overcast'} tier
+ * @param {'sunny' | 'mixed' | 'cloudy' | 'rain' | 'snow'} category
  */
-function applyCloudDensity(skyClouds, tier) {
-  skyClouds.dataset.cloudDensity = tier;
-  const { visibleCount } = CLOUD_TIER_RENDER_CONFIG[tier];
+function applyWeatherCategory(skyClouds, category) {
+  skyClouds.dataset.weather = category;
+  document.body.dataset.weather = category;
+  const { visibleCount } = WEATHER_CATEGORY_RENDER_CONFIG[category];
   const clouds = skyClouds.querySelectorAll('.cloud');
   clouds.forEach((cloud, index) => {
     cloud.hidden = index >= visibleCount;
@@ -175,6 +186,23 @@ export async function initSkyController({ plant, locationOverride }) {
   const skyClouds = document.querySelector('.sky-clouds');
   if (!skyClouds) return;
 
+  /** Validated once at startup — a static config constant, not runtime-reactive (FR-010). */
+  const effectiveMode = ['off', ...WEATHER_CATEGORIES].includes(BACKGROUND_WEATHER)
+    ? BACKGROUND_WEATHER
+    : 'auto';
+
+  // 'off' fully disables the sky animation (FR-007) rather than falling back to the
+  // pre-feature default look — it's meant as an escape hatch to turn the whole thing off, not
+  // just its weather-driven part. Hiding `.sky-clouds` also hides its `.sky-sun`/`.sky-moon`/
+  // `.cloud` descendants in one shot; `.sky-overcast`/`.sky-ceiling` already default to
+  // `display: none` until a `data-weather` value they key off is set, which 'off' never sets.
+  // Returning here, before location resolution, skips the geocoding lookup and weather poll
+  // entirely and never starts the tick/spawn timers, so `.sky-flying-objects` stays empty too.
+  if (effectiveMode === 'off') {
+    skyClouds.hidden = true;
+    return;
+  }
+
   const location = await resolveInstallationLocation(plant, locationOverride);
   if (!location) return;
 
@@ -208,7 +236,11 @@ export async function initSkyController({ plant, locationOverride }) {
     const weather = await fetchWeather(location);
     if (!weather) return;
     lastWeather = weather;
-    applyCloudDensity(skyClouds, weather.tier);
+    // 'off' never reaches here (handled above, before location resolution). A fixed category
+    // always wins over the live reading; 'auto' applies the live category. The nav bar's
+    // independent poll is never affected by this setting either way (FR-006).
+    const category = WEATHER_CATEGORIES.includes(effectiveMode) ? effectiveMode : weather.category;
+    applyWeatherCategory(skyClouds, category);
   }
 
   function tick() {

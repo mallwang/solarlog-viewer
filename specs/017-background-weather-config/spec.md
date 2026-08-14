@@ -34,16 +34,16 @@ As a site visitor, when I load the dashboard I see an animated sky background th
 
 ### User Story 2 - Operator disables the weather-driven background (Priority: P2)
 
-As the site operator, I can set a single configuration value to turn the weather-driven background off, so the dashboard always shows its plain default appearance regardless of the API response, without touching any code.
+As the site operator, I can set a single configuration value to turn the whole sky animation off — no clouds, no sun/moon, no flying objects — so the dashboard shows a plain background with none of this feature's visuals, without touching any code.
 
 **Why this priority**: Gives the operator a simple escape hatch (e.g. to reduce visual noise, rule out the feature while debugging something else, or match a future design change) without needing to revert code.
 
-**Independent Test**: Set the configuration value to "off", reload the site, and confirm the background stays on its plain default appearance no matter what the weather API reports, while the rest of the sky background (sun/moon position) is unaffected.
+**Independent Test**: Set the configuration value to "off", reload the site, and confirm no sky elements (clouds, sun/moon, or flying objects) render at all, no matter what the weather API reports.
 
 **Acceptance Scenarios**:
 
-1. **Given** the configuration value is set to "off", **When** the dashboard loads under any real weather condition, **Then** the background shows the plain default appearance instead of a weather-specific one.
-2. **Given** the configuration value is set to "off", **When** the weather API is polled, **Then** no weather-condition background switch happens (the poll may still run for other consumers such as the nav bar's own independent weather text).
+1. **Given** the configuration value is set to "off", **When** the dashboard loads under any real weather condition, **Then** no clouds, sun/moon, or flying objects render — the sky animation is fully disabled, not just its weather-driven part.
+2. **Given** the configuration value is set to "off", **When** the weather API would normally be polled, **Then** no such poll happens for the sky background (the nav bar's own independent weather text is unaffected and keeps polling separately).
 
 ---
 
@@ -78,9 +78,9 @@ As the site operator, I can set the configuration value to one specific weather 
 - **FR-002**: While the background-weather setting is "auto" (FR-005), the background weather category and the navigation bar's weather text MUST be derived from the same classification of the same live API response, so they agree about current conditions. The navigation bar's weather text is otherwise a fully independent widget: it always reports live weather/forecast data and is never itself switched to "off" or a fixed value by this feature (see FR-007) — only the background is.
 - **FR-003**: System MUST render a visually distinct, animated background for each of the five categories — not a static image — extending the two treatments that exist today (sunny/clear, cloudy/overcast) with a "mixed" (partly cloudy) treatment already partially present, and adding new "rain" and "snow" treatments that do not exist today.
 - **FR-004**: System MUST map every weather condition the API can report that is not already one of the five categories (e.g. fog, thunderstorm) onto the closest matching one of the five, so classification always resolves to one of the five — never to an unclassified/unknown state. [Default mapping: fog → cloudy, thunderstorm → rain; see Assumptions.]
-- **FR-005**: The site configuration MUST expose one setting controlling the background-weather behavior, accepting: "auto" (default — live, API-driven classification per FR-001), "off" (always show the plain default background, independent of the API), or one of the five fixed category names (always show that category's background, independent of the API).
+- **FR-005**: The site configuration MUST expose one setting controlling the background-weather behavior, accepting: "auto" (default — live, API-driven classification per FR-001), "off" (disables the sky animation entirely, independent of the API), or one of the five fixed category names (always show that category's background, independent of the API).
 - **FR-006**: When the setting is fixed to one of the five category names, the background MUST show that fixed category regardless of what the API currently reports. The navigation bar's weather text is unaffected by this and keeps showing live conditions (per FR-002) — the two are allowed to disagree while the setting isn't "auto".
-- **FR-007**: When the setting is "off", the background MUST show its plain default appearance regardless of the API response. The navigation bar's own weather text (an existing, separate widget) is unaffected and keeps showing live conditions.
+- **FR-007**: When the setting is "off", the system MUST render none of this feature's sky visuals — no weather-driven clouds, no sun/moon, no flying objects — regardless of the API response; this is a full disable, not a fallback to the plain pre-feature look. The navigation bar's own weather text (an existing, separate widget) is unaffected and keeps showing live conditions.
 - **FR-008**: When the setting holds an unrecognized value, the system MUST behave as if it were "auto" rather than failing to render or throwing an error.
 - **FR-009**: While in "auto" mode, if the weather API fetch fails or returns malformed data, the system MUST retain the last successfully classified category rather than reverting to a default or blank state.
 - **FR-010**: Changing the configuration setting MUST take effect the next time the site is loaded, without requiring any other code change.
@@ -88,14 +88,14 @@ As the site operator, I can set the configuration value to one specific weather 
 ### Key Entities
 
 - **Weather Background Category**: One of exactly five values — sunny, mixed, cloudy, rain, snow — the shared classification driving both the animated background and the navigation bar's weather text.
-- **Background Weather Setting**: A single site configuration value controlling how the category is determined: `"auto"` (live API-driven), `"off"` (disabled, plain default background), or a fixed category name (always that category). Mutually exclusive — the site has exactly one active mode at a time.
+- **Background Weather Setting**: A single site configuration value controlling how the category is determined: `"auto"` (live API-driven), `"off"` (sky animation fully disabled — no clouds, sun/moon, or flying objects), or a fixed category name (always that category). Mutually exclusive — the site has exactly one active mode at a time.
 
 ## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
 - **SC-001**: For every weather condition the API can report, while the background setting is "auto", the dashboard shows exactly one of the five defined backgrounds and the nav bar names that same condition — verified across all documented API response values, with none left unclassified.
-- **SC-002**: An operator can turn the weather-driven background off by changing a single configuration value and reloading, with no other code change required; the nav bar keeps reporting real weather unaffected.
+- **SC-002**: An operator can turn the entire sky animation off (no clouds, sun/moon, or flying objects) by changing a single configuration value and reloading, with no other code change required; the nav bar keeps reporting real weather unaffected.
 - **SC-003**: An operator can pin the background to one specific condition by changing a single configuration value and reloading, with that pinned condition shown on every subsequent visit regardless of real weather, while the nav bar continues to report the real, live conditions independently.
 - **SC-004**: When live weather data is temporarily unavailable, visitors keep seeing the last successfully determined background instead of a blank, broken, or inconsistent state.
 - **SC-005**: An invalid configuration value never breaks page rendering — the site falls back to live, API-driven behavior.
@@ -104,6 +104,6 @@ As the site operator, I can set the configuration value to one specific weather 
 
 - The weather API already used for the sky background and the one already used for the navigation bar's weather text return the same kind of current-conditions data (a discrete weather condition code plus, separately, a cloud-cover percentage); this feature unifies both consumers around one shared classification derived from that data rather than introducing a new data source.
 - Default mapping from the API's finer-grained conditions onto the five categories: clear-sky → sunny; light/partial cloud → mixed; overcast/heavy cloud → cloudy; any drizzle/rain/rain-shower condition → rain; any snow/snow-shower condition → snow; fog → cloudy (visually closest); thunderstorm → rain (visually closest, precipitation-bearing).
-- "Off" and a fixed override both affect only the _background's_ weather category selection; neither disables the unrelated sun/moon positioning or bird/plane-style flying-object animation already present in the sky background, and neither affects the navigation bar's own independent weather text — it keeps reporting live conditions exactly as it does today, in every mode, because that information is relevant to visitors on its own and independent of what the background is showing.
+- A fixed override affects only the _background's_ weather category selection; it does not disable the unrelated sun/moon positioning or bird/plane-style flying-object animation already present in the sky background. "Off" is different: it's a full escape hatch that disables the entire sky animation (clouds, sun/moon, and flying objects alike), not just the weather-driven category. Neither mode affects the navigation bar's own independent weather text — it keeps reporting live conditions exactly as it does today, because that information is relevant to visitors on its own and independent of what the background is showing.
 - The configuration setting lives alongside the project's existing manual-override style settings (e.g. site title, sky location override) in the site's central configuration file, edited by the operator and taking effect on next page load — no in-app UI is required to change it.
 - New "rain" and "snow" visual treatments are expected to reuse the existing animated-backdrop mechanism (comparable in visual weight to the current cloud animation) rather than introduce an unrelated visual style; exact visual design is left to the implementation phase.

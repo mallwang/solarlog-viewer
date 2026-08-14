@@ -59,15 +59,15 @@ test('a malformed response resolves to available: false', async () => {
   assert.deepEqual(result, { available: false });
 });
 
-test('weatherCodeToLabelKey groups known WMO codes', () => {
-  assert.equal(weatherCodeToLabelKey(0), 'infoPanel.weatherCode.clear');
-  assert.equal(weatherCodeToLabelKey(2), 'infoPanel.weatherCode.cloudy');
-  assert.equal(weatherCodeToLabelKey(45), 'infoPanel.weatherCode.fog');
-  assert.equal(weatherCodeToLabelKey(61), 'infoPanel.weatherCode.rain');
-  assert.equal(weatherCodeToLabelKey(75), 'infoPanel.weatherCode.snow');
-  assert.equal(weatherCodeToLabelKey(95), 'infoPanel.weatherCode.storm');
+test('weatherCodeToLabelKey delegates to the shared five-category classifier', () => {
+  assert.equal(weatherCodeToLabelKey(0), 'infoPanel.weatherCategory.sunny');
+  assert.equal(weatherCodeToLabelKey(2), 'infoPanel.weatherCategory.mixed');
+  assert.equal(weatherCodeToLabelKey(45), 'infoPanel.weatherCategory.cloudy');
+  assert.equal(weatherCodeToLabelKey(61), 'infoPanel.weatherCategory.rain');
+  assert.equal(weatherCodeToLabelKey(75), 'infoPanel.weatherCategory.snow');
+  assert.equal(weatherCodeToLabelKey(95), 'infoPanel.weatherCategory.rain');
 });
 
-test('weatherCodeToLabelKey falls back to unknown for unrecognized codes', () => {
-  assert.equal(weatherCodeToLabelKey(999), 'infoPanel.weatherCode.unknown');
+test('weatherCodeToLabelKey falls back to cloudy for unrecognized codes', () => {
+  assert.equal(weatherCodeToLabelKey(999), 'infoPanel.weatherCategory.cloudy');
 });

@@ -1,31 +1,27 @@
 /**
  * @file Open-Meteo current-weather-code + today's-forecast fetch for the global info panel
  * (research.md §1). Deliberately separate from `web/js/sky/weather-client.js` — that module
- * is scoped around cloud-cover-percent + sunrise/sunset for the sky backdrop; this feature
- * needs a discrete WMO weather code (for a human label like "clear"/"rain") and today's
- * min/max temperature, a different response shape. See data-model.md's "Current Weather
- * Condition" / "Today's Forecast Summary".
+ * is scoped around the sky backdrop's own poll cadence + sunrise/sunset; this feature needs
+ * today's min/max temperature too, a different response shape. Its weather-code label,
+ * however, now delegates to the shared `weatherCodeToCategory()` classifier
+ * (`weather/weather-category.js`) so the nav bar's text and the sky backdrop always agree on
+ * the same five-way condition whenever both are reading live data (FR-002). See data-model.md's
+ * "Current Weather Condition" / "Today's Forecast Summary".
  */
+
+import { weatherCodeToCategory } from '../weather/weather-category.js';
 
 const FORECAST_BASE_URL = 'https://api.open-meteo.com/v1/forecast';
 
 /**
- * Maps an Open-Meteo/WMO `weather_code` to a short i18n key under `infoPanel.weatherCode.*`.
- * Grouped per WMO code table: https://open-meteo.com/en/docs (see "WMO Weather interpretation
- * codes"). Unrecognized codes fall back to the generic 'unknown' key rather than throwing.
+ * Maps an Open-Meteo/WMO `weather_code` to its i18n key under `infoPanel.weatherCategory.*`, via
+ * the shared five-category classifier (`weatherCodeToCategory()`) — never returns anything
+ * outside the five categories (FR-004).
  * @param {number} weatherCode
- * @returns {string} i18n key, e.g. 'infoPanel.weatherCode.clear'.
+ * @returns {string} i18n key, e.g. 'infoPanel.weatherCategory.sunny'.
  */
 export function weatherCodeToLabelKey(weatherCode) {
-  if (weatherCode === 0) return 'infoPanel.weatherCode.clear';
-  if ([1, 2, 3].includes(weatherCode)) return 'infoPanel.weatherCode.cloudy';
-  if ([45, 48].includes(weatherCode)) return 'infoPanel.weatherCode.fog';
-  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(weatherCode)) {
-    return 'infoPanel.weatherCode.rain';
-  }
-  if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) return 'infoPanel.weatherCode.snow';
-  if ([95, 96, 99].includes(weatherCode)) return 'infoPanel.weatherCode.storm';
-  return 'infoPanel.weatherCode.unknown';
+  return `infoPanel.weatherCategory.${weatherCodeToCategory(weatherCode)}`;
 }
 
 /**

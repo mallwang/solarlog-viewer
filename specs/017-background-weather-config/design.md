@@ -50,8 +50,8 @@ states via toggles rather than proposing new layout structure.
   existing manual-override pattern (`SITE_TITLE`, `SKY_LOCATION_OVERRIDE`) already in that file.
   The mockup's "config panel" (a read-only snippet with the active line highlighted) exists only
   to make the three modes reviewable side by side; it has no shipped equivalent.
-- Three modes reviewed: `'auto'` (default, live), `'off'` (plain default background), or one of
-  the five category names as a fixed override.
+- Three modes reviewed: `'auto'` (default, live), `'off'` (sky animation fully disabled — no
+  clouds, sun/moon, or flying objects), or one of the five category names as a fixed override.
 
 ## Requirement traceability
 
@@ -60,7 +60,7 @@ states via toggles rather than proposing new layout structure.
 | Five distinct sky treatments                               | FR-001, FR-003, User Story 1             |
 | Nav bar text always live, independent of background config | FR-002, FR-006, FR-007, User Story 1 AS7 |
 | "auto" mode: background and nav bar agree                  | FR-002, User Story 1 AS1–AS6             |
-| "off" mode: plain default background                       | FR-005, FR-007, User Story 2             |
+| "off" mode: sky animation fully disabled                   | FR-005, FR-007, User Story 2             |
 | "fixed" mode: pinned background, nav bar unaffected        | FR-005, FR-006, User Story 3             |
 | Config snippet showing single-setting, next-load semantics | FR-005, FR-010                           |
 
@@ -82,3 +82,31 @@ corrected this: the nav bar must always show real weather/forecast regardless of
 setting, since that information is independently relevant to visitors. `spec.md`'s FR-002,
 FR-006, FR-007, the User Story 1 acceptance scenarios, and SC-001–SC-003 were updated to reflect
 this before this file was written.
+
+## Post-implementation visual refinement
+
+After the initial implementation shipped (reusing `cloudy`'s carried-over `overcast` values
+as-is for `rain`/`snow`, and only dimming the sun/moon under dense cover), a follow-up round of
+manual review judged the five treatments too visually similar and asked for clearer separation.
+The shipped visuals now diverge from this file's original bullet list as follows (see
+research.md §4's "Post-review refinement" and data-model.md's "Sky Body Visibility"/
+"Full-coverage overcast backdrop" sections for the full technical detail):
+
+- **mixed** — noticeably more/denser clouds than originally scoped (ten of sixteen visible, up
+  from a direct four-of-six carry-over), so it reads as clearly cloudier than **sunny** at a
+  glance; the sun stays visible, as originally described.
+- **cloudy** — "sun mostly obscured" became "sun fully hidden" — real overcast skies block the
+  sun out completely, not just dim it. Also gained a full-viewport flat-color backdrop and a
+  dense cloud-ceiling band (beyond the drifting `.cloud` puffs alone) so the sky reads as
+  completely clouded rather than showing gaps of blue between puffs.
+- **rain** / **snow** — same full-viewport backdrop/ceiling treatment as **cloudy**, sun/moon
+  fully hidden (not just dimmed), and the cloud shapes themselves now tint gray (rain: one flat
+  gray; snow: two alternating grays) instead of staying white — closer to the "darker grey-blue" /
+  "pale grey" gradient language in the original bullet list above, now carried through to the
+  clouds themselves rather than just the backdrop gradient.
+- All five categories: the sun/moon element order in `index.html` moved before the `.cloud`
+  elements, so wherever the sun/moon is shown (**sunny**/**mixed**), drifting clouds visibly pass
+  in front of it rather than behind — matching how cloud cover looks in the real sky.
+
+This was an implementation-time refinement, not a re-review of the mockup — no new mockup pass
+was run for it. Requirement traceability above is unaffected: still FR-001/FR-003/User Story 1.
