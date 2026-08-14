@@ -3,7 +3,7 @@ import { parseMinFile } from '../data/min-file.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { sourceDirForDate } from '../data/data-source.js';
-import { DATA_DIR } from '../config.js';
+import { DATA_DIR, DAY_VIEW_REFRESH_INTERVAL_MS } from '../config.js';
 import { formatRoute } from '../router.js';
 import { addDays, isFutureDay, parentOfDay, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
@@ -80,10 +80,33 @@ function dayStatsRows(trace, plant, params) {
 }
 
 /**
+ * Fetches and parses the routed date's 5-minute trace (min_day.js for today, the archived
+ * min{YYMMDD}.js otherwise — see render()'s comment).
+ * @param {{ year: number, month: number, day: number }} params
+ * @param {boolean} isToday
+ * @returns {Promise<{ readings: object[] } | null>} `null` when the file is missing/unreadable
+ *   or has no readings — callers treat that as "nothing new to show" rather than an error.
+ */
+async function fetchDayTrace(params, isToday) {
+  const result = isToday
+    ? await fetchText(`${DATA_DIR}/min_day.js`)
+    : await fetchText(
+        `${sourceDirForDate(isoFromParams(params))}/min${yymmddFromParams(params)}.js`,
+      );
+  if (!result.ok) return null;
+  const trace = parseMinFile(result.text, ddmmyyFromParams(params));
+  return trace.readings.length === 0 ? null : trace;
+}
+
+/**
  * Mounts the Mode 0 day detail view: fetches and renders the routed date's 5-minute trace,
- * or the "no data" state if the min file doesn't exist (FR-019).
+ * or the "no data" state if the min file doesn't exist (FR-019). For today's date, re-fetches
+ * `min_day.js` every `DAY_VIEW_REFRESH_INTERVAL_MS` (config.js) and re-renders the stats panel +
+ * chart + table in place so a page left open keeps reflecting new readings without a manual
+ * reload.
  * @param {HTMLElement} container
  * @param {{ plant: object | null, route: { params: { year: number, month: number, day: number } } }} ctx
+ * @returns {() => void} Cleanup function that stops the auto-refresh (called on route change).
  */
 export async function render(container, { route, plant }) {
   const { params } = route;
@@ -110,36 +133,34 @@ export async function render(container, { route, plant }) {
     </div>
     ${chartWithStatsLayoutMarkup({ breakdownToggle: true })}`;
 
-  // The SolarLog only finalizes min{YYMMDD}.js at end of day (final sync); until then,
-  // today's readings live exclusively in the rolling min_day.js, so prefer it for today's date.
-  const result = isToday
-    ? await fetchText(`${DATA_DIR}/min_day.js`)
-    : await fetchText(
-        `${sourceDirForDate(isoFromParams(params))}/min${yymmddFromParams(params)}.js`,
-      );
-
   const periodLayout = container.querySelector('.period-layout');
   const chartContainer = container.querySelector('.chart-container');
 
-  if (!result.ok) {
+  // The SolarLog only finalizes min{YYMMDD}.js at end of day (final sync); until then,
+  // today's readings live exclusively in the rolling min_day.js, so prefer it for today's date.
+  const trace = await fetchDayTrace(params, isToday);
+  if (!trace) {
     chartContainer.innerHTML = emptyStateBody('day.noData');
-    return;
+    return () => {};
   }
 
-  const trace = parseMinFile(result.text, ddmmyyFromParams(params));
-  if (trace.readings.length === 0) {
-    chartContainer.innerHTML = emptyStateBody('day.noData');
-    return;
+  let statsPanelEl = null;
+  function updateStatsPanel(currentTrace) {
+    const markup = statsPanelMarkup('day.stats.title', dayStatsRows(currentTrace, plant, params));
+    if (statsPanelEl) {
+      statsPanelEl.outerHTML = markup;
+    } else {
+      periodLayout.insertAdjacentHTML('beforeend', markup);
+    }
+    statsPanelEl = periodLayout.querySelector('.stats-panel');
   }
-
-  periodLayout.insertAdjacentHTML(
-    'beforeend',
-    statsPanelMarkup('day.stats.title', dayStatsRows(trace, plant, params)),
-  );
+  updateStatsPanel(trace);
 
   // Backfilled/archived days (see .claude/skills/backfill-min-day) only reconstruct the
   // cumulative Wh counter and zero out PDC/PAC/Volt — a flat 0 W line would look identical to
-  // "no data". Detect that case and plot the yield curve instead, with an explanatory note.
+  // "no data". Detect that case and plot the yield curve instead, with an explanatory note. Only
+  // relevant on initial load: today's rolling min_day.js is never a backfilled reconstruction, so
+  // this can't flip mid-refresh.
   const hasPowerData = trace.readings.some((r) =>
     Object.values(r.perInverter).some((inv) => (inv.pacW ?? 0) > 0),
   );
@@ -156,8 +177,9 @@ export async function render(container, { route, plant }) {
 
   const mount = container.querySelector('.chart-mount');
   const tableMount = chartContainer.querySelector('.chart-table');
+  let currentTrace = trace;
   const drawChart = () => {
-    const chart = renderChart(mount, hasPowerData ? 'day' : 'day-yield', trace, {
+    const chart = renderChart(mount, hasPowerData ? 'day' : 'day-yield', currentTrace, {
       lang: getLanguage(),
       breakdown: getChartBreakdownMode(),
     });
@@ -170,4 +192,16 @@ export async function render(container, { route, plant }) {
   initChartTableToggle(chartContainer, (visible) => {
     tableMount.hidden = !visible;
   });
+
+  if (!isToday) return () => {};
+
+  const intervalId = setInterval(async () => {
+    const freshTrace = await fetchDayTrace(params, isToday);
+    if (!freshTrace) return; // Transient fetch failure — keep showing the last good reading.
+    currentTrace = freshTrace;
+    updateStatsPanel(freshTrace);
+    drawChart();
+  }, DAY_VIEW_REFRESH_INTERVAL_MS);
+
+  return () => clearInterval(intervalId);
 }

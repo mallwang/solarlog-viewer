@@ -87,6 +87,18 @@ werden, zeigt der jeweilige Bereich "Nicht verfügbar" an, während der andere B
 weiterarbeitet. Das Panel ist unterhalb von 768px vollständig ausgeblendet — es beansprucht im
 mobilen Layout keinen zusätzlichen Platz.
 
+## Automatische Aktualisierung der Tagesansicht
+
+Solange die Tagesansicht (`#/day/YYYY/MM/DD`) den heutigen Tag zeigt, hält sie sich von selbst
+aktuell: Sie fragt die Tageswerte regelmäßig erneut ab und zeichnet Statistikpanel, Diagramm und
+Datentabelle direkt neu — die Seite kann so stundenlang geöffnet bleiben (z. B. auf einem
+Wandmonitor) und zeigt weiterhin neue Messwerte, ganz ohne manuelles Neuladen. Ein fehlgeschlagener
+Aktualisierungsversuch wird stillschweigend übersprungen — der zuletzt bekannte gute Wert bleibt
+sichtbar, statt die Ansicht zu leeren. Andere Tage als der heutige aktualisieren sich nie
+automatisch, da ihre Daten archiviert sind und sich nicht mehr ändern. Das Aktualisierungsintervall
+beträgt standardmäßig 1 Minute und kann von einem Seitenbetreiber über
+`DAY_VIEW_REFRESH_INTERVAL_MS` in `web/js/config.js` geändert werden.
+
 ## Vermiedenes CO2
 
 Die Ansichten Tag, Monat, Jahr und Gesamt (Lebenszeit) zeigen im Statistikbereich neben dem

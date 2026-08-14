@@ -75,6 +75,18 @@ export const DAY_CHART_X_AXIS_RANGE = 'data';
 export const DAY_CHART_X_AXIS_PADDING_MINUTES = 15;
 
 /**
+ * How often the day detail view (`#/day/YYYY/MM/DD`, Tagesertrag) re-fetches `min_day.js` and
+ * redraws its stats panel/chart/table while showing *today* (see `views/day-view.js`'s render()).
+ * Defaults to 10 minutes, matching the SolarLog device's own minimum data-file update interval
+ * (and `info-panel/info-panel-controller.js`'s own poll interval, so the nav bar's "W"/"Stand"
+ * and the day chart move in lockstep by default) — polling more often would not surface newer
+ * data. Past days never poll regardless of this value, since their min files are static once
+ * archived.
+ * @type {number}
+ */
+export const DAY_VIEW_REFRESH_INTERVAL_MS = 1 * 60 * 1000;
+
+/**
  * Filenames under `web/img/plant/`, in carousel display order, shown by the welcome page's photo
  * carousel (`web/js/views/photo-carousel.js`). Matches this file's existing manual-override
  * pattern (`SITE_TITLE`, `SKY_LOCATION_OVERRIDE`): the operator drops a file into `web/img/plant/`

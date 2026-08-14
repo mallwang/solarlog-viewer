@@ -76,6 +76,17 @@ data can't be retrieved, that side of the panel shows "Unavailable" while the ot
 working normally. The panel is hidden entirely below 768px — it contributes no extra space to
 the mobile layout.
 
+## Day view auto-refresh
+
+When the day view (`#/day/YYYY/MM/DD`) is showing _today_, it keeps itself current on its own: it
+periodically re-fetches today's readings and redraws the stats panel, the chart, and the data
+table in place — so you can leave the page open for hours (e.g. on a wall display) and it will
+keep showing new readings without a manual reload. A failed refresh attempt is skipped silently,
+leaving the last good reading on screen rather than clearing the view. Days other than today never
+auto-refresh, since their data is archived and no longer changes. The refresh interval defaults to
+1 minute and can be changed by a site administrator via `DAY_VIEW_REFRESH_INTERVAL_MS` in
+`web/js/config.js`.
+
 ## CO2 avoidance figures
 
 The day, month, year, and total (lifetime) views each show a "CO2 avoided" figure in the stats

@@ -82,6 +82,15 @@ usual weather source. Production and weather/forecast each show an independent "
 if their own data source can't be retrieved, without affecting the other. See
 `specs/010-global-info-panel/` for the full spec/plan.
 
+The day detail view (`#/day/YYYY/MM/DD`) auto-refreshes itself the same way when it's showing
+_today_: every `DAY_VIEW_REFRESH_INTERVAL_MS` (`web/js/config.js`, default 1 minute — configurable
+independently of the info panel's own poll interval, though it reads the same `min_day.js` rolling
+file) it re-fetches the day's readings and redraws the stats panel, the chart, and the data table
+in place — so the page can be left open for hours (e.g. on a wall display) and keep reflecting new
+readings without a manual reload. Past days don't poll, since their min files are static once
+archived. A failed refresh is skipped silently, leaving the last good reading on screen rather than
+clearing the view.
+
 ## Dev server
 
 ```bash

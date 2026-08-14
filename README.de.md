@@ -88,6 +88,16 @@ zeigen jeweils unabhängig einen "nicht verfügbar"-Zustand an, falls die jeweil
 nicht abgerufen werden kann, ohne den anderen Bereich zu beeinträchtigen. Siehe
 `specs/010-global-info-panel/` für die vollständige Spezifikation/Planung.
 
+Die Tagesansicht (`#/day/YYYY/MM/DD`) aktualisiert sich auf dieselbe Art, solange sie _den
+heutigen Tag_ zeigt: alle `DAY_VIEW_REFRESH_INTERVAL_MS` (`web/js/config.js`, Standard 1 Minute —
+unabhängig vom Poll-Intervall des Infopanels konfigurierbar, auch wenn beide dieselbe rollierende
+`min_day.js`-Datei lesen) fragt sie die Tageswerte erneut ab und zeichnet Statistikpanel, Diagramm
+und Datentabelle direkt neu — die Seite kann so stundenlang geöffnet bleiben (z. B. auf einem
+Wandmonitor) und zeigt neue Messwerte ohne manuelles Neuladen. Vergangene Tage werden nicht
+abgefragt, da ihre min-Dateien nach der Archivierung statisch sind. Ein fehlgeschlagener
+Aktualisierungsversuch wird stillschweigend übersprungen — der zuletzt bekannte gute Wert bleibt
+sichtbar, statt die Ansicht zu leeren.
+
 ## Entwicklungsserver
 
 ```bash
