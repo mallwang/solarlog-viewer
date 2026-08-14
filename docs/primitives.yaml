@@ -108,6 +108,18 @@ primitives:
       - specs/010-global-info-panel/plan.md
       - specs/012-efficiency-display/plan.md
 
+  - id: events-log
+    group: features
+    name: Inverter events table
+    summary:
+      Filterable, sortable table of inverter status/fault events (#/events),
+      merged and deduplicated from the historical and today's event log
+      files, with per-inverter status/error label resolution.
+    code:
+      - web/js/views/events-view.js
+    docs:
+      - specs/016-events-datatable/plan.md
+
   # --- Cross-cutting utilities ------------------------------------------------
   - id: shared-utils
     group: shared
