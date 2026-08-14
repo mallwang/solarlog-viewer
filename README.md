@@ -93,7 +93,9 @@ re-fetches `min_day.js` and redraws the stats panel, the chart, and the data tab
 the page can be left open for hours (e.g. on a wall display) and keep reflecting new
 readings without a manual reload. Past days don't poll, since their min files are static once
 archived. A failed refresh is skipped silently, leaving the last good reading on screen rather than
-clearing the view.
+clearing the view. The welcome page (`#/`, "Anlageninfo") auto-refreshes its today-chart and
+yield-summary stats card on the same `DATA_REFRESH_INTERVAL_MS` cycle, so all three "live" surfaces
+— nav bar, day chart, welcome page — always agree on how current their figures are.
 
 ## Dev server
 

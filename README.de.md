@@ -100,7 +100,9 @@ und Datentabelle direkt neu — die Seite kann so stundenlang geöffnet bleiben 
 Wandmonitor) und zeigt neue Messwerte ohne manuelles Neuladen. Vergangene Tage werden nicht
 abgefragt, da ihre min-Dateien nach der Archivierung statisch sind. Ein fehlgeschlagener
 Aktualisierungsversuch wird stillschweigend übersprungen — der zuletzt bekannte gute Wert bleibt
-sichtbar, statt die Ansicht zu leeren.
+sichtbar, statt die Ansicht zu leeren. Die Startseite (`#/`, „Anlageninfo“) aktualisiert ihr
+Tagesdiagramm und die Statistikkarte im selben `DATA_REFRESH_INTERVAL_MS`-Takt, sodass alle drei
+„live“ Bereiche — Nav-Leiste, Tagesdiagramm, Startseite — immer gleich aktuell sind.
 
 ## Entwicklungsserver
 

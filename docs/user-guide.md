@@ -78,19 +78,20 @@ data can't be retrieved, that side of the panel shows "Unavailable" while the ot
 working normally. The panel is hidden entirely below 768px — it contributes no extra space to
 the mobile layout.
 
-## Day view auto-refresh
+## Day view & welcome page auto-refresh
 
 When the day view (`#/day/YYYY/MM/DD`) is showing _today_, it keeps itself current on its own: it
 periodically re-fetches today's readings and redraws the stats panel, the chart, and the data
 table in place — so you can leave the page open for hours (e.g. on a wall display) and it will
 keep showing new readings without a manual reload. A failed refresh attempt is skipped silently,
 leaving the last good reading on screen rather than clearing the view. Days other than today never
-auto-refresh, since their data is archived and no longer changes. This uses the same refresh
-interval as the info panel's production/yield figures above — one setting for both, so the nav bar
-and the day chart always show data of the same age. The interval defaults to 1 minute and can be
-changed by a site administrator via `DATA_REFRESH_INTERVAL_MS` in `web/js/config.js` (the info
-panel's weather/forecast poll has its own separate, slower interval,
-`WEATHER_REFRESH_INTERVAL_MS`).
+auto-refresh, since their data is archived and no longer changes. The welcome page (`#/`,
+"Anlageninfo") does the same for its today-chart and yield-summary stats card. All three — the
+info panel's production/yield figures above, the day view, and the welcome page — use the same
+refresh interval, so they always show data of the same age rather than drifting apart on separate
+timers. The interval defaults to 1 minute and can be changed by a site administrator via
+`DATA_REFRESH_INTERVAL_MS` in `web/js/config.js` (the info panel's weather/forecast poll has its
+own separate, slower interval, `WEATHER_REFRESH_INTERVAL_MS`).
 
 ## CO2 avoidance figures
 

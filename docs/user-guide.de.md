@@ -72,7 +72,7 @@ Ab Desktop-Breiten (768px und mehr) zeigt ein Panel im Header — sichtbar in je
 nur im Dashboard — die aktuelle Leistung der Anlage zusammen mit dem aktuellen Wetter und der
 Restprognose für den heutigen Tag am Standort der Anlage. Die Leistung (sowie „Tagesertrag“/
 „Monatsertrag“) aktualisiert sich nach demselben Zeitplan wie das Diagramm der Tagesansicht
-(siehe „Automatische Aktualisierung der Tagesansicht“ unten) — eine gemeinsame Einstellung, damit
+(siehe „Automatische Aktualisierung der Tagesansicht & Startseite“ unten) — eine gemeinsame Einstellung, damit
 beide nie auseinanderlaufen. Der Wetter-/Prognosebereich aktualisiert sich separat und seltener
 (standardmäßig alle ~10 Minuten), da sich das Wetter nicht minütlich merklich ändert. Ein kleiner pulsierender
 Punkt neben dem Leistungswert wird größer und pulsiert schneller, je näher die aktuelle Leistung
@@ -89,7 +89,7 @@ werden, zeigt der jeweilige Bereich "Nicht verfügbar" an, während der andere B
 weiterarbeitet. Das Panel ist unterhalb von 768px vollständig ausgeblendet — es beansprucht im
 mobilen Layout keinen zusätzlichen Platz.
 
-## Automatische Aktualisierung der Tagesansicht
+## Automatische Aktualisierung der Tagesansicht & Startseite
 
 Solange die Tagesansicht (`#/day/YYYY/MM/DD`) den heutigen Tag zeigt, hält sie sich von selbst
 aktuell: Sie fragt die Tageswerte regelmäßig erneut ab und zeichnet Statistikpanel, Diagramm und
@@ -97,9 +97,10 @@ Datentabelle direkt neu — die Seite kann so stundenlang geöffnet bleiben (z. 
 Wandmonitor) und zeigt weiterhin neue Messwerte, ganz ohne manuelles Neuladen. Ein fehlgeschlagener
 Aktualisierungsversuch wird stillschweigend übersprungen — der zuletzt bekannte gute Wert bleibt
 sichtbar, statt die Ansicht zu leeren. Andere Tage als der heutige aktualisieren sich nie
-automatisch, da ihre Daten archiviert sind und sich nicht mehr ändern. Dabei wird dasselbe
-Aktualisierungsintervall wie für die Leistungs-/Ertragswerte des Infopanels oben verwendet — eine
-Einstellung für beide, sodass Nav-Leiste und Tagesdiagramm immer gleich aktuell sind. Es beträgt
+automatisch, da ihre Daten archiviert sind und sich nicht mehr ändern. Die Startseite (`#/`,
+„Anlageninfo“) tut dasselbe für ihr Tagesdiagramm und ihre Statistikkarte. Alle drei — die
+Leistungs-/Ertragswerte des Infopanels oben, die Tagesansicht und die Startseite — verwenden
+dasselbe Aktualisierungsintervall, sodass sie nie unterschiedlich aktuell sind. Es beträgt
 standardmäßig 1 Minute und kann von einem Seitenbetreiber über `DATA_REFRESH_INTERVAL_MS` in
 `web/js/config.js` geändert werden (der Wetter-/Prognoseabruf des Infopanels hat sein eigenes,
 langsameres Intervall, `WEATHER_REFRESH_INTERVAL_MS`).

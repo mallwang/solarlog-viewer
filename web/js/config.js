@@ -77,15 +77,17 @@ export const DAY_CHART_X_AXIS_PADDING_MINUTES = 15;
 /**
  * How often every "live PV data" auto-refresh cycle re-polls its data source: the global info
  * panel's production/yield figures (`info-panel/info-panel-controller.js`, reading
- * `data/min_cur.js` + `days.js`/`months.js`) and the day detail view's stats panel/chart/table
- * while showing *today* (`views/day-view.js`, reading `min_day.js`). One shared constant so both
- * stay in lockstep — the nav bar's "W"/"Stand"/"Tagesertrag" and the day chart always reflect the
- * same reading age, rather than two independently-tuned timers drifting apart. Defaults to
- * 1 minute; the SolarLog device's own minimum data-file update interval is 10 minutes, so most of
- * the values in that default range of settings just re-confirm the same reading — harmless, and
- * keeps the UI feeling live even between the device's own file writes. The info panel's weather/
- * forecast poll (Open-Meteo) and the sky background's separate weather poll are unrelated to PV
- * data and keep their own longer intervals (see `sky/sky-controller.js`'s own `POLL_INTERVAL_MS`).
+ * `data/min_cur.js` + `days.js`/`months.js`), the day detail view's stats panel/chart/table while
+ * showing *today* (`views/day-view.js`, reading `min_day.js`), and the welcome page's today-chart
+ * + yield-summary stats card (`views/welcome-view.js`, reading the same files as the other two).
+ * One shared constant so all three stay in lockstep — the nav bar, the day chart, and the welcome
+ * page always reflect the same reading age, rather than independently-tuned timers drifting
+ * apart. Defaults to 1 minute; the SolarLog device's own minimum data-file update interval is
+ * 10 minutes, so most of the values in that default range of settings just re-confirm the same
+ * reading — harmless, and keeps the UI feeling live even between the device's own file writes.
+ * The info panel's weather/forecast poll (Open-Meteo) and the sky background's separate weather
+ * poll are unrelated to PV data and keep their own longer intervals (see
+ * `sky/sky-controller.js`'s own `POLL_INTERVAL_MS`).
  * @type {number}
  */
 export const DATA_REFRESH_INTERVAL_MS = 1 * 60 * 1000;
