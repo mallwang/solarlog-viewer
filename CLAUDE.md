@@ -2,7 +2,7 @@
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/016-events-datatable/plan.md
+at specs/017-background-weather-config/plan.md
 <!-- SPECKIT END -->
 
 ## Local Development Server

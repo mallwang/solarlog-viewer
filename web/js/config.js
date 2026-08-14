@@ -36,6 +36,24 @@ export const SITE_TITLE = 'PV Allwang';
 export const SKY_LOCATION_OVERRIDE = { lat: 49.34062, lon: 11.93587 };
 
 /**
+ * Controls how the dynamic sky background's weather-driven appearance (`web/js/sky/sky-
+ * controller.js`, `data-weather` on `.sky-clouds`) is determined, independently of the global
+ * info panel's own weather text (`info-panel/`), which always reads live data regardless of
+ * this setting. Matches this file's existing manual-override pattern (`SITE_TITLE`,
+ * `SKY_LOCATION_OVERRIDE`) — a static, build-time constant read once at startup, not a
+ * runtime-reactive value; changing it takes effect on next load, no other code change needed.
+ * - `'auto'` (the default) — the background matches the live polled weather condition.
+ * - `'off'` — disables the sky animation entirely: no clouds, no sun/moon, no flying objects.
+ *   Distinct from a failed weather lookup, which instead falls back to the plain pre-feature
+ *   look (clouds and sun/moon still shown) rather than hiding everything.
+ * - one of `WEATHER_CATEGORIES` (`'sunny'`, `'mixed'`, `'cloudy'`, `'rain'`, `'snow'`) — the
+ *   background always shows that fixed category, regardless of live conditions.
+ * Any other value (a typo, or an unrecognized string) falls back to `'auto'`.
+ * @type {'auto' | 'off' | 'sunny' | 'mixed' | 'cloudy' | 'rain' | 'snow'}
+ */
+export const BACKGROUND_WEATHER = 'auto';
+
+/**
  * Fixed axis ranges for the day chart's (Tagesertrag) three y-axes, each as `{ max, step }` — the
  * axis always runs from 0 to `max` in `step`-sized gridlines, rather than each day scaling its own
  * axis to that day's data. A low-yield day previously stretched to fill the same chart height as a

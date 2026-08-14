@@ -2,5 +2,5 @@
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/014-chart-data-table-toggle/plan.md
+at specs/017-background-weather-config/plan.md
 <!-- SPECKIT END -->

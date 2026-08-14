@@ -10,7 +10,22 @@
     <link rel="icon" type="image/x-icon" href="favicon-v2.ico" />
   </head>
   <body>
+    <!-- Static full-coverage overcast backdrop (cloudy/rain/snow): a fixed, unfiltered layer
+         behind `.sky-clouds` — sibling, not descendant, so it stays outside `.sky-clouds`'s
+         contrast filter and reads as a smooth, flat cloud ceiling rather than the gooey
+         "fused circles" look. `sky-controller.js` toggles it via `data-weather` on <body> (see
+         app.css's `body[data-weather] .sky-overcast` rules) — the up-to-sixteen `.cloud` puffs
+         inside `.sky-clouds` then drift in front of it, giving these categories a "completely
+         clouded heaven" base with moving texture layered on top, instead of gaps showing the
+         plain page background. -->
+    <div class="sky-overcast" aria-hidden="true"></div>
     <div class="sky-clouds" aria-hidden="true">
+      <!-- Positioned/shown by sky-controller.js (User Story 2): --x-percent/--y-percent custom
+           properties and opacity are set on a 60-second tick from computeSkyBodyPosition().
+           Placed before the .cloud elements so the clouds always paint on top of the sun/moon —
+           mimicking the real sky, where cloud cover passes in front of the sun, not behind it. -->
+      <div class="sky-sun" aria-hidden="true" style="--x-percent: 50; --y-percent: 100"></div>
+      <div class="sky-moon" aria-hidden="true" style="--x-percent: 50; --y-percent: 100"></div>
       <div
         class="cloud"
         style="--top: 8%; --scale: 1.4; --duration: 75s; --delay: 0s; --rest-x: 5vw"
@@ -35,15 +50,166 @@
         class="cloud"
         style="--top: 30%; --scale: 1.1; --duration: 80s; --delay: -60s; --rest-x: 10vw"
       ></div>
-      <!-- Positioned/shown by sky-controller.js (User Story 2): --x-percent/--y-percent custom
-           properties and opacity are set on a 60-second tick from computeSkyBodyPosition(). -->
-      <div class="sky-sun" aria-hidden="true" style="--x-percent: 50; --y-percent: 100"></div>
-      <div class="sky-moon" aria-hidden="true" style="--x-percent: 50; --y-percent: 100"></div>
+      <!-- Ten more `.cloud` elements (indices 6-15), hidden by default so the pre-feature/
+           fallback appearance (no JS, or weather resolution failed) still shows exactly the
+           original six. `sky-controller.js` un-hides as many as a category's `visibleCount`
+           needs (mixed: 10, cloudy/rain/snow: 16) via applyWeatherCategory(). -->
+      <div
+        class="cloud"
+        hidden
+        style="--top: 20%; --scale: 1.2; --duration: 55s; --delay: -15s; --rest-x: 15vw"
+      ></div>
+      <div
+        class="cloud"
+        hidden
+        style="--top: 10%; --scale: 0.9; --duration: 70s; --delay: -35s; --rest-x: 50vw"
+      ></div>
+      <div
+        class="cloud"
+        hidden
+        style="--top: 26%; --scale: 1.3; --duration: 85s; --delay: -5s; --rest-x: 70vw"
+      ></div>
+      <div
+        class="cloud"
+        hidden
+        style="--top: 6%; --scale: 0.7; --duration: 45s; --delay: -50s; --rest-x: 90vw"
+      ></div>
+      <div
+        class="cloud"
+        hidden
+        style="--top: 16%; --scale: 1; --duration: 60s; --delay: -25s; --rest-x: 35vw"
+      ></div>
+      <div
+        class="cloud"
+        hidden
+        style="--top: 28%; --scale: 1.5; --duration: 95s; --delay: -70s; --rest-x: 65vw"
+      ></div>
+      <div
+        class="cloud"
+        hidden
+        style="--top: 22%; --scale: 0.85; --duration: 52s; --delay: -40s; --rest-x: 25vw"
+      ></div>
+      <div
+        class="cloud"
+        hidden
+        style="--top: 12%; --scale: 1.15; --duration: 68s; --delay: -8s; --rest-x: 55vw"
+      ></div>
+      <div
+        class="cloud"
+        hidden
+        style="--top: 2%; --scale: 0.75; --duration: 58s; --delay: -55s; --rest-x: 78vw"
+      ></div>
+      <div
+        class="cloud"
+        hidden
+        style="--top: 32%; --scale: 1.4; --duration: 88s; --delay: -18s; --rest-x: 95vw"
+      ></div>
+      <!-- Rain/snow particle layers (User Story 1): visibility driven entirely by app.css's
+           `.sky-clouds[data-weather='rain'|'snow']` rules — sky-controller.js only ever sets
+           `data-weather`, never touches these elements directly. -->
+      <div class="sky-rain" aria-hidden="true">
+        <div class="sky-rain-drop" style="--left: 6%; --duration: 0.7s; --delay: 0s"></div>
+        <div class="sky-rain-drop" style="--left: 18%; --duration: 0.9s; --delay: -0.3s"></div>
+        <div class="sky-rain-drop" style="--left: 32%; --duration: 0.75s; --delay: -0.6s"></div>
+        <div class="sky-rain-drop" style="--left: 47%; --duration: 0.85s; --delay: -0.2s"></div>
+        <div class="sky-rain-drop" style="--left: 61%; --duration: 0.65s; --delay: -0.5s"></div>
+        <div class="sky-rain-drop" style="--left: 74%; --duration: 0.95s; --delay: -0.1s"></div>
+        <div class="sky-rain-drop" style="--left: 88%; --duration: 0.8s; --delay: -0.4s"></div>
+      </div>
+      <div class="sky-snow" aria-hidden="true">
+        <div class="sky-snow-flake" style="--left: 8%; --duration: 7s; --delay: 0s"></div>
+        <div class="sky-snow-flake" style="--left: 22%; --duration: 9s; --delay: -3s"></div>
+        <div class="sky-snow-flake" style="--left: 36%; --duration: 6.5s; --delay: -1.5s"></div>
+        <div class="sky-snow-flake" style="--left: 50%; --duration: 8s; --delay: -4s"></div>
+        <div class="sky-snow-flake" style="--left: 64%; --duration: 7.5s; --delay: -2s"></div>
+        <div class="sky-snow-flake" style="--left: 78%; --duration: 9.5s; --delay: -5s"></div>
+        <div class="sky-snow-flake" style="--left: 92%; --duration: 6.8s; --delay: -0.8s"></div>
+      </div>
     </div>
     <!-- Sibling to .sky-clouds, not a descendant: flying-object sprites (User Story 3) need to
-         stay crisp, unlike .sky-clouds's blur+contrast-fused gooey clouds. Populated/emptied by
+         stay crisp, unlike .sky-clouds's contrast-fused gooey clouds. Populated/emptied by
          sky-controller.js; empty (and thus invisible) until the first object spawns. -->
     <div class="sky-flying-objects" aria-hidden="true"></div>
+    <!-- Cloud-ceiling accent band (cloudy/rain/snow): a fixed strip right below the nav bar,
+         painted on top of `.sky-overcast`/`.sky-clouds`. Built from the same puffy blob shapes as
+         the drifting `.cloud` elements (`.sky-ceiling__puff` shares their base circle +
+         `::before`/`::after` rules and weather tint in app.css) so it reads as the same cloud
+         material, just chunkier and slow-drifting rather than fast like `.cloud` — the dense
+         underside of a solid cloud layer close overhead, each category tinted to match its own
+         `.cloud` color. Sixteen puffs, staggered by `--delay` at even ~11.25s steps around a 180s
+         loop so a new one is always entering as the previous one clears — dense enough that the
+         band reads as continuously covered rather than as sixteen distinct clouds passing by.
+         `--left`/`--bottom` here are only the `prefers-reduced-motion` fallback position
+         (animation off, static per `.sky-ceiling__puff` rules); the drift itself starts
+         off-screen at `translateX(-25vw)` regardless of `--left`. Toggled by the same
+         `data-weather` attribute on <body> that drives `.sky-overcast` (see app.css's
+         `.sky-ceiling` rules). -->
+    <div class="sky-ceiling" aria-hidden="true">
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 0%; --scale: 1.1; --bottom: 50px; --delay: 0s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 6%; --scale: 0.95; --bottom: -10px; --delay: -11.25s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 12%; --scale: 1.25; --bottom: 35px; --delay: -22.5s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 19%; --scale: 1; --bottom: 65px; --delay: -33.75s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 25%; --scale: 1.15; --bottom: 0px; --delay: -45s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 31%; --scale: 0.9; --bottom: 45px; --delay: -56.25s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 38%; --scale: 1.3; --bottom: -12px; --delay: -67.5s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 44%; --scale: 1; --bottom: 58px; --delay: -78.75s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 50%; --scale: 1.2; --bottom: 8px; --delay: -90s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 56%; --scale: 0.85; --bottom: 40px; --delay: -101.25s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 62%; --scale: 1.3; --bottom: 68px; --delay: -112.5s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 69%; --scale: 1; --bottom: -8px; --delay: -123.75s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 75%; --scale: 1.15; --bottom: 42px; --delay: -135s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 81%; --scale: 0.9; --bottom: 62px; --delay: -146.25s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 88%; --scale: 1.25; --bottom: -14px; --delay: -157.5s"
+      ></div>
+      <div
+        class="sky-ceiling__puff sky-ceiling__puff--drift"
+        style="--left: 94%; --scale: 1.05; --bottom: 33px; --delay: -168.75s"
+      ></div>
+    </div>
     <noscript>This site requires JavaScript to display your SolarLog production data.</noscript>
     <!-- `.app-chrome` (014-chart-data-table-toggle): sticky wrapper around the header row and its
          mobile sub-nav bar, so both stay pinned to the top of the viewport while a long page (e.g.

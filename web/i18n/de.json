@@ -226,14 +226,12 @@
     "currentLabel": "Aktuell",
     "todayLabel": "Heute",
     "asOfLabel": "Stand",
-    "weatherCode": {
-      "clear": "Klar",
+    "weatherCategory": {
+      "sunny": "Sonnig",
+      "mixed": "Wechselnd bewölkt",
       "cloudy": "Bewölkt",
-      "fog": "Nebel",
       "rain": "Regen",
-      "snow": "Schnee",
-      "storm": "Gewitter",
-      "unknown": "Unbekannt"
+      "snow": "Schnee"
     }
   }
 }
