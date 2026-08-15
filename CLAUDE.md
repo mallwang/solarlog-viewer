@@ -2,7 +2,7 @@
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/018-day-night-sky/plan.md
+at specs/019-cache-busting-build/plan.md
 <!-- SPECKIT END -->
 
 ## Local Development Server
