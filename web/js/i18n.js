@@ -1,3 +1,5 @@
+import { getBuildId } from './build-info.js';
+
 const STORAGE_KEY = 'solarlog-lang';
 const DEFAULT_LANG = 'de';
 
@@ -10,7 +12,7 @@ export function getLanguage() {
 }
 
 async function loadStrings(lang) {
-  const response = await fetch(`i18n/${lang}.json`);
+  const response = await fetch(`i18n/${lang}.json?v=${getBuildId()}`);
   strings = response.ok ? await response.json() : {};
 }
 

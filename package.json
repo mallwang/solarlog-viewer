@@ -6,6 +6,7 @@
   "scripts": {
     "start": "tailwindcss -i web/css/tailwind.css -o web/css/tailwind.generated.css --watch & browser-sync start --config bs-config.cjs",
     "build:css": "tailwindcss -i web/css/tailwind.css -o web/css/tailwind.generated.css --minify",
+    "build": "node scripts/build.js",
     "open": "explorer.exe http://localhost:3000",
     "test": "playwright test",
     "test:scripts": "node --test scripts/*.test.js \"web/js/**/*.test.js\"",
@@ -29,6 +30,7 @@
     "@tailwindcss/cli": "^4.1.0",
     "basic-ftp": "^6.2.0",
     "browser-sync": "^3.0.4",
+    "esbuild": "^0.28.2",
     "eslint": "^10.8.0",
     "http-proxy-middleware": "^4.2.0",
     "husky": "^9.1.7",

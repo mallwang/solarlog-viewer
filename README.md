@@ -141,6 +141,20 @@ shows current readings without a manual sync. This only applies to `npm start` �
 `npm run build:css` compiles `web/css/tailwind.css` into the committed `web/css/tailwind.generated.css`
 static file used in production — no CDN/runtime script.
 
+## Production build & deploy
+
+`npm run build` (`scripts/build.js`) produces `dist/`, the tree that actually gets FTP'd —
+`web/` itself is deploy-only in the sense that it's the dev-server-served source, not what ships.
+The build bundles+minifies the whole JS import graph into one `js/main-<sha>.js` and the three
+stylesheets into one `css/styles-<sha>.css` (`<sha>` = the current git short SHA), and rewrites
+`dist/index.html` to reference them — this is the cache-busting fix: every deploy gets fresh,
+never-before-seen asset URLs, so browsers can no longer serve a stale cached copy after an update.
+`i18n/*.json`, `img/plant/*.jpg`, and `vendor/*.svg` are copied through unchanged but cache-busted
+with a `?v=<sha>` query string instead of a renamed file, since those paths are referenced at
+runtime rather than known at build time. `dist/data`/`dist/hist` are symlinks to `web/data`/`web/hist`
+(the SolarLog device's own live/frozen data mirror — untouched by the build). Run `npm run build`
+before syncing; `scripts/ftp-sync.js` (and the `sync-ftp` skill) diff/upload `dist/`, not `web/`.
+
 ## Frontend tests
 
 ```bash

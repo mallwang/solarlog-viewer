@@ -39,6 +39,13 @@
  * Every `--diff` run also opens `.ftp-sync-diff.html` in the default
  * browser (best-effort; pass `--no-open` to skip).
  *
+ * The local tree walked is `dist/`, not `web/` — `dist/` is the production build artifact
+ * produced by `npm run build` (`scripts/build.js`): hashed/cache-busted `js/main-<sha>.js` and
+ * `css/styles-<sha>.css`, copies of `i18n`/`img`/`vendor`, and `dist/data`/`dist/hist` as
+ * symlinks straight through to the real `web/data`/`web/hist` (the device's own data mirror,
+ * untouched by the build). Run `npm run build` before `--diff`/`--apply`, or you'll be
+ * diffing/uploading a stale or missing `dist/`.
+ *
  * Usage:
  *   node scripts/ftp-sync.js --diff [--no-open]
  *   node scripts/ftp-sync.js --apply --yes [--only a.txt,b/c.txt] [--direction upload|download]
@@ -57,7 +64,7 @@ import { parseArgs } from 'node:util';
 const CONFIG_PATH = resolve('.ftp-sync.json');
 const DIFF_PATH = resolve('.ftp-sync-diff.json');
 const HTML_PATH = resolve('.ftp-sync-diff.html');
-const LOCAL_ROOT = resolve('web');
+const LOCAL_ROOT = resolve('dist');
 
 // Modified-time is not used to decide whether a file is in sync — many FTP
 // servers rewrite mtime to the moment of upload rather than preserving the
