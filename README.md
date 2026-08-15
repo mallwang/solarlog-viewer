@@ -2,10 +2,6 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mallwang/solarlog-viewer)
 
-<p align="center">
-  <img src="solarlog-viewer.png" alt="Solarlog Viewer" width="120" />
-</p>
-
 Static viewer for SolarLog data exports (HTML/JS/CSS). `web/` is the single directory FTP'd to
 the Synology DiskStation — `web/index.html` is a single-page dashboard (vanilla ES modules,
 Tailwind CSS compiled to a static file, ApexCharts) showing current production plus the four
