@@ -14,10 +14,10 @@ const SAMPLE_HTML = `<!doctype html>
     <link rel="stylesheet" href="css/tokens.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/tailwind.generated.css" />
-    <link rel="icon" type="image/x-icon" href="favicon-v2.ico" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
   </head>
   <body>
-    <img class="app-header__logo" src="favicon-v2.ico" alt="" />
+    <img class="app-header__logo" src="favicon.ico" alt="" />
     <script type="module" src="js/main.js"></script>
   </body>
 </html>
@@ -38,8 +38,8 @@ test('rewriteIndexHtml points the module script at the hashed bundle', () => {
 
 test('rewriteIndexHtml appends the build id to every favicon reference', () => {
   const out = rewriteIndexHtml(SAMPLE_HTML, 'abc123');
-  assert.match(out, /href="favicon-v2\.ico\?v=abc123"/);
-  assert.match(out, /src="favicon-v2\.ico\?v=abc123"/);
+  assert.match(out, /href="favicon\.ico\?v=abc123"/);
+  assert.match(out, /src="favicon\.ico\?v=abc123"/);
 });
 
 test('rewriteIndexHtml throws when the stylesheet block is missing (structure changed upstream)', () => {

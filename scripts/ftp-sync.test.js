@@ -136,7 +136,7 @@ test('isAllowedTopLevelEntry: no includePaths (undefined/null/empty) allows ever
 });
 
 test('isAllowedTopLevelEntry: allows only listed root entries', () => {
-  const includePaths = ['index.html', 'favicon-v2.ico', 'js', 'i18n', 'data', 'css', 'hist', 'vendor'];
+  const includePaths = ['index.html', 'favicon.ico', 'js', 'i18n', 'data', 'css', 'hist', 'vendor'];
   assert.equal(isAllowedTopLevelEntry('js', includePaths), true);
   assert.equal(isAllowedTopLevelEntry('index.html', includePaths), true);
   assert.equal(isAllowedTopLevelEntry('reality', includePaths), false);
@@ -156,11 +156,11 @@ test('isAllowedFile: directory with no configured patterns is unrestricted', () 
 });
 
 test('isAllowedFile: matches configured glob patterns for the directory', () => {
-  const dirFilePatterns = { data: ['*.js', '*.csv', 'favicon-v2.ico'] };
+  const dirFilePatterns = { data: ['*.js', '*.csv', 'favicon.ico'] };
   assert.equal(isAllowedFile('data', 'months.js', dirFilePatterns), true);
   assert.equal(isAllowedFile('data', 'min260812.js', dirFilePatterns), true);
   assert.equal(isAllowedFile('data', 'pm.csv', dirFilePatterns), true);
-  assert.equal(isAllowedFile('data', 'favicon-v2.ico', dirFilePatterns), true);
+  assert.equal(isAllowedFile('data', 'favicon.ico', dirFilePatterns), true);
   assert.equal(isAllowedFile('data', 'anlageninfo.html', dirFilePatterns), false);
   assert.equal(isAllowedFile('data', 'back.gif', dirFilePatterns), false);
 });
