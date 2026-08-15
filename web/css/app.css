@@ -12,6 +12,11 @@ body {
 
 body {
   background: linear-gradient(to bottom, #0d99f5 0%, var(--color-bg-app) 100%);
+  /* Fixed attachment ties the gradient to the viewport instead of the body element's own
+     (scrollable) height, so it no longer stretches/shifts as long tables (e.g. the day table)
+     push the page taller. All background rules below need this repeated because the `background`
+     shorthand implicitly resets `background-attachment` back to its `scroll` default. */
+  background-attachment: fixed;
   color: var(--color-text);
   font-family: var(--font-family);
   font-size: var(--font-size-base);
@@ -26,11 +31,13 @@ body {
    gradient above — only the categories that read as "overcast" get a different top color. */
 body[data-weather='cloudy'] {
   background: linear-gradient(to bottom, #62a1cb 0%, var(--color-bg-app) 100%);
+  background-attachment: fixed;
 }
 
 body[data-weather='rain'],
 body[data-weather='snow'] {
   background: linear-gradient(to bottom, #96a6b5 0%, var(--color-bg-app) 100%);
+  background-attachment: fixed;
 }
 
 /* Night appearance (Day/Night Sky Background, User Story 1): `sky-controller.js`'s
@@ -57,6 +64,7 @@ body[data-sky='night'] {
       rgb(10 20 40 / calc(1 - var(--night-crossfade, 0))) 100%
     ),
     linear-gradient(to bottom, #0d99f5 0%, var(--color-bg-app) 100%);
+  background-attachment: fixed;
 }
 
 /* Night + overcast (cloudy/rain/snow): a lighter, slightly warmer tint than the plain night
@@ -74,6 +82,7 @@ body[data-sky='night'][data-weather='snow'] {
       rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
     ),
     linear-gradient(to bottom, #62a1cb 0%, var(--color-bg-app) 100%);
+  background-attachment: fixed;
 }
 
 body[data-sky='night'][data-weather='rain'],
@@ -86,6 +95,7 @@ body[data-sky='night'][data-weather='snow'] {
       rgb(51 64 92 / calc(1 - var(--night-crossfade, 0))) 100%
     ),
     linear-gradient(to bottom, #96a6b5 0%, var(--color-bg-app) 100%);
+  background-attachment: fixed;
 }
 
 /* Animated cloud backdrop — a fixed sky layer drifting behind the main content: several
