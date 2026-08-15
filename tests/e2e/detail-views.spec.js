@@ -508,20 +508,6 @@ test.describe('Day view breakdown toggle (feed-in total/per-inverter)', () => {
 });
 
 test.describe('Year detail view (US2)', () => {
-  test('renders all years with no drops, including the partial 2006 year', async ({ page }) => {
-    await page.goto('/#/year/2019');
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
-    await expect(page.locator('.empty-state')).toHaveCount(0);
-
-    const labels = await page
-      .locator('.chart-container .apexcharts-xaxis-texts-g text')
-      .allTextContents();
-    const uniqueLabels = [...new Set(labels)];
-    expect(uniqueLabels.some((label) => label.includes('2006'))).toBe(true);
-    expect(uniqueLabels.length).toBeGreaterThanOrEqual(19);
-  });
-
   test('a historical year (2020) shows a CO2 avoidance row consistent with that year factor', async ({
     page,
   }) => {
@@ -540,6 +526,24 @@ test.describe('Year detail view (US2)', () => {
 });
 
 test.describe('Lifetime (total) view (US2)', () => {
+  // Was originally routed to /#/year/2019, but the single-year view (year-view.js) only ever
+  // renders that one year's 12 months - "all years, no drops" (one bar per year, spanning back to
+  // the partial commissioning year) is what /#/total's chart actually renders (total-view.js
+  // passes the full years[] list to chart-factory's 'year' mode); moved here to match.
+  test('renders all years with no drops, including the partial 2006 year', async ({ page }) => {
+    await page.goto('/#/total');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
+    await expect(page.locator('.empty-state')).toHaveCount(0);
+
+    const labels = await page
+      .locator('.chart-container .apexcharts-xaxis-texts-g text')
+      .allTextContents();
+    const uniqueLabels = [...new Set(labels)];
+    expect(uniqueLabels.some((label) => label.includes('2006'))).toBe(true);
+    expect(uniqueLabels.length).toBeGreaterThanOrEqual(19);
+  });
+
   test('renders cumulative chart plus CO2/tariff summary', async ({ page }) => {
     await page.goto('/#/total');
     await page.waitForLoadState('networkidle');
@@ -553,39 +557,40 @@ test.describe('Lifetime (total) view (US2)', () => {
   });
 });
 
-test.describe('Compare (year-over-year) view (US3)', () => {
-  test('renders at least 3 distinct year lines with a day/kWh tooltip', async ({ page }) => {
-    await page.goto('/#/compare');
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.chart-container .apexcharts-svg')).toHaveCount(1);
+// The compare/year-over-year view (and its #/compare route) was removed entirely by the 013-016/
+// 019/020 redesigns - no compare-view.js, no chart-factory 'compare' mode, no router.js route, no
+// nav item (see router.js/main.js) - so there is nothing left to exercise here.
 
-    const seriesCount = await page.locator('.chart-container .apexcharts-series').count();
-    expect(seriesCount).toBeGreaterThanOrEqual(3);
-
-    // The day-of-year axis must span (at least) a full leap year, 1-366; Feb 29 not shifting
-    // later days out of range is covered by groupByYear's own node:test unit coverage
-    // (compare-view.test.js). Here we only confirm the axis actually reaches that range.
-    const labels = (
-      await page.locator('.chart-container .apexcharts-xaxis-texts-g text').allTextContents()
-    )
-      .map((label) => Number.parseInt(label, 10))
-      .filter((n) => !Number.isNaN(n));
-    expect(Math.max(...labels)).toBeGreaterThanOrEqual(300);
+// SHOW_LANGUAGE_SWITCHER is `false` in config.js right now ("Only German is maintained for this
+// plant right now; flip to `true` to bring back the DE/EN language switcher ... without deleting
+// its implementation") - the switcher UI/setLanguage() logic is intentionally kept, just gated
+// off by that flag, so these patch the served config.js to force it on, mirroring the same
+// route-patch trick welcome-page.spec.js already uses for PLANT_PHOTOS.
+async function forceLanguageSwitcherOn(page) {
+  await page.route('**/js/config.js', async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const patched = body.replace(
+      /export const SHOW_LANGUAGE_SWITCHER = false;/,
+      'export const SHOW_LANGUAGE_SWITCHER = true;',
+    );
+    await route.fulfill({ response, body: patched });
   });
-});
+}
 
 test.describe('Language switching (US5)', () => {
   test('switching to English updates nav, axis, and summary-table labels without a full reload', async ({
     page,
   }) => {
+    await forceLanguageSwitcherOn(page);
     await page.goto('/#/total');
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: 'Gesamtübersicht' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Gesamterträge' })).toBeVisible();
     await expect(page.locator('.summary-table')).toContainText('Gesamtertrag');
 
     await page.getByRole('button', { name: 'EN', exact: true }).click();
 
-    await expect(page.getByRole('heading', { name: 'Lifetime Overview' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Total Yields' })).toBeVisible();
     await expect(page.locator('.summary-table')).toContainText('Total yield');
     await expect(page.getByRole('button', { name: 'EN', exact: true })).toHaveAttribute(
       'aria-pressed',
@@ -594,14 +599,15 @@ test.describe('Language switching (US5)', () => {
   });
 
   test('the language selection persists across a reload', async ({ page }) => {
+    await forceLanguageSwitcherOn(page);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.getByRole('button', { name: 'EN', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Plant Info' })).toBeVisible();
 
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Plant Info' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'EN', exact: true })).toHaveAttribute(
       'aria-pressed',
       'true',

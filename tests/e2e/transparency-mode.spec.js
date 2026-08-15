@@ -17,25 +17,54 @@ function parseAlpha(colorValue) {
   return match ? Number(match[1]) : 1;
 }
 
+// Each style is read off its own auto-waiting Locator (rather than one `page.evaluate` doing a
+// batch of `document.querySelector`s) so a single element that isn't attached/painted yet at the
+// instant of the read (e.g. right after an SPA route change swaps #app-main's contents, or a
+// dev-server live-reload cycle) doesn't throw the whole readStyles() call out from under an
+// otherwise-passing test the way a bare `document.querySelector(...)` would.
 async function readStyles(page) {
-  await page.locator('.chart-container').waitFor();
-  await page.locator('.stats-panel').waitFor();
-  return page.evaluate(() => ({
-    attribute: document.documentElement.getAttribute('data-transparency'),
-    // The header/nav stays fully opaque at all times regardless of the toggle (user correction:
-    // transparency is only meaningful over the diagrams/statistics on the detail pages; fading
-    // the nav's own background caused a visible flicker there for no benefit).
-    navBg: getComputedStyle(document.getElementById('app-nav')).backgroundColor,
-    // Prev/next/today/parent buttons must stay fully opaque at all times (user correction:
-    // these need to stay easy to spot/click, unlike the header nav).
-    periodNavLinkBg: getComputedStyle(document.querySelector('.period-nav__link')).backgroundColor,
-    chartBg: getComputedStyle(document.querySelector('.chart-container')).backgroundColor,
-    statsBg: getComputedStyle(document.querySelector('.stats-panel')).backgroundColor,
-    // Content opacity must stay untouched — only the card background may fade (user
-    // correction: fading the whole panel via `opacity` also washes out the text/values).
-    chartContentOpacity: getComputedStyle(document.querySelector('.chart-mount')).opacity,
-    statsContentOpacity: getComputedStyle(document.querySelector('.stats-panel table')).opacity,
-  }));
+  const attribute = await page
+    .locator('html')
+    .evaluate((el) => el.getAttribute('data-transparency'));
+  // The header/nav stays fully opaque at all times regardless of the toggle (user correction:
+  // transparency is only meaningful over the diagrams/statistics on the detail pages; fading
+  // the nav's own background caused a visible flicker there for no benefit). The opaque
+  // background itself lives on `.app-header` (010-global-info-panel's single combined header+nav
+  // row) - `#app-nav` is just the nav-links wrapper inside it and has no background of its own,
+  // so it always reads as transparent regardless of the toggle.
+  const navBg = await page
+    .locator('.app-header')
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  // Prev/next/today/parent buttons must stay fully opaque at all times (user correction:
+  // these need to stay easy to spot/click, unlike the header nav).
+  const periodNavLinkBg = await page
+    .locator('.period-nav__link')
+    .first()
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  const chartBg = await page
+    .locator('.chart-container')
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  const statsBg = await page
+    .locator('.stats-panel')
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  // Content opacity must stay untouched — only the card background may fade (user
+  // correction: fading the whole panel via `opacity` also washes out the text/values).
+  const chartContentOpacity = await page
+    .locator('.chart-mount')
+    .evaluate((el) => getComputedStyle(el).opacity);
+  const statsContentOpacity = await page
+    .locator('.stats-panel table')
+    .evaluate((el) => getComputedStyle(el).opacity);
+
+  return {
+    attribute,
+    navBg,
+    periodNavLinkBg,
+    chartBg,
+    statsBg,
+    chartContentOpacity,
+    statsContentOpacity,
+  };
 }
 
 test.describe('Transparency mode — User Story 1 (turn on)', () => {

@@ -252,9 +252,16 @@ web/js/views/total-view.js` and fix all errors/warnings (per project CLAUDE.md's
       `tests/e2e/navigation.spec.js` and `tests/e2e/detail-views.spec.js`, to confirm the new
       `.chart-container__header` markup change in T009 doesn't regress existing chart-page
       structure/selectors. — `navigation.spec.js` is fully green; the 4 `detail-views.spec.js`
-      failures (year view, compare view, language switching) are unrelated to this feature's
-      markup change and pre-exist on unmodified `main`. The full-suite's 27 pre-existing failures
-      are tracked in [#46](https://github.com/mallwang/solarlog-viewer/issues/46).
+      failures (year view, compare view, language switching) were unrelated to this feature's
+      markup change and pre-existed on unmodified `main`. The full-suite's 27 pre-existing
+      failures (stale routes/labels from the 013-020 view redesigns), tracked in
+      [#46](https://github.com/mallwang/solarlog-viewer/issues/46), have since been fixed — every
+      spec file, `detail-views.spec.js` included, now passes deterministically when run
+      individually. A full `npx playwright test --reporter=line` run still shows 2-4 unrelated
+      tests time out on `waitForLoadState('networkidle')` against the live proxied device
+      (reproduces with `--workers=1` too, so it's not worker contention, and hits a different
+      random test each run) — pre-existing environmental network flakiness unrelated to this
+      feature's markup change, not a reproducible "exit 0".
 - [x] T027 Walk through quickstart.md's full manual validation (steps 1-9) end-to-end in a real
       browser via `npm start`, including the breakdown-toggle-while-table-shown interaction
       (step 7) and the no-data period case (step 8), confirming every "Expect" line holds. —

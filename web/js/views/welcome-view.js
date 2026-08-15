@@ -163,7 +163,10 @@ async function renderStats(mount, plant, { keepOnFailure = false } = {}) {
  *   chart/stats auto-refresh interval.
  */
 export async function render(container, { plant }) {
-  container.innerHTML = `<div class="welcome-layout grid grid-cols-1 gap-md lg:grid-cols-3 items-start">
+  container.innerHTML = `<div class="view-header flex items-center justify-between gap-sm flex-wrap mb-md">
+      <h2 class="view-title text-lg m-0">${t('nav.welcomeView')}</h2>
+    </div>
+    <div class="welcome-layout grid grid-cols-1 gap-md lg:grid-cols-3 items-start">
       <div class="welcome-primary flex flex-col gap-md lg:col-span-2 bg-bg-elevated rounded-lg p-md">
         <div class="welcome-carousel-mount"></div>
         <div class="welcome-details-mount"></div>

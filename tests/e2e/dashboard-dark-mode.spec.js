@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 const VIEWS = [
-  { name: 'dashboard', path: '/' },
+  { name: 'welcome', path: '/' },
   { name: 'day', path: '/#/day/2019/07/15' },
   { name: 'month', path: '/#/month/2008/07' },
   { name: 'year', path: '/#/year/2019' },
   { name: 'total', path: '/#/total' },
-  { name: 'compare', path: '/#/compare' },
+  { name: 'events', path: '/#/events' },
 ];
 
 function relativeLuminance({ r, g, b }) {
@@ -21,6 +21,13 @@ function parseRgb(value) {
   const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
   if (!match) return null;
   return { r: Number(match[1]), g: Number(match[2]), b: Number(match[3]) };
+}
+
+function hexToRgb(value) {
+  const match = value.trim().match(/^#([0-9a-f]{6})$/i);
+  if (!match) return null;
+  const int = Number.parseInt(match[1], 16);
+  return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
 }
 
 function contrastRatio(a, b) {
@@ -47,11 +54,24 @@ test.describe('Dark mode rendering across all six views (US1, FR-006)', () => {
 
       expect(errors).toEqual([]);
 
-      const { bg, color } = await page.evaluate(() => ({
-        bg: getComputedStyle(document.body).backgroundColor,
-        color: getComputedStyle(document.body).color,
-      }));
-      const bgRgb = parseRgb(bg);
+      // tokens.css: "The app always renders in light theme regardless of the OS/browser
+      // color-scheme preference - no dark-mode override block here on purpose", and
+      // `:root { color-scheme: light; }` backs that up - there is no FR-006 dark theme to render,
+      // by design. What *is* worth asserting under a `colorScheme: 'dark'` emulated browser is
+      // that the app keeps rendering its one real (light) theme with legible contrast rather than
+      // e.g. having the browser's own forced-colors/UA dark styling clash with it. `body`'s own
+      // `background-color` isn't useful here: `body { background: linear-gradient(...) }` (the
+      // sky backdrop) resets that longhand to its transparent initial value, since the shorthand
+      // never sets a color stop for it - so read the actual base tokens (`--color-bg-app`/
+      // `--color-text`, tokens.css) that the gradient/body text color are built from instead.
+      const { bg, color } = await page.evaluate(() => {
+        const styles = getComputedStyle(document.documentElement);
+        return {
+          bg: styles.getPropertyValue('--color-bg-app'),
+          color: getComputedStyle(document.body).color,
+        };
+      });
+      const bgRgb = parseRgb(bg) ?? hexToRgb(bg);
       const colorRgb = parseRgb(color);
       expect(bgRgb).not.toBeNull();
       expect(colorRgb).not.toBeNull();

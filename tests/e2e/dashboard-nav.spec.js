@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 const VIEWS = [
-  { name: 'dashboard', path: '/', label: 'Übersicht' },
-  { name: 'day', path: '/#/day/2019/07/15', label: 'Tageswerte' },
-  { name: 'month', path: '/#/month/2008/07', label: 'Monatswerte' },
-  { name: 'year', path: '/#/year/2019', label: 'Jahreswerte' },
-  { name: 'total', path: '/#/total', label: 'Gesamtübersicht' },
-  { name: 'compare', path: '/#/compare', label: 'Jahresvergleich' },
+  { name: 'welcome', path: '/', label: 'Anlageninfo' },
+  { name: 'day', path: '/#/day/2019/07/15', label: 'Tagesertrag' },
+  { name: 'month', path: '/#/month/2008/07', label: 'Monatserträge' },
+  { name: 'year', path: '/#/year/2019', label: 'Jahreserträge' },
+  { name: 'total', path: '/#/total', label: 'Gesamterträge' },
+  { name: 'events', path: '/#/events', label: 'Ereignisse' },
 ];
 
 test.describe('Navigation lists all six views and marks the active one (FR-002, FR-003)', () => {
@@ -39,11 +39,11 @@ test.describe('Navigation lists all six views and marks the active one (FR-002, 
       reloaded = true;
     });
 
-    await page.locator('#app-nav-list a', { hasText: 'Gesamtübersicht' }).click();
+    await page.locator('#app-nav-list a', { hasText: 'Gesamterträge' }).click();
     await expect(page.locator('#app-nav-list a[aria-current="page"]')).toContainText(
-      'Gesamtübersicht',
+      'Gesamterträge',
     );
-    await expect(page.getByRole('heading', { name: 'Gesamtübersicht' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Gesamterträge' })).toBeVisible();
     expect(reloaded).toBe(false);
   });
 });

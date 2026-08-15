@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 const VIEWS = [
-  { name: 'dashboard', path: '/' },
+  { name: 'welcome', path: '/' },
   { name: 'day', path: '/#/day/2019/07/15' },
   { name: 'month', path: '/#/month/2008/07' },
   { name: 'year', path: '/#/year/2019' },
   { name: 'total', path: '/#/total' },
-  { name: 'compare', path: '/#/compare' },
+  { name: 'events', path: '/#/events' },
 ];
 
 test.describe('Dashboard consistency across all six views (US1)', () => {
