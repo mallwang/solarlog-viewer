@@ -153,6 +153,22 @@ separat synchronisierte lokale Dateien.
 `npm run build:css` kompiliert `web/css/tailwind.css` zur eingecheckten statischen Datei
 `web/css/tailwind.generated.css`, die produktiv genutzt wird — kein CDN-/Runtime-Skript.
 
+## Produktions-Build & Deploy
+
+`npm run build` (`scripts/build.js`) erzeugt `dist/`, den Baum, der tatsächlich per FTP übertragen
+wird — `web/` selbst dient nur noch als vom Dev-Server ausgelieferte Quelle, nicht als das, was
+ausgeliefert wird. Der Build bündelt und minifiziert den gesamten JS-Importgraphen zu einer
+einzigen `js/main-<sha>.js` sowie die drei Stylesheets zu einer einzigen `css/styles-<sha>.css`
+(`<sha>` = der aktuelle git-Short-SHA) und schreibt `dist/index.html` so um, dass sie darauf
+verweist — das ist der Cache-Busting-Fix: jedes Deployment erhält frische, nie zuvor gesehene
+Asset-URLs, sodass Browser nach einem Update keine veraltete zwischengespeicherte Kopie mehr
+ausliefern können. `i18n/*.json`, `img/plant/*.jpg` und `vendor/*.svg` werden unverändert
+kopiert, aber statt einer Umbenennung mit einem `?v=<sha>`-Query-String cache-gebustet, da diese
+Pfade zur Laufzeit referenziert werden statt zur Build-Zeit bekannt zu sein. `dist/data`/`dist/hist`
+sind Symlinks auf `web/data`/`web/hist` (der Live-/eingefrorene Datenspiegel des SolarLog-Geräts —
+vom Build unangetastet). `npm run build` vor dem Synchronisieren ausführen; `scripts/ftp-sync.js`
+(und das `sync-ftp`-Skill) vergleichen/übertragen `dist/`, nicht `web/`.
+
 ## Frontend-Tests
 
 ```bash
