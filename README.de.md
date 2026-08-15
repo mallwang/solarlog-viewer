@@ -132,6 +132,31 @@ innerhalb der aktuell gefilterten Menge. Siehe `web/js/data/events.js` (Parsen/Z
 Deduplizieren/Label-Auflösung, ohne DOM) und `web/js/views/events-view.js` (Rendering +
 Filter-/Sortierzustand).
 
+## Erklär-Tooltips
+
+Zeilen im Statistik-Panel (Tages-/Monats-/Jahres-/Gesamt-/Willkommensansicht) können neben ihrem
+Label eine kleine, fokussierbare „i“-Schaltfläche tragen. Auf dem Desktop öffnet Hover oder
+Tastatur-Fokus ein kurzes Tooltip, das erklärt, wie genau dieser Wert berechnet wird; auf reinen
+Touch-Geräten wird die Schaltfläche gar nicht erst gerendert (`@media (hover: hover) and
+(pointer: fine)` in `web/css/app.css`), sodass das mobile Layout nie beeinflusst wird. Die
+gesamte Rendering-/Positionierungslogik (einschließlich des Kipp-Verhaltens am Bildschirmrand,
+das ein Abschneiden des Tooltips verhindert) liegt zentral in `web/js/views/stats-panel.js` — kein
+Ansichtsmodul baut dieses Markup selbst.
+
+Um einen neuen Wert zu erklären, sind keine Änderungen an `stats-panel.js` nötig:
+
+1. Einen `explanations.<key>`-Eintrag (deutscher + englischer Text) in `web/i18n/de.json` und
+   `web/i18n/en.json` hinzufügen, neben den übrigen UI-Texten.
+2. In der Zeilen-Builder-Funktion der Ansicht (z. B. `monthStatsRows()` in
+   `web/js/views/month-view.js`) den i18n-Key als drittes Element an das Zeilen-Tupel anhängen:
+   `[labelKey, value, 'explanations.<key>']`. Eine Zeile mit nur `[labelKey, value]` wird
+   weiterhin genau wie bisher gerendert — die Erklärung ist pro Zeile optional.
+
+Derselbe `explanations.<key>` kann über mehrere Ansichten hinweg wiederverwendet werden (z. B.
+bedeutet „Soll“ in der Tages-, Monats-, Jahres- und Gesamtansicht dasselbe) — der i18n-Eintrag
+wird einmal gepflegt, und jede Ansicht, die ihn referenziert, aktualisiert sich mit. Siehe
+`specs/020-explanatory-tooltips/` für die vollständige Spezifikation/den Plan/den Contract.
+
 ## Entwicklungsserver
 
 ```bash

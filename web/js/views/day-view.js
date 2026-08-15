@@ -7,7 +7,7 @@ import { DATA_DIR, DATA_REFRESH_INTERVAL_MS } from '../config.js';
 import { formatRoute } from '../router.js';
 import { addDays, isFutureDay, parentOfDay, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
-import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { chartWithStatsLayoutMarkup, statsPanelMarkup, statValueMarkup } from './stats-panel.js';
 import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
 import { initChartTableToggle } from './chart-table-toggle.js';
 import { renderChartTable } from './chart-data-table.js';
@@ -53,7 +53,7 @@ function todayParams() {
  * @param {object | null} plant - PlantMetadata (see data/plant.js); Soll/tariff figures fall
  *   back to 0 when unavailable.
  * @param {{ year: number, month: number }} params
- * @returns {[string, string][]}
+ * @returns {([string, string] | [string, string, string])[]}
  */
 function dayStatsRows(trace, plant, params) {
   const yieldKwh = dailyYieldWh(trace) / 1000;
@@ -67,15 +67,15 @@ function dayStatsRows(trace, plant, params) {
 
   return [
     ['day.stats.yieldKwh', formatKwh(yieldKwh)],
-    ['day.stats.yieldEuro', formatCurrency(feedInEuro)],
+    ['day.stats.yieldEuro', formatCurrency(feedInEuro), 'explanations.yieldEuro'],
     ['day.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
     [
       'day.stats.maxDaily',
-      maxPowerTime ? `${maxPower.w} W (${maxPowerTime} Uhr)` : `${maxPower.w} W`,
+      statValueMarkup(`${maxPower.w} W`, maxPowerTime ? `(${maxPowerTime} Uhr)` : null),
     ],
-    ['day.stats.soll', formatKwh(sollKwh)],
-    ['day.stats.ist', `${ist}%`],
-    ['day.stats.co2', formatCo2(co2SavedKg)],
+    ['day.stats.soll', formatKwh(sollKwh), 'explanations.soll'],
+    ['day.stats.ist', `${ist}%`, 'explanations.ist'],
+    ['day.stats.co2', formatCo2(co2SavedKg), 'explanations.co2'],
   ];
 }
 

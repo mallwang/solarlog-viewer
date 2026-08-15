@@ -131,6 +131,15 @@ year (and any future year), no published factor exists yet, so a fixed fallback 
 (0.363 kg/kWh) is used instead until UBA publishes that year's figure. This figure is computed
 entirely from data already on the page — no additional network request is made for it.
 
+## Explanatory tooltips
+
+Several stats-panel figures (day/month/year/total/welcome views) — yield in €, Soll, Soll
+(auflaufend), Ist, and CO2 avoided — have a small "i" icon next to their label. On desktop, hover
+or Tab to it to see a short tooltip explaining exactly how that figure is calculated (e.g. "Ist"
+is the actual yield as a percentage of the Soll figure shown alongside it). On touch-only devices
+(phones/tablets) the icon isn't shown at all — there's nothing useful a tap could do with it, so
+it's left out entirely rather than shown inert.
+
 ## Prerequisites
 
 - Node.js 22+

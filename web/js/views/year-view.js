@@ -13,7 +13,7 @@ import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
 import { addYears, isFutureYear, parentOfYear, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
-import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { chartWithStatsLayoutMarkup, statsPanelMarkup, statValueMarkup } from './stats-panel.js';
 import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
 import { initChartTableToggle } from './chart-table-toggle.js';
 import { renderChartTable } from './chart-data-table.js';
@@ -56,7 +56,7 @@ function sumWh(perInverter) {
  *   back to 0 when unavailable.
  * @param {number} year
  * @param {boolean} isCurrentYear
- * @returns {[string, string][]}
+ * @returns {([string, string] | [string, string, string])[]}
  */
 function yearStatsRows(monthlyBreakdown, plant, year, isCurrentYear) {
   const yieldKwh = monthlyBreakdown.reduce((s, m) => s + sumWh(m.perInverter), 0) / 1000;
@@ -72,15 +72,19 @@ function yearStatsRows(monthlyBreakdown, plant, year, isCurrentYear) {
 
   return [
     ['year.stats.yieldKwh', formatKwh(yieldKwh)],
-    ['year.stats.yieldEuro', formatCurrency(feedInEuro)],
+    ['year.stats.yieldEuro', formatCurrency(feedInEuro), 'explanations.yieldEuro'],
     ['year.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
     [
       'year.stats.maxMonth',
-      maxMonthName ? `${formatKwh(maxMonth.kwh)} (${maxMonthName})` : formatKwh(maxMonth.kwh),
+      statValueMarkup(formatKwh(maxMonth.kwh), maxMonthName ? `(${maxMonthName})` : null),
     ],
-    [isCurrentYear ? 'year.stats.sollAuflaufend' : 'year.stats.sollTotal', formatKwh(sollKwh)],
-    ['year.stats.ist', `${ist}%`],
-    ['year.stats.co2', formatCo2(co2SavedKg)],
+    [
+      isCurrentYear ? 'year.stats.sollAuflaufend' : 'year.stats.sollTotal',
+      formatKwh(sollKwh),
+      isCurrentYear ? 'explanations.sollAuflaufend' : 'explanations.soll',
+    ],
+    ['year.stats.ist', `${ist}%`, 'explanations.ist'],
+    ['year.stats.co2', formatCo2(co2SavedKg), 'explanations.co2'],
   ];
 }
 

@@ -13,7 +13,7 @@ import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
 import { addMonths, isFutureMonth, parentOfMonth, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
-import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { chartWithStatsLayoutMarkup, statsPanelMarkup, statValueMarkup } from './stats-panel.js';
 import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
 import { initChartTableToggle } from './chart-table-toggle.js';
 import { renderChartTable } from './chart-data-table.js';
@@ -78,7 +78,7 @@ function sumWh(perInverter) {
  *   back to 0 when unavailable.
  * @param {{ year: number, month: number }} params
  * @param {boolean} isCurrentMonth
- * @returns {[string, string][]}
+ * @returns {([string, string] | [string, string, string])[]}
  */
 function monthStatsRows(monthTotal, plant, params, isCurrentMonth) {
   const yieldKwh = sumWh(monthTotal.perInverter) / 1000;
@@ -95,17 +95,22 @@ function monthStatsRows(monthTotal, plant, params, isCurrentMonth) {
 
   return [
     ['month.stats.yieldKwh', formatKwh(yieldKwh)],
-    ['month.stats.yieldEuro', formatCurrency(feedInEuro)],
+    ['month.stats.yieldEuro', formatCurrency(feedInEuro), 'explanations.yieldEuro'],
     ['month.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
     [
       'month.stats.maxDaily',
-      maxDailyDay
-        ? `${formatKwh(maxDaily.kwh)} (${maxDailyDay}. ${maxDailyMonthName})`
-        : formatKwh(maxDaily.kwh),
+      statValueMarkup(
+        formatKwh(maxDaily.kwh),
+        maxDailyDay ? `(${maxDailyDay}. ${maxDailyMonthName})` : null,
+      ),
     ],
-    [isCurrentMonth ? 'month.stats.sollAuflaufend' : 'month.stats.sollTotal', formatKwh(sollKwh)],
-    ['month.stats.ist', `${ist}%`],
-    ['month.stats.co2', formatCo2(co2SavedKg)],
+    [
+      isCurrentMonth ? 'month.stats.sollAuflaufend' : 'month.stats.sollTotal',
+      formatKwh(sollKwh),
+      isCurrentMonth ? 'explanations.sollAuflaufend' : 'explanations.soll',
+    ],
+    ['month.stats.ist', `${ist}%`, 'explanations.ist'],
+    ['month.stats.co2', formatCo2(co2SavedKg), 'explanations.co2'],
   ];
 }
 

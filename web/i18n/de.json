@@ -233,5 +233,12 @@
       "rain": "Regen",
       "snow": "Schnee"
     }
+  },
+  "explanations": {
+    "yieldEuro": "Der Ertrag (kWh) multipliziert mit dem hinterlegten Einspeisetarif pro kWh.",
+    "soll": "Das für diesen Zeitraum hinterlegte Ertragsziel (Soll), berechnet aus der Anlagenleistung.",
+    "sollAuflaufend": "Das anteilige Ziel bis heute: die Tagesziele aller bereits vergangenen Tage dieses Zeitraums aufsummiert.",
+    "ist": "Der tatsächliche Ertrag als Prozentsatz des danebenstehenden Soll-Werts — 100 % heißt genau im Plan.",
+    "co2": "Der Ertrag (kWh) multipliziert mit dem CO2-Emissionsfaktor des deutschen Strommix im jeweiligen Jahr."
   }
 }
