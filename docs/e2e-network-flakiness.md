@@ -1,8 +1,9 @@
 # Task: investigate and fix intermittent Playwright timeouts against the live device proxy
 
-Not filed as a GitHub issue yet — write-up for whoever (agent or human) picks this up next.
+**Status: mitigated (2026-08-15).** See "Fix applied" below. Not filed as a GitHub issue —
+write-up for whoever (agent or human) picks this up next if it resurfaces.
 Related but distinct from [#46](https://github.com/mallwang/solarlog-viewer/issues/46) (stale
-routes/labels, now fixed) — this is a separate, still-open problem found while verifying #46's fix.
+routes/labels, now fixed) — this is a separate problem found while verifying #46's fix.
 
 ## Symptom
 
@@ -70,6 +71,37 @@ live device's typical response time distribution.
 5. Once a fix is in place, verify it by running the full suite multiple times in a row (not just
    once) — a single green run does not disprove flakiness this intermittent; the investigation
    in this doc needed 5 runs to characterize the pattern.
+
+## Fix applied
+
+Went with the "cheap mitigation" option from the next-steps list above rather than the broader
+`networkidle` → selector-wait rewrite. In [`playwright.config.js`](../playwright.config.js):
+
+- `timeout: 45_000` (up from Playwright's 30s default) — gives `waitForLoadState('networkidle')`
+  more room to absorb live-device latency before the test itself times out.
+- `retries: 2` — a test that trips on live-network jitter gets re-run automatically; a genuine
+  regression still fails on retry too, so this doesn't mask real bugs.
+
+### Verification
+
+Ran the full suite 3 times in a row after the change (`npx playwright test --reporter=line`):
+
+1. 211 passed, no retries triggered (59.6s)
+2. 211 passed, no retries triggered (1.1m)
+3. 211 passed, **but 5 tests were flaky** — failed on their first attempt with the same
+   `networkidle` timeout shape described above, then passed on retry — final exit was still green.
+
+Run 3 both reproduces the original hypothesis (live-proxy network jitter causes intermittent
+`networkidle` timeouts, different test each time) and confirms the mitigation works as intended:
+the flaky tests no longer fail the suite.
+
+### Still open
+
+The root cause (live-device latency vs. `networkidle`) is unchanged and step 1 (HAR/request
+logging to fully confirm it) was not done — this fix treats the symptom, which was judged
+sufficient for now per the "cheap first" plan. Step 2 (rewrite ~30 specs to wait on selectors
+instead of `networkidle`) and step 4 (mockable `/data`/`/hist` fixtures for e2e) remain
+unimplemented if the 2-retry budget ever proves insufficient or CI is added later.
 
 ## Evidence trail
 
