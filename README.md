@@ -132,11 +132,16 @@ Starts the dev server at http://localhost:3000 — entry point is `web/index.htm
 the Tailwind CLI in `--watch` mode alongside `browser-sync`, so CSS changes hot-reload too.
 Run `npm run open` to open the viewer in your default browser.
 
-`bs-config.cjs` proxies every `/data/*` request straight through to the live SolarLog device at
-`https://wolfsbach.synology.me` instead of serving `web/data/` from disk, so the dev server always
-shows current readings without a manual sync. This only applies to `npm start` — scripts that read
-`web/data/` from the filesystem (backfill, `gap:detect`, `validate:plausibility`, sqlite sync, the
-`sync-ftp` skill) still need the local files kept in sync separately.
+`bs-config.cjs` proxies every `/data/*` and `/hist/*` request straight through to the live
+SolarLog device at `https://wolfsbach.synology.me` instead of serving `web/data/`/`web/hist/`
+from disk, so the dev server always shows current readings without a manual sync. `web/data/`
+and `web/hist/` are themselves untracked (`.gitignore`) — they're the device's own live/frozen
+data mirror, not versioned source — so a fresh clone starts with them empty; run the `sync-ftp`
+skill (or `scripts/ftp-sync.js --apply --yes --direction download`) to populate them before using
+anything that isn't served through `npm start`. This proxying only applies to `npm start` —
+scripts that read `web/data/`/`web/hist/` from the filesystem (backfill, `gap:detect`,
+`validate:plausibility`, sqlite sync, the `sync-ftp` skill) still need the local files kept in
+sync separately.
 
 `npm run build:css` compiles `web/css/tailwind.css` into the committed `web/css/tailwind.generated.css`
 static file used in production — no CDN/runtime script.
