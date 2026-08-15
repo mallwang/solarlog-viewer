@@ -34,6 +34,8 @@ groups:
     name: Cross-cutting utilities
   - id: tooling
     name: Offline data maintenance
+  - id: build
+    name: Build & deploy
   - id: legacy
     name: Original 2006 site
 
@@ -151,6 +153,22 @@ primitives:
       - docs/validate-min-consistency.md
       - docs/migration-orders/
 
+  # --- Build & deploy ---------------------------------------------------------
+  - id: build-pipeline
+    group: build
+    name: Production build & cache-busting
+    summary:
+      Offline build step (esbuild) that bundles/minifies web/'s native ES
+      module + CSS graph into hashed, cache-busted dist/ output for
+      deployment. web/data and web/hist are symlinked through untouched.
+      Never runs in the browser; day-to-day dev still serves web/ unbundled.
+    code:
+      - scripts/build.js
+      - web/js/build-info.js
+    docs:
+      - specs/019-cache-busting-build/plan.md
+      - README.md
+
   # --- Legacy -------------------------------------------------------------
   - id: legacy-chart-engine
     group: legacy
@@ -185,6 +203,15 @@ invariants:
       data/solarlog.sqlite3 is a read-optimized, one-directional mirror of
       the min*.js archive (scripts/sync-sqlite.js); it is never written back
       to the js files and never treated as the primary store.
+
+  - id: dist-is-a-build-artifact
+    summary:
+      dist/ is a regenerated, gitignored output of scripts/build.js — never
+      hand-edited or committed. ftp-sync.js deploys dist/, not web/; dist/data
+      and dist/hist are symlinks straight through to the real web/data and
+      web/hist, never copies.
+    docs:
+      - README.md
     docs:
       - docs/data-format.md
 
