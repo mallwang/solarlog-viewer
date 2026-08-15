@@ -4,7 +4,7 @@
 
 **Created**: 2026-07-31
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to store all daily meter data from all min*.js files inside a local sqlite database. A migration script should exist to sync the min*.js files to the database. As every day a new minYYMMDD.js gets added, the sync script must be able to sync the delta on its run (idempotency must be possible), already available days should not be synched again. The database must allow all available data fields like described in the docs/data-format-daily.md ."
 

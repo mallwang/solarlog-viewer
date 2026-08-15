@@ -4,7 +4,7 @@
 
 **Created**: 2026-07-29
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to create a modernization plan of the whole website. Its a statically hosted site, therefore no backend or database is required. In the constitution there are some ideas."
 

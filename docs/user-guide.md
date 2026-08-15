@@ -80,6 +80,8 @@ cross the sky. This runs automatically — there is nothing to configure — and
 minutes. If weather data can't be fetched (no network, no configured location), the backdrop
 simply keeps its original static appearance; nothing else on the dashboard is affected. If your
 system/browser has "reduce motion" enabled, all sky animation and flying objects are suppressed
+while the cloud density/sun-moon state still updates. Birds are rendered as animated silhouette
+sprites rather than a plain shape — a purely visual upgrade that needs no configuration.
 while the cloud density/sun-moon state still updates.
 
 ## Global desktop info panel

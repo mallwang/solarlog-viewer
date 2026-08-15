@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-09
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to make the clouds and the sky more dynamic and not just using static CSS that reloads regularly. E.g. the background sky should be dynamically bound to the real weather in the given location of the installation (see web/data/base_vars.js). E.g. when there is full sun, the clouds should be very rare and maybe the sun could mimik its current stand of the horizon (e.g. at 12:00 in the center and at 18:00 at the right side or at 23:00 the moon cound shine). Additionally, there could be some animals like birds that fly through the background, and maybe randomly and rarely also some airplanes, rockets (to the moon as easter eggs) or baloons.
 

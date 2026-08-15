@@ -191,11 +191,11 @@ describe('createPlaneElement', () => {
     assert.ok(sprite, 'should have a child .sky-plane-sprite');
   });
 
-  it('sets --plane-scale on .sky-plane-sprite within [1.2, 1.5]', () => {
+  it('sets --plane-scale on .sky-plane-sprite within [1.7, 2.3]', () => {
     const el = createPlaneElement({ durationS: 20, laneTopPct: 10 });
     const sprite = el.children.find((c) => c.className.includes('sky-plane-sprite'));
     const val = Number.parseFloat(sprite._style['--plane-scale']);
-    assert.ok(val >= 1.2 && val <= 1.5, `--plane-scale ${val} should be in [1.2, 1.5]`);
+    assert.ok(val >= 1.7 && val <= 2.3, `--plane-scale ${val} should be in [1.7, 2.3]`);
   });
 
   it('produces distinct --plane-scale values across 10 spawns', () => {

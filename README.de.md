@@ -2,8 +2,14 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mallwang/solarlog-viewer)
 
+**[Live-Anwendung](https://wolfsbach.synology.me)**
+
 <p align="center">
   <img src="solarlog-viewer.png" alt="Solarlog Viewer Icon" width="120" />
+</p>
+
+<p align="center">
+  <sub>Wolke Sonne bewölkt Wetter Icon by Matt Cooper on <a href="https://icon-icons.com/de/authors/268-matt-cooper">Icon-Icons.com</a></sub>
 </p>
 
 Statischer Viewer für SolarLog-Datenexporte (HTML/JS/CSS). `web/` ist das einzige Verzeichnis, das
@@ -50,7 +56,10 @@ API nach Bewölkung sowie Sonnenauf-/-untergang abzufragen:
   dichter Bewölkung.
 - **Fliegende Objekte** — Vögel, Schmetterlinge, Libellen und Gänse-Formationen queren den
   Himmel als animierte SVG-Sprite-Sheets (realistische Silhouetten, keine Emojis); Flugzeuge,
-  Ballons und ein Raketen-Osterei Richtung Mond erscheinen selten.
+  Ballons und ein Raketen-Osterei Richtung Mond erscheinen selten. Die Rendering-Logik jeder Art
+  steckt hinter einer einzigen Registry `FLYING_OBJECT_RENDERERS` in
+  `web/js/sky/flying-object-renderers.js` — eine neue Art hinzuzufügen bedeutet nur einen
+  weiteren Eintrag dort.
 
 Bei jedem Fehler (keine Position, kein Netzwerk, fehlgeschlagene Anfrage) fällt die Ansicht
 stillschweigend auf die ursprüngliche statische Kulisse zurück — es gibt keine Fehleranzeige und
@@ -297,3 +306,7 @@ Um den nächsten vom UBA veröffentlichten Jahreswert einzutragen: den veröffen
 in kg/kWh umrechnen (durch 1000 teilen) und als einzelnen neuen Eintrag `jahr: faktor` in
 `CO2_FACTOR_KG_PER_KWH_BY_YEAR` hinzufügen — es muss keine andere Datei geändert werden; jede
 Ansicht übernimmt den neuen Wert beim nächsten Laden.
+
+## Lizenz
+
+MIT — siehe [LICENSE.md](LICENSE.md).

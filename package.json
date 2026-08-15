@@ -2,6 +2,7 @@
   "name": "solarlog-viewer",
   "version": "1.0.0",
   "description": "Static viewer for SolarLog data exports",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "start": "tailwindcss -i web/css/tailwind.css -o web/css/tailwind.generated.css --watch & browser-sync start --config bs-config.cjs",

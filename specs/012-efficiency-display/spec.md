@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-11
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "Zusätzlich zur aktuellen Energieproduktion soll der Wirkungsgrad angezeigt werden, welcher sich aus PAC zu PDC errechnet — sowohl im Info-Panel (Live-Wert) als auch im Day-View-Chart (Tagesverlauf)."
 

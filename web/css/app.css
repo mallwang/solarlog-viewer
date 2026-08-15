@@ -1062,14 +1062,14 @@ body[data-weather='snow'] .sky-ceiling__puff:nth-child(even) {
   background-repeat: no-repeat;
   background-position: 0 0;
   /* Sprite faces LEFT — flip for LTR so butterfly faces the direction of travel. */
-  transform: scaleX(-1) scale(var(--butterfly-scale, 0.45));
+  transform: scaleX(-1) scale(var(--butterfly-scale, 0.15));
   transform-origin: center;
   animation: butterfly-wingbeat var(--wingbeat-duration, 0.45s) steps(10) infinite;
   animation-delay: var(--wingbeat-phase, 0s);
 }
 
 .sky-flying-object--butterfly[data-direction='rtl'] .sky-butterfly-sprite {
-  transform: scale(var(--butterfly-scale, 0.45));
+  transform: scale(var(--butterfly-scale, 0.15));
 }
 
 @keyframes butterfly-wingbeat {
@@ -1101,14 +1101,14 @@ body[data-weather='snow'] .sky-ceiling__puff:nth-child(even) {
   background-repeat: no-repeat;
   background-position: 0 0;
   /* Sprite faces LEFT — flip for LTR so dragonfly faces the direction of travel. */
-  transform: scaleX(-1) scale(var(--dragonfly-scale, 0.45));
+  transform: scaleX(-1) scale(var(--dragonfly-scale, 0.12));
   transform-origin: center;
   animation: dragonfly-shimmer var(--wingbeat-duration, 0.1s) steps(10) infinite;
   animation-delay: var(--wingbeat-phase, 0s);
 }
 
 .sky-flying-object--dragonfly[data-direction='rtl'] .sky-dragonfly-sprite {
-  transform: scale(var(--dragonfly-scale, 0.45));
+  transform: scale(var(--dragonfly-scale, 0.12));
 }
 
 @keyframes dragonfly-shimmer {

@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-13
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to enable the user to show a datatable based on the tailwind table "With condensed content" under each diagram. It should be able to activate via a button on the top right of each diagram. It should also be stored in the local storage for the whole app and stay across the pages."
 

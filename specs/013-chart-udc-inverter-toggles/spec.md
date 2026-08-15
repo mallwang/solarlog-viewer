@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-12
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to enhance the diagrams with the following: 1.: the daily chart should also show the UDC value (summary if two strings), but as a disabled chart element, and only show when the user clicks in the legend on the UDC. 2.: the Monatserträge, Jahreserträge and Gesamterträge should allow the user to show the WR1 and WR2 values as part of the existing bar chart - the current single bar can simply be changed to a stacked bar."
 

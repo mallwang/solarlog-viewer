@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-13
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to add a welcome page as default page (fallback page) when entering the base url. It should consist of a split view with 2/3 left part (should show images from the solar power plant in a carousal, and below the values from the base_vars.js) to give the visitor of the application a fast impression of the power plant. The 1/3 right part should show a diagram of the todays generation (only total value, using same y-axis of the tagesertrag, no WR1/WR2, no efficiency, no UDC). No other diagrams are needed as they are already visible in the header."
 

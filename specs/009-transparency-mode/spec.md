@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-10
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "Hi, I would like to enable the user to switch on a transparency mode via a global setting. This should make the navigation bars totally transparent and all other diagrams and statistics at a 40% transparency level. The reason is that users are then able to see the background, the flying objects, the clouds and the blue sky."
 

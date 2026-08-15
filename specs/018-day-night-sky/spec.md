@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-14
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to enhance the background by show a different one based on the day/night. This information can be requested by the open meteo api. The idea is to show the current sky and weather during the daytime like it is. But during the night, the idea is to show a night sky, keeping the clouds and moving items as they are now. The only thing is for sunny and mixed, the sky should show stars or sometimes a falling star animation (but not for cloudy, rain, snow)."
 

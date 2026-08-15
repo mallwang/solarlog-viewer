@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-10
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to introduce a global information field for using on desktop clients, that shows the current produced energy, the current weather, the forecast for today. Furthermore, clicking on the weather information, it should forward to the wetteronline.com for the given location (this is what the plant owner normally uses for weather forecasts). There should also be a animation for the produced energy that adapts to the amount of energy."
 
