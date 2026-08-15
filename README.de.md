@@ -143,12 +143,17 @@ Startet den Dev-Server unter http://localhost:3000 — Einstiegspunkt ist `web/i
 startet die Tailwind-CLI im `--watch`-Modus parallel zu `browser-sync`, sodass auch CSS-Änderungen
 per Hot-Reload übernommen werden. Mit `npm run open` wird der Viewer im Standardbrowser geöffnet.
 
-`bs-config.cjs` leitet jede `/data/*`-Anfrage direkt an das aktive SolarLog-Gerät unter
-`https://wolfsbach.synology.me` weiter, statt `web/data/` von der Festplatte zu bedienen — der
-Dev-Server zeigt so immer aktuelle Messwerte, ohne dass manuell synchronisiert werden muss. Das gilt
-nur für `npm start` — Skripte, die `web/data/` direkt vom Dateisystem lesen (Backfill,
-`gap:detect`, `validate:plausibility`, Sqlite-Sync, das `sync-ftp`-Skill), benötigen weiterhin
-separat synchronisierte lokale Dateien.
+`bs-config.cjs` leitet jede `/data/*`- und `/hist/*`-Anfrage direkt an das aktive SolarLog-Gerät
+unter `https://wolfsbach.synology.me` weiter, statt `web/data/`/`web/hist/` von der Festplatte zu
+bedienen — der Dev-Server zeigt so immer aktuelle Messwerte, ohne dass manuell synchronisiert
+werden muss. `web/data/` und `web/hist/` sind selbst nicht versioniert (`.gitignore`) — sie sind
+der eigene Live-/eingefrorene Datenspiegel des Geräts, keine versionierte Quelle — ein frischer
+Checkout startet also mit leeren Verzeichnissen; vor allem, was nicht über `npm start` ausgeliefert
+wird, muss zuerst das `sync-ftp`-Skill (oder `scripts/ftp-sync.js --apply --yes --direction
+download`) laufen, um sie zu befüllen. Diese Weiterleitung gilt nur für `npm start` — Skripte, die
+`web/data/`/`web/hist/` direkt vom Dateisystem lesen (Backfill, `gap:detect`,
+`validate:plausibility`, Sqlite-Sync, das `sync-ftp`-Skill), benötigen weiterhin separat
+synchronisierte lokale Dateien.
 
 `npm run build:css` kompiliert `web/css/tailwind.css` zur eingecheckten statischen Datei
 `web/css/tailwind.generated.css`, die produktiv genutzt wird — kein CDN-/Runtime-Skript.
