@@ -160,8 +160,9 @@ primitives:
     summary:
       Offline build step (esbuild) that bundles/minifies web/'s native ES
       module + CSS graph into hashed, cache-busted dist/ output for
-      deployment. web/data and web/hist are symlinked through untouched.
-      Never runs in the browser; day-to-day dev still serves web/ unbundled.
+      deployment. dist/ has no web/data or web/hist entry at all — those are
+      the device's own data mirror, out of scope for this project. Never
+      runs in the browser; day-to-day dev still serves web/ unbundled.
     code:
       - scripts/build.js
       - web/js/build-info.js
@@ -174,10 +175,12 @@ primitives:
     group: legacy
     name: Original 2006 frameset site
     summary:
-      Pre-modernization pixel-math chart engine and frameset pages, kept as
-      a behavioral reference; not actively developed.
+      Pre-modernization pixel-math chart engine and frameset pages. No
+      longer in the working tree or served anywhere (dropped from
+      bs-config.cjs and dist/ was never shipping it); preserved read-only
+      as archive/legacy-site.tar.gz for behavioral reference only.
     code:
-      - legacy-site/
+      - archive/legacy-site.tar.gz
     docs:
       - docs/architecture.md
 

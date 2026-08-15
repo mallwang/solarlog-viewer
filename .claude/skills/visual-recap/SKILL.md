@@ -1,7 +1,6 @@
 ---
 name: visual-recap
-description:
-  Generate and maintain the system recap block in a PR description - a
+description: Generate and maintain the system recap block in a PR description - a
   GitHub-rendered visual summary of which system primitives (see
   docs/primitives.yaml) a change touches, how risky it is, and what changed.
   Use when planning a non-trivial change (plan mode), when creating or
@@ -39,14 +38,15 @@ description and normal code review; it never replaces reading the diff.
 3. **The map stays current.** If the PR adds, removes, or materially
    reshapes a primitive, update `docs/primitives.yaml` in the same PR and say
    so in the block. Ordinary feature work should not touch it.
-4. **`legacy-site/` changes are almost never `adds`.** The `legacy-chart-engine`
-   primitive is a frozen reference; touching it is `extends` at most unless a
-   genuinely new primitive is introduced there.
+4. **`legacy-chart-engine` is a frozen, archived reference.** It's no longer in
+   the working tree — preserved as `archive/legacy-site.tar.gz` — so a diff
+   shouldn't touch it at all; if one does (e.g. re-archiving after an
+   edit), that's `extends` at most, never `adds`.
 5. **Data files under `web/data/`, `web/hist/`, and `data/solarlog.sqlite3`
    are data, not code, and are never `adds`.** No primitive's `code:` root
    covers them — they're the hardware-pushed/backfilled archive itself, not
    application logic. Classify a diff touching them against whichever
-   primitive's *logic* produced the change: `extends` against
+   primitive's _logic_ produced the change: `extends` against
    `offline-data-tools` when a backfill/sync/migration script wrote them,
    or `composes` for a routine hardware-pushed update passing through
    unchanged. See the `pushed-data-is-source-of-truth` and
@@ -57,11 +57,11 @@ description and normal code review; it never replaces reading the diff.
 Classify each touched primitive, then roll up to the highest severity as the
 overall classification (`adds` > `extends` > `composes`):
 
-| Classification | Meaning                                                     | Risk   |
-| --------------- | ----------------------------------------------------------- | ------ |
-| `composes`      | Uses existing primitives as-is; wiring and call sites only  | Low    |
-| `extends`       | Changes a primitive's behavior, shape, or contract          | Medium |
-| `adds`          | Introduces a new primitive (must update `primitives.yaml`)  | High   |
+| Classification | Meaning                                                    | Risk   |
+| -------------- | ---------------------------------------------------------- | ------ |
+| `composes`     | Uses existing primitives as-is; wiring and call sites only | Low    |
+| `extends`      | Changes a primitive's behavior, shape, or contract         | Medium |
+| `adds`         | Introduces a new primitive (must update `primitives.yaml`) | High   |
 
 If the diff touches an `invariants:` entry from `docs/primitives.yaml`, call
 it out explicitly in the block's Invariants section regardless of overall
@@ -118,10 +118,10 @@ added or changed; this PR wires existing primitives together.
 <details>
 <summary>Show more</summary>
 
-| Primitive       | Group   | Impact                                       |
-| --------------- | ------- | --------------------------------------------- |
+| Primitive       | Group     | Impact                                       |
+| --------------- | --------- | -------------------------------------------- |
 | `chart-views`   | rendering | composes                                     |
-| `data-pipeline` | data    | extends — new `efficiency` field on readings |
+| `data-pipeline` | data      | extends — new `efficiency` field on readings |
 
 </details>
 
@@ -193,7 +193,7 @@ This project's usual flow is: push the branch, run `generate-pr` for a
 title/description, paste that into github.com to create the PR by hand — so
 there is usually no PR number in hand when this skill runs. That's fine:
 `gh pr view`/`gh pr edit`, and the upsert script below, all resolve to the
-PR belonging to the *currently checked-out branch* when no number is given.
+PR belonging to the _currently checked-out branch_ when no number is given.
 Only pass an explicit `<pr-number>` when operating on a branch other than
 the one checked out locally.
 
@@ -239,7 +239,7 @@ Same steps 1–5 (the Artifact preview is just as useful before the diff
 exists), but:
 
 - Use `**Mode:** plan` and omit `**Base:**`/`**Head:**`.
-- Describe *intended* impact, not diff-derived facts.
+- Describe _intended_ impact, not diff-derived facts.
 - If no PR exists yet, put the block at the top of the feature's
   `specs/NNN-*/plan.md` instead of running the upsert script (steps 7–8) —
   that's a normal file edit, not a PR post, so the step 6 confirmation gate

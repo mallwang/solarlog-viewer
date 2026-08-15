@@ -15,7 +15,8 @@ Tailwind-Design in Hell- und Dunkelmodus. Ein responsives Navigationsmenü liste
 und hebt die aktive hervor — auf Desktop-Breiten dauerhaft sichtbar, unterhalb von ~768px als
 Hamburger-Menü, nutzbar von 320px bis 2560px Breite ohne horizontales Scrollen. Die Sprachauswahl
 (DE/EN) bleibt über Neuladen hinweg erhalten. Die frühere Frameset-Website liegt schreibgeschützt
-unter `legacy-site/`.
+als `archive/legacy-site.tar.gz` vor (`tar -xzf archive/legacy-site.tar.gz` entpackt sie bei
+Bedarf — sie ist nicht mehr Teil des Arbeitsverzeichnisses und wird nirgends mehr ausgeliefert).
 
 Die SolarLog-Daten sind aufgeteilt auf `web/hist/` (eingefrorene historische Daten bis
 einschließlich 28.07.2026 vom alten Gerät) und `web/data/` (laufend überschriebene Live-Daten des

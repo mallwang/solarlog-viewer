@@ -14,8 +14,9 @@ by inverter/day/status/error and sortable by start time/inverter/duration — se
 visual design in both light and dark mode. A responsive navigation menu lists all views and
 highlights the active one — persistent at desktop widths, a hamburger-triggered menu below
 ~768px, usable from 320px to 2560px wide with no horizontal scrolling. DE/EN language selection
-persists across reloads. The previous frameset-based site is preserved read-only under
-`legacy-site/`.
+persists across reloads. The previous frameset-based site is preserved read-only as
+`archive/legacy-site.tar.gz` (`tar -xzf archive/legacy-site.tar.gz` extracts it if you need to
+reference it — it's no longer part of the working tree or served anywhere).
 
 SolarLog data is split across `web/hist/` (frozen historical data through 2026-07-28, from the
 original device) and `web/data/` (the current device's live, continuously-overwritten output

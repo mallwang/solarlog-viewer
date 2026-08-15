@@ -7,7 +7,7 @@ export default defineConfig({
   },
   webServer: {
     command: 'npm start',
-    url: 'http://localhost:3000/legacy-site/index.html',
+    url: 'http://localhost:3000/index.html',
     reuseExistingServer: !process.env.CI,
   },
   projects: [

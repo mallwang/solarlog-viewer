@@ -23,10 +23,10 @@ page.on('console', (msg) => {
 });
 page.on('pageerror', (err) => errors.push(err.message));
 
-await page.goto('/visu.html?mode=1&offset=0');
+await page.goto('/index.html#/month/2026/06');
 await page.waitForLoadState('networkidle');
 
-// Check the URL wasn't redirected and stripped of query params
+// Check the URL wasn't redirected and stripped of the hash route
 console.log('final URL:', page.url());
 // Sample rendered text to verify which view is active
 console.log('body:', (await page.locator('body').innerText()).substring(0, 300));
@@ -35,7 +35,7 @@ console.log('errors:', errors);
 
 Run with: `npx playwright test --reporter=line`
 
-The test suite in `tests/e2e/navigation.spec.js` covers all four modes and frameset structure — run it after any change to navigation, `serve.json`, or `visu.html`.
+`tests/e2e/detail-views.spec.js` and friends cover the day/month/year/total hash-routed views — run them after any change to routing or those views.
 
 ## Helper scripts
 
