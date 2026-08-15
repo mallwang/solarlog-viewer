@@ -4,6 +4,11 @@
  * Two-pass lookup: Pass 1 searches all days*.js files verbatim; Pass 2
  * reads the corresponding minYYMMDD.js first line with feed=0.
  *
+ * Reads `web/data/`/`web/hist/` off the filesystem — both were deleted from this repo's working
+ * tree and `scripts/ftp-sync.js`/`sync-ftp` no longer fetch them (see README's "Validation &
+ * Aggregation Scripts" section), so this script needs those directories manually repopulated
+ * before it will find anything to fill.
+ *
  * @module fill-days-hist
  */
 

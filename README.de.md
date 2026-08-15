@@ -15,7 +15,8 @@ Tailwind-Design in Hell- und Dunkelmodus. Ein responsives Navigationsmenü liste
 und hebt die aktive hervor — auf Desktop-Breiten dauerhaft sichtbar, unterhalb von ~768px als
 Hamburger-Menü, nutzbar von 320px bis 2560px Breite ohne horizontales Scrollen. Die Sprachauswahl
 (DE/EN) bleibt über Neuladen hinweg erhalten. Die frühere Frameset-Website liegt schreibgeschützt
-unter `legacy-site/`.
+als `archive/legacy-site.tar.gz` vor (`tar -xzf archive/legacy-site.tar.gz` entpackt sie bei
+Bedarf — sie ist nicht mehr Teil des Arbeitsverzeichnisses und wird nirgends mehr ausgeliefert).
 
 Die SolarLog-Daten sind aufgeteilt auf `web/hist/` (eingefrorene historische Daten bis
 einschließlich 28.07.2026 vom alten Gerät) und `web/data/` (laufend überschriebene Live-Daten des
@@ -143,12 +144,18 @@ Startet den Dev-Server unter http://localhost:3000 — Einstiegspunkt ist `web/i
 startet die Tailwind-CLI im `--watch`-Modus parallel zu `browser-sync`, sodass auch CSS-Änderungen
 per Hot-Reload übernommen werden. Mit `npm run open` wird der Viewer im Standardbrowser geöffnet.
 
-`bs-config.cjs` leitet jede `/data/*`-Anfrage direkt an das aktive SolarLog-Gerät unter
-`https://wolfsbach.synology.me` weiter, statt `web/data/` von der Festplatte zu bedienen — der
-Dev-Server zeigt so immer aktuelle Messwerte, ohne dass manuell synchronisiert werden muss. Das gilt
-nur für `npm start` — Skripte, die `web/data/` direkt vom Dateisystem lesen (Backfill,
-`gap:detect`, `validate:plausibility`, Sqlite-Sync, das `sync-ftp`-Skill), benötigen weiterhin
-separat synchronisierte lokale Dateien.
+`bs-config.cjs` leitet jede `/data/*`- und `/hist/*`-Anfrage direkt an das aktive SolarLog-Gerät
+unter `https://wolfsbach.synology.me` weiter, statt sie von der Festplatte zu bedienen — der
+Dev-Server zeigt so immer aktuelle Messwerte, ganz ohne lokale Kopie. `web/data/` und `web/hist/`
+existieren in diesem Repo (egal welcher Checkout) nicht mehr — sie waren der eigene Live-/
+eingefrorene Datenspiegel des Geräts und wurden gelöscht; das Gerät liefert sie direkt aus, und
+`npm start` leitet einfach dorthin weiter. Auch `scripts/ftp-sync.js` (und das `sync-ftp`-Skill)
+fassen `data`/`hist` nicht mehr an — siehe
+[Validierungs- und Aggregationsskripte](#validierungs--und-aggregationsskripte) weiter unten, was
+das für die Skripte bedeutet, die diese Verzeichnisse bisher von der Festplatte gelesen haben. Das
+eingefrorene historische Archiv, das früher unter `web/hist/` lag, ist als
+`archive/web-hist.tar.gz` erhalten (`tar -xzf archive/web-hist.tar.gz -C web` entpackt es bei
+Bedarf wieder nach `web/hist/` für eines dieser Skripte).
 
 `npm run build:css` kompiliert `web/css/tailwind.css` zur eingecheckten statischen Datei
 `web/css/tailwind.generated.css`, die produktiv genutzt wird — kein CDN-/Runtime-Skript.
@@ -164,10 +171,11 @@ verweist — das ist der Cache-Busting-Fix: jedes Deployment erhält frische, ni
 Asset-URLs, sodass Browser nach einem Update keine veraltete zwischengespeicherte Kopie mehr
 ausliefern können. `i18n/*.json`, `img/plant/*.jpg` und `vendor/*.svg` werden unverändert
 kopiert, aber statt einer Umbenennung mit einem `?v=<sha>`-Query-String cache-gebustet, da diese
-Pfade zur Laufzeit referenziert werden statt zur Build-Zeit bekannt zu sein. `dist/data`/`dist/hist`
-sind Symlinks auf `web/data`/`web/hist` (der Live-/eingefrorene Datenspiegel des SolarLog-Geräts —
-vom Build unangetastet). `npm run build` vor dem Synchronisieren ausführen; `scripts/ftp-sync.js`
-(und das `sync-ftp`-Skill) vergleichen/übertragen `dist/`, nicht `web/`.
+Pfade zur Laufzeit referenziert werden statt zur Build-Zeit bekannt zu sein. `dist/` enthält kein
+`data`/`hist`-Verzeichnis oder Symlink mehr — das Gerät verwaltet diese selbst, dieses Projekt
+fasst sie überhaupt nicht mehr an. `npm run build` vor dem Synchronisieren ausführen;
+`scripts/ftp-sync.js` (und das `sync-ftp`-Skill) vergleichen/übertragen `dist/`, nicht `web/`, und
+auch dort nur die eigenen Anwendungs-Assets — `data`/`hist` sind für diese Skripte kein Thema mehr.
 
 ## Frontend-Tests
 
@@ -180,9 +188,17 @@ npm run format:check
 
 ## Datendateien
 
-Die `min*.js`-Dateien (eine pro Tag, ~7000+ Dateien) enthalten die vom SolarLog-Gerät exportierten Rohdaten. Die `days*.js`- und `days_hist*.js`-Dateien enthalten aggregierte Tages-/Monatsübersichten.
+Die `min*.js`-Dateien (eine pro Tag, ~7000+ Dateien) enthalten die vom SolarLog-Gerät exportierten Rohdaten. Die `days*.js`- und `days_hist*.js`-Dateien enthalten aggregierte Tages-/Monatsübersichten. Diese liegen auf dem SolarLog-Gerät (`web/data/` aktuell, `web/hist/` eingefroren-historisch) und werden im Arbeitsverzeichnis dieses Repos nicht mehr gespiegelt — siehe [Dev-Server](#dev-server) oben.
 
 ## Validierungs- und Aggregationsskripte
+
+> **⚠️ Ohne manuelle Vorbereitung derzeit nicht nutzbar.** Jedes der folgenden Skripte liest
+> `web/data/`/`web/hist/` direkt vom Dateisystem, aber beide Verzeichnisse wurden aus dem Repo
+> gelöscht (siehe [Dev-Server](#dev-server)), und `scripts/ftp-sync.js`/`sync-ftp` holen sie nicht
+> mehr nach. Um eines dieser Skripte auszuführen, zuerst die benötigten Verzeichnisse manuell
+> befüllen — z. B. `tar -xzf archive/web-hist.tar.gz -C web` für `web/hist/`, für die Live-Seite
+> einen manuellen FTP-/SCP-Kopiervorgang des `data`-Ordners vom Gerät nach `web/data/` — und
+> anschließend wieder löschen.
 
 Ausführung vom Repo-Wurzelverzeichnis mit Node.js 22+.
 

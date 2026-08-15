@@ -6,6 +6,12 @@ pm.csv
 min_day.part
 /data/
 
+# SolarLog device data mirrors (live-overwritten `web/data/`, frozen `web/hist/`) — served over
+# the dev-server proxy (bs-config.cjs) at runtime and synced from the FTP archive via the
+# sync-ftp skill / scripts/ftp-sync.js; not meant to be versioned.
+/web/data/
+/web/hist/
+
 # React Component Preview
 previewConfig.json
 

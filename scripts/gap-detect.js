@@ -5,6 +5,11 @@
  * With --source days_hist: parses days_hist.js entries instead.
  * Supports --since filter and JSON output in both modes.
  *
+ * Reads `web/data/`/`web/hist/` off the filesystem — both were deleted from this repo's working
+ * tree and `scripts/ftp-sync.js`/`sync-ftp` no longer fetch them (see README's "Validation &
+ * Aggregation Scripts" section), so this script needs those directories manually repopulated
+ * before it will find anything to scan.
+ *
  * @module gap-detect
  */
 

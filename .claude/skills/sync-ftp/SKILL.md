@@ -15,8 +15,10 @@ transfers anything automatically.
 filename on every build (`<sha>` = current git short SHA), so a diff run
 after any source change will always show those two as "upload" — that's
 expected, it's the whole point (cache-busting), not a sign something's
-wrong. `dist/data`/`dist/hist` are symlinks straight through to
-`web/data`/`web/hist`, so those still behave exactly as before.
+wrong. `data/` and `hist/` are the SolarLog device's own live/frozen data
+mirror and are **out of scope for this skill** — `dist/` has no `data`/
+`hist` entry at all, and `.ftp-sync.json`'s `includePaths` no longer lists
+them, so they're never diffed, uploaded, or downloaded.
 
 **Byte size decides whether a file is "in sync"** — modified time is
 shown in the report but never used to flag a difference on its own. Many
@@ -29,11 +31,12 @@ mtime is only used to suggest a direction (upload vs. download) once a
 real size difference already exists.
 
 The one exception is paths listed in `.ftp-sync.json`'s
-`mtimeSensitivePaths` (e.g. `data/min_cur.js`) — the SolarLog device
-rewrites that file in place every 10 minutes without changing its size, so
-a same-size comparison alone would wrongly call a stale local copy "in
-sync". For those specific paths, a drifted mtime beyond the tolerance is
-also treated as a real difference.
+`mtimeSensitivePaths` — for a path some remote process rewrites in place
+without changing its size, a same-size comparison alone would wrongly call
+a stale local copy "in sync". For those specific paths, a drifted mtime
+beyond the tolerance is also treated as a real difference. (Empty by
+default now that `data`/`hist` — the paths this used to matter for — are
+out of scope.)
 
 **Mtime can also point the wrong direction, not just under-report.** Once a
 conflict exists, "newer mtime wins" assumes a fresher mtime means fresher
@@ -160,38 +163,7 @@ Config lives in `.ftp-sync.json` (gitignored, template at
   "user": "...",
   "password": "...",
   "remoteRoot": "/web",
-  "includePaths": ["index.html", "favicon-v2.ico", "js", "i18n", "data", "css", "hist", "vendor"],
-  "dirFilePatterns": {
-    "data": [
-      "base_vars.js",
-      "days.js",
-      "days_hist.js",
-      "events.js",
-      "events_day.js",
-      "favicon-v2.ico",
-      "ftpstat.csv",
-      "min*.js",
-      "months.js",
-      "pm.csv",
-      "pm.js",
-      "years.js"
-    ],
-    "hist": ["days_hist.js", "days.js", "favicon-v2.ico", "min*.js", "months.js", "years.js"]
-  },
-  "mtimeSensitivePaths": ["data/min_cur.js"],
-  "remoteAuthoritativePaths": [
-    "data/days_hist.js",
-    "data/events_day.js",
-    "data/min_day.js",
-    "data/min_cur.js",
-    "data/days.js",
-    "data/months.js",
-    "data/years.js",
-    "data/events.js",
-    "data/ftpstat.csv",
-    "data/pm.js",
-    "data/pm.csv"
-  ]
+  "includePaths": ["index.html", "favicon-v2.ico", "js", "i18n", "img", "css", "vendor"]
 }
 ```
 
@@ -199,20 +171,19 @@ Config lives in `.ftp-sync.json` (gitignored, template at
 `dist/` to walk. The remote `web` directory is shared hosting for unrelated
 apps (e.g. a "reality"/hoymiles folder lives alongside this project's
 files), so only these listed root files/directories are ever touched —
-everything else at the root is left alone on both sides. Omit
-`includePaths` (or set it to `[]`) to fall back to syncing the entire tree.
+everything else at the root is left alone on both sides, which is also how
+`data`/`hist` (the SolarLog device's own data mirror) stay untouched. Omit
+`includePaths` (or set it to `[]`) to fall back to syncing the entire tree
+(don't do this while `data`/`hist` live at the remote root — that would
+pull them back into scope).
 
-`dirFilePatterns` further restricts which _files_ are walked within
-specific directories, by simple glob (`*` wildcard only, case-insensitive).
-The SolarLog device mirrors its own web UI into `data/` and `hist/` —
-not just html/gif/jpg/css chrome but a pile of its own `.js` files too
-(`diagram_dom.js`, `functions.js`, `wz_tooltip.js`, `lang*.js`, …) — so a
-broad `*.js` glob isn't tight enough; these entries are exact filenames
-except for the `min*.js` wildcard, which matches the daily-generated
-`minYYMMDD.js` readings files (plus `min_cur.js`/`min_day.js`). Keyed by
-the directory's path relative to `dist/`; a directory with no entry here is
-left unrestricted. Omit `dirFilePatterns` (or set it to `{}`) to disable
-this filtering entirely.
+`dirFilePatterns` (optional, keyed by directory path relative to `dist/`)
+further restricts which _files_ are walked within a specific directory, by
+simple glob (`*` wildcard only, case-insensitive) — useful if a directory
+mixes files this project cares about with ones it doesn't. A directory
+with no entry here is left unrestricted. Omit it (or set it to `{}`) to
+disable this filtering entirely; not currently used since `includePaths`
+alone is enough to keep this project's asset dirs clean.
 
 `mtimeSensitivePaths` lists relative paths (relative to `dist/`, same form
 as diff/apply's `--only`) that are rewritten in place at a fixed size, so
