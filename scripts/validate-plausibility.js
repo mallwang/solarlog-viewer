@@ -4,6 +4,11 @@
  * For each minYYMMDD.js, reads the first-line Wh counter and compares it against
  * the corresponding entry in days_hist.js. Flags days where abs(delta) > tolerance.
  *
+ * Reads `web/data/`/`web/hist/` off the filesystem — both were deleted from this repo's working
+ * tree and `scripts/ftp-sync.js`/`sync-ftp` no longer fetch them (see README's "Validation &
+ * Aggregation Scripts" section), so this script needs those directories manually repopulated
+ * before it will find anything to compare.
+ *
  * @module validate-plausibility
  */
 

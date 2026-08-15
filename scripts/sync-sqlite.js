@@ -8,6 +8,11 @@
  * timestamp in `readings`, tracking per-day sync state via a content hash
  * so re-runs are idempotent and only changed/new days are re-processed.
  *
+ * Reads `web/data/`/`web/hist/` off the filesystem — both were deleted from this repo's working
+ * tree and `scripts/ftp-sync.js`/`sync-ftp` no longer fetch them (see README's "Validation &
+ * Aggregation Scripts" section), so this script needs those directories manually repopulated
+ * before it will find anything to sync.
+ *
  * Usage:
  *   node scripts/sync-sqlite.js [--data-dir <path>] [--db <path>] [--dry-run]
  */

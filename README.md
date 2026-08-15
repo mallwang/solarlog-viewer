@@ -133,15 +133,16 @@ the Tailwind CLI in `--watch` mode alongside `browser-sync`, so CSS changes hot-
 Run `npm run open` to open the viewer in your default browser.
 
 `bs-config.cjs` proxies every `/data/*` and `/hist/*` request straight through to the live
-SolarLog device at `https://wolfsbach.synology.me` instead of serving `web/data/`/`web/hist/`
-from disk, so the dev server always shows current readings without a manual sync. `web/data/`
-and `web/hist/` are themselves untracked (`.gitignore`) — they're the device's own live/frozen
-data mirror, not versioned source — so a fresh clone starts with them empty; run the `sync-ftp`
-skill (or `scripts/ftp-sync.js --apply --yes --direction download`) to populate them before using
-anything that isn't served through `npm start`. This proxying only applies to `npm start` —
-scripts that read `web/data/`/`web/hist/` from the filesystem (backfill, `gap:detect`,
-`validate:plausibility`, sqlite sync, the `sync-ftp` skill) still need the local files kept in
-sync separately.
+SolarLog device at `https://wolfsbach.synology.me` instead of serving from disk, so the dev
+server always shows current readings without any local copy at all. `web/data/` and `web/hist/`
+no longer exist in this repo (checked out or otherwise) — they were the device's own live/frozen
+data mirror and have been deleted; the device serves them directly and `npm start` proxies
+straight to it. `scripts/ftp-sync.js` (and the `sync-ftp` skill) no longer touch `data`/`hist`
+either — see [Validation & Aggregation Scripts](#validation--aggregation-scripts) below for what
+that means for the scripts that used to read those directories from disk. The frozen historical
+archive that used to live at `web/hist/` is preserved as `archive/web-hist.tar.gz`
+(`tar -xzf archive/web-hist.tar.gz -C web` extracts it back to `web/hist/` if you need it
+locally for one of those scripts).
 
 `npm run build:css` compiles `web/css/tailwind.css` into the committed `web/css/tailwind.generated.css`
 static file used in production — no CDN/runtime script.
@@ -156,9 +157,10 @@ stylesheets into one `css/styles-<sha>.css` (`<sha>` = the current git short SHA
 never-before-seen asset URLs, so browsers can no longer serve a stale cached copy after an update.
 `i18n/*.json`, `img/plant/*.jpg`, and `vendor/*.svg` are copied through unchanged but cache-busted
 with a `?v=<sha>` query string instead of a renamed file, since those paths are referenced at
-runtime rather than known at build time. `dist/data`/`dist/hist` are symlinks to `web/data`/`web/hist`
-(the SolarLog device's own live/frozen data mirror — untouched by the build). Run `npm run build`
-before syncing; `scripts/ftp-sync.js` (and the `sync-ftp` skill) diff/upload `dist/`, not `web/`.
+runtime rather than known at build time. `dist/` contains no `data`/`hist` directory or symlink —
+the device manages those itself and this project no longer touches them at all. Run
+`npm run build` before syncing; `scripts/ftp-sync.js` (and the `sync-ftp` skill) diff/upload
+`dist/`, not `web/`, and only the app's own assets — `data`/`hist` are out of scope for it.
 
 ## Frontend tests
 
@@ -171,9 +173,16 @@ npm run format:check
 
 ## Data files
 
-The `min*.js` files (one per day, ~7000+ files) contain the raw solar yield data exported from the SolarLog device. The `days*.js` and `days_hist*.js` files contain aggregated daily/monthly summaries.
+The `min*.js` files (one per day, ~7000+ files) contain the raw solar yield data exported from the SolarLog device. The `days*.js` and `days_hist*.js` files contain aggregated daily/monthly summaries. These live on the SolarLog device (`web/data/` current, `web/hist/` frozen historical) and are no longer mirrored in this repo's working tree — see [Dev server](#dev-server) above.
 
 ## Validation & Aggregation Scripts
+
+> **⚠️ Currently unusable without manual setup.** Every script below reads `web/data/`/`web/hist/`
+> straight off the filesystem, but those directories were deleted from the repo (see
+> [Dev server](#dev-server)) and `scripts/ftp-sync.js`/`sync-ftp` no longer fetch them. To run any
+> of these, first manually repopulate the directories you need — e.g.
+> `tar -xzf archive/web-hist.tar.gz -C web` for `web/hist/`, and a manual FTP/SCP copy of the
+> device's `data/` folder to `web/data/` for the live side — then delete them again afterward.
 
 Run from the repo root with Node.js 22+.
 

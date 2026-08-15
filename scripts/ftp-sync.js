@@ -15,36 +15,30 @@
  * walked — everything else at the remote root is left untouched. Omit
  * `includePaths` (or leave it empty) to fall back to syncing the whole tree.
  *
- * The `data` and `hist` directories are themselves the SolarLog device's own
- * web UI mirror (html/gif/jpg/css chrome) with the handful of data files
- * this project needs (`*.js`, `*.csv`) interleaved among them. `.ftp-sync.json`'s
- * `dirFilePatterns` further restricts, per relative directory, which
- * filenames are walked at all — directories with no entry there stay
- * unrestricted.
+ * The `data` and `hist` directories are the SolarLog device's own web UI mirror (live-overwritten
+ * readings / frozen historical archive) and are **out of scope for this script** — they're never
+ * uploaded, downloaded, or diffed. `.ftp-sync.json`'s `includePaths` lists only the app's own
+ * assets (`index.html`, `js`, `css`, `i18n`, `img`, `vendor`, `favicon-v2.ico`); the device
+ * manages `data`/`hist` itself, and a frozen copy of the historical `hist` archive lives at
+ * `archive/web-hist.tar.gz` instead.
  *
- * A handful of files (e.g. `data/min_cur.js`) are rewritten by the device in
- * place on a fixed interval without changing size, so a size-only compare
- * would call them "in sync" even when remote content is newer. List those
- * paths in `.ftp-sync.json`'s `mtimeSensitivePaths` to also fall back to
- * mtime for them specifically (see {@link diffTrees}).
- *
- * Conversely, files the device alone generates (e.g. `data/days_hist.js`)
- * are never legitimately authored or re-uploaded locally — a local mtime
- * bump (from a `git checkout`/revert, an editor save, etc.) doesn't mean
- * local content is actually newer, so the "newer mtime wins" suggestion can
- * point the wrong way. List those paths in `.ftp-sync.json`'s
- * `remoteAuthoritativePaths` to always suggest `download` on conflict for
- * them, ignoring mtime entirely (see {@link diffTrees}).
+ * `.ftp-sync.json` also supports two optional per-path refinements, both empty by default now
+ * that `data`/`hist` are out of scope: `mtimeSensitivePaths` falls back to mtime (instead of
+ * byte-size alone) for paths the remote rewrites in place without changing size, and
+ * `remoteAuthoritativePaths` always suggests `download` on conflict for paths only the remote
+ * ever legitimately generates, ignoring mtime entirely (see {@link diffTrees}). `dirFilePatterns`
+ * further restricts, per relative directory, which filenames are walked at all — directories with
+ * no entry there stay unrestricted.
  *
  * Every `--diff` run also opens `.ftp-sync-diff.html` in the default
  * browser (best-effort; pass `--no-open` to skip).
  *
  * The local tree walked is `dist/`, not `web/` — `dist/` is the production build artifact
  * produced by `npm run build` (`scripts/build.js`): hashed/cache-busted `js/main-<sha>.js` and
- * `css/styles-<sha>.css`, copies of `i18n`/`img`/`vendor`, and `dist/data`/`dist/hist` as
- * symlinks straight through to the real `web/data`/`web/hist` (the device's own data mirror,
- * untouched by the build). Run `npm run build` before `--diff`/`--apply`, or you'll be
- * diffing/uploading a stale or missing `dist/`.
+ * `css/styles-<sha>.css`, plus copies of `i18n`/`img`/`vendor`/`favicon-v2.ico`. `dist/` no
+ * longer contains `data`/`hist` at all — those are the device's own data mirror, untouched by
+ * this project. Run `npm run build` before `--diff`/`--apply`, or you'll be diffing/uploading a
+ * stale or missing `dist/`.
  *
  * Usage:
  *   node scripts/ftp-sync.js --diff [--no-open]
@@ -85,11 +79,10 @@ const TIME_TOLERANCE_MS = 2000;
  * normally considered in sync, regardless of modified-time drift (see
  * {@link TIME_TOLERANCE_MS} for why mtime alone is unreliable) — except for
  * paths listed in `mtimeSensitivePaths`, where a size match is not proof of
- * identical content. The SolarLog device rewrites some files in place on a
- * fixed interval (e.g. `data/min_cur.js` every 10 minutes) without their size
- * changing, so those paths also fall back to mtime to catch a same-size
- * update; a real difference there becomes a conflict rather than being
- * silently skipped.
+ * identical content — e.g. a file some remote process rewrites in place on a
+ * fixed interval without changing its size, so it also falls back to mtime
+ * to catch a same-size update; a real difference there becomes a conflict
+ * rather than being silently skipped.
  *
  * @param {Map<string, {size: number, mtimeMs: number}>} localIndex - relative POSIX path -> stat
  * @param {Map<string, {size: number, mtimeMs: number}>} remoteIndex - relative POSIX path -> stat
@@ -546,13 +539,13 @@ function globToRegExp(pattern) {
 
 /**
  * Decide whether a file directly inside a given relative directory should be
- * included, based on per-directory glob allowlists. Some remote directories
- * (e.g. `data`, `hist`) are the SolarLog device's own web UI mirror — full
- * of html/gif/jpg/css chrome — interleaved with the handful of data files
- * (`*.js`, `*.csv`) this project actually needs. Directories with no entry
- * in `dirFilePatterns` are left unrestricted.
+ * included, based on per-directory glob allowlists — useful if a remote
+ * directory mixes files this project cares about with ones it doesn't.
+ * Directories with no entry in `dirFilePatterns` are left unrestricted.
+ * `data`/`hist` (the device's own web UI mirror) are no longer walked at
+ * all — see the module doc comment.
  *
- * @param {string} relDirPath - relative POSIX path of the directory the file lives in (e.g. `"data"`)
+ * @param {string} relDirPath - relative POSIX path of the directory the file lives in (e.g. `"js"`)
  * @param {string} fileName - the file's base name (no path)
  * @param {Object<string, string[]>|null|undefined} dirFilePatterns - relative dir path -> allowlisted glob patterns
  * @returns {boolean}

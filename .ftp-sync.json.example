@@ -4,36 +4,5 @@
   "user": "your-ftp-user",
   "password": "your-ftp-password",
   "remoteRoot": "/web",
-  "includePaths": ["index.html", "favicon-v2.ico", "js", "i18n", "data", "css", "hist", "vendor"],
-  "dirFilePatterns": {
-    "data": [
-      "base_vars.js",
-      "days.js",
-      "days_hist.js",
-      "events.js",
-      "events_day.js",
-      "favicon-v2.ico",
-      "ftpstat.csv",
-      "min*.js",
-      "months.js",
-      "pm.csv",
-      "pm.js",
-      "years.js"
-    ],
-    "hist": ["days.js", "days_hist.js", "favicon-v2.ico", "min*.js", "months.js", "years.js"]
-  },
-  "mtimeSensitivePaths": ["data/min_cur.js"],
-  "remoteAuthoritativePaths": [
-    "data/days_hist.js",
-    "data/events_day.js",
-    "data/min_day.js",
-    "data/min_cur.js",
-    "data/days.js",
-    "data/months.js",
-    "data/years.js",
-    "data/events.js",
-    "data/ftpstat.csv",
-    "data/pm.js",
-    "data/pm.csv"
-  ]
+  "includePaths": ["index.html", "favicon-v2.ico", "js", "i18n", "img", "css", "vendor"]
 }

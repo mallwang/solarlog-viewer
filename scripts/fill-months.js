@@ -4,6 +4,11 @@
  * Aggregates WR1 and WR2 daily totals from all min files for the given month,
  * then upserts the result into months.js.
  *
+ * Reads `web/data/`/`web/hist/` off the filesystem — both were deleted from this repo's working
+ * tree and `scripts/ftp-sync.js`/`sync-ftp` no longer fetch them (see README's "Validation &
+ * Aggregation Scripts" section), so this script needs those directories manually repopulated
+ * before it will find anything to aggregate.
+ *
  * @module fill-months
  */
 

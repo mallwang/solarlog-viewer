@@ -9,7 +9,7 @@ at specs/019-cache-busting-build/plan.md
 
 Always use `npm start` to serve the site — it uses `browser-sync` with hot-reload on HTML/CSS/JS changes (SolarLog data files excluded). Copy the URL from the terminal into your browser; WSL2 cannot auto-open a browser. **Do not use the VS Code built-in preview** — it returns 404s for the frameset.
 
-`bs-config.cjs` proxies `/data/*` requests to the live device (`https://wolfsbach.synology.me`) instead of serving `web/data/` from disk, so the dev server always reflects current readings — see the "Dev server" section in `README.md` for details. Filesystem-reading scripts (backfill, `gap:detect`, sqlite sync, `sync-ftp`) are unaffected and still need `web/data/` kept in sync separately.
+`bs-config.cjs` proxies `/data/*` and `/hist/*` requests to the live device (`https://wolfsbach.synology.me`) instead of serving from disk — `web/data/` and `web/hist/` no longer exist in this repo's working tree at all. See the "Dev server" section in `README.md` for details. Filesystem-reading scripts (backfill, `gap:detect`, sqlite sync) are **not** covered by this proxy and need those directories manually, temporarily repopulated before they'll do anything — `scripts/ftp-sync.js`/`sync-ftp` no longer fetch `data`/`hist` either (out of scope, app assets only now); see the "Validation & Aggregation Scripts" warning in `README.md`.
 
 ## Debugging with Playwright
 

@@ -21,9 +21,9 @@
  * `vendor/apexcharts/apexcharts.esm.js` needs no separate handling at all: it's a static
  * `import` in `web/js/charts/chart-factory.js`, so esbuild pulls it straight into the JS bundle.
  *
- * `dist/data` and `dist/hist` are relative symlinks to `web/data`/`web/hist`, not copies — those
- * directories are the SolarLog device's own live/frozen data mirror (see the doc comment atop
- * `ftp-sync.js`), never something this build produces or should touch.
+ * `dist/` no longer includes a `data`/`hist` directory at all — those trees are the SolarLog
+ * device's own live/frozen data mirror, live on the device itself and out of scope for this
+ * project entirely (see the doc comment atop `ftp-sync.js`).
  *
  * Usage:
  *   npm run build
@@ -32,14 +32,7 @@
  */
 
 import { build as esbuildBuild, transform } from 'esbuild';
-import {
-  cpSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  symlinkSync,
-  writeFileSync,
-} from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -125,19 +118,6 @@ function getBuildId() {
 }
 
 /**
- * Symlink `dist/data` and `dist/hist` to the real `web/data`/`web/hist` directories (relative
- * links, so they resolve correctly wherever the repo is checked out) instead of copying them —
- * those trees are the SolarLog device's own data mirror, out of scope for this build.
- *
- * @returns {void}
- */
-function linkDeviceDataDirs() {
-  for (const name of ['data', 'hist']) {
-    symlinkSync(join('..', 'web', name), join(DIST_DIR, name), 'dir');
-  }
-}
-
-/**
  * @returns {Promise<void>}
  */
 async function main() {
@@ -181,8 +161,6 @@ async function main() {
     filter: (src) => !src.includes(join('vendor', 'apexcharts')),
   });
   cpSync(join(WEB_DIR, 'favicon-v2.ico'), join(DIST_DIR, 'favicon-v2.ico'));
-
-  linkDeviceDataDirs();
 
   console.log(`Built dist/ (buildId ${buildId})`);
 }
