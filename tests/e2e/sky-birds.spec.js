@@ -109,10 +109,19 @@ test.describe('Bird sprite — User Story 1 (realistic sprite with no emoji)', (
   });
 });
 
-// ─── User Story 2: Other flying objects are quietly disabled ──────────────────
+// ─── User Story 2: other flying-object kinds ───────────────────────────────────
+// Originally "quietly disabled" (FLYING_OBJECT_RENDERERS registered plane/balloon/rocket as
+// `null` — see this spec's own tasks.md T003/T067, which anticipated a developer "re-enabling"
+// them later with no other code change). That re-enabling has since happened, and grew further:
+// flying-object-renderers.js now has real renderers for every kind (plane, balloon, rocket,
+// butterfly, dragonfly, goose), and 018-day-night-sky/spec.md FR-003 explicitly documents "birds,
+// planes, balloons, and every other existing flying-object kind" as continuously rendering — so
+// "silently disabled" no longer describes current, intentional behavior.
 
-test.describe('Flying objects — User Story 2 (non-bird kinds silently disabled)', () => {
-  test('no non-bird flying object appears after 5 minutes, no pageerror', async ({ page }) => {
+test.describe('Flying objects — User Story 2 (other kinds render alongside birds)', () => {
+  test('at least one non-bird flying object appears within 5 minutes, no pageerror', async ({
+    page,
+  }) => {
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
 
@@ -125,7 +134,7 @@ test.describe('Flying objects — User Story 2 (non-bird kinds silently disabled
     const nonBirdCount = await page
       .locator('.sky-flying-object:not(.sky-flying-object--bird)')
       .count();
-    expect(nonBirdCount).toBe(0);
+    expect(nonBirdCount).toBeGreaterThan(0);
     expect(errors).toEqual([]);
   });
 });

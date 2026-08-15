@@ -404,7 +404,10 @@ function countText(shownCount, totalCount) {
  * @returns {Promise<void>}
  */
 export async function render(container, { plant }) {
-  container.innerHTML = `<div class="events-page"></div>`;
+  container.innerHTML = `<div class="view-header flex items-center justify-between gap-sm flex-wrap mb-md">
+      <h2 class="view-title text-lg m-0">${t('nav.eventsView')}</h2>
+    </div>
+    <div class="events-page"></div>`;
   const page = container.querySelector('.events-page');
 
   const [historyResult, todayResult] = await Promise.all([

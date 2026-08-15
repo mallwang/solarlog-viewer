@@ -13,15 +13,31 @@ test.describe('Dashboard (US1: mobile view)', () => {
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
   });
 
+  // The dashboard's own widget grid (web/js/views/dashboard.js) is unreachable dead code - no
+  // route maps to it any more (see router.js/main.js NAV_ITEMS) - so "summary widgets visible
+  // without extra taps" now means the welcome page's yield-summary stats card, mounted directly
+  // in the primary viewport with no extra interaction (see web/js/views/welcome-view.js).
   test('summary widgets are visible without extra taps', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.widget-grid .widget')).toHaveCount(5);
+    const statsPanel = page.locator('.welcome-stats-mount .stats-panel');
+    if ((await statsPanel.count()) === 0) {
+      await expect(page.locator('.welcome-stats-mount .empty-state')).toBeVisible();
+      return;
+    }
+    // today/month/year/total yield + CO2 + € = 6 rows (mirrors welcome-page.spec.js US3).
+    await expect(statsPanel.locator('tbody tr')).toHaveCount(6);
   });
 });
 
+// Current production moved from the (now-unreachable) dashboard.js widget grid to the persistent
+// nav info panel — see info-panel-controller.js's top comment.
 test.describe('Live production widget (US4)', () => {
-  test('shows a wattage value or "not producing" and re-fetches every 5 minutes', async ({
+  // DATA_REFRESH_INTERVAL_MS (config.js) is 10 minutes, not 5 - shared by the info panel's own
+  // production/yield poll and day-view.js's today-only auto-refresh (see info-panel-controller.js
+  // top comment); the dead dashboard.js widget this test used to describe never had its own timer
+  // to begin with.
+  test('shows a wattage value or "not producing" and re-fetches every 10 minutes', async ({
     page,
   }) => {
     let requestCount = 0;
@@ -34,15 +50,14 @@ test.describe('Live production widget (US4)', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    const currentProductionValue = page
-      .locator('.widget-grid .widget')
-      .first()
-      .locator('.widget__value');
-    await expect(currentProductionValue).toHaveText(/^●\s\d+ W$|^○\s0 W — .+$/);
+    const currentProductionValue = page.locator(
+      '[data-info-panel="desktop"] [data-role="production-value"]',
+    );
+    await expect(currentProductionValue).toHaveText(/^\d+ W( · \d+%)?$|^0 W — .+$/);
     expect(requestCount).toBeGreaterThanOrEqual(1);
 
     const countAfterLoad = requestCount;
-    await page.clock.fastForward('05:01');
+    await page.clock.fastForward('10:01');
     await expect.poll(() => requestCount).toBeGreaterThan(countAfterLoad);
   });
 });
