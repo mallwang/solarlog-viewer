@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "deny": ["Read(.ftp-sync.json)"],
+    "deny": ["Read(.ftp-sync.json)", "Grep(.ftp-sync.json)"],
     "allow": [
       "Bash(grep -v -E '\\\\.\\(gif|jpg|ico|JPG\\)$')",
       "Bash(node --test *)",
@@ -31,6 +31,15 @@
           {
             "type": "command",
             "command": "cd /home/z003f3jd/projects/github/solarlog-viewer && npm run format"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if grep -Eqi \"(^|[^.[:alnum:]_-])\\.ftp-sync\\.json([^.[:alnum:]_-]|$)\"; then printf %s '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Blocked: this Bash command references .ftp-sync.json (contains an FTP password). Reading or writing it via Bash -- including through wrappers like rtk proxy, cat, head/tail/sed/awk, or similar -- is not allowed. Use the sync-ftp skill, or ask the user directly.\"}}'; else printf %s '{}'; fi"
           }
         ]
       }

@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { diffTrees, formatDiffHtml, formatDiffReport, isAllowedFile, isAllowedTopLevelEntry } from './ftp-sync.js';
+import {
+  diffTrees,
+  formatDiffHtml,
+  formatDiffReport,
+  isAllowedFile,
+  isAllowedTopLevelEntry,
+  mergeReplaceEntries,
+} from './ftp-sync.js';
 
 test('diffTrees: local-only file is an upload', () => {
   const local = new Map([['a.txt', { size: 10, mtimeMs: 1000 }]]);
@@ -126,6 +133,80 @@ test('diffTrees: mixed tree produces one entry per differing path, sorted by pat
   assert.deepEqual(
     diff.map((e) => e.path),
     ['a.txt', 'm.txt', 'z.txt'],
+  );
+});
+
+test('mergeReplaceEntries: pairs a new-hash upload with a same-stem old-hash download into one replace entry', () => {
+  const diff = [
+    { path: 'css/styles-1ee9793.css', action: 'upload', local: { size: 100, mtimeMs: 1 }, remote: null, suggested: 'upload' },
+    { path: 'css/styles-38f505e.css', action: 'download', local: null, remote: { size: 90, mtimeMs: 2 }, suggested: 'download' },
+  ];
+  const merged = mergeReplaceEntries(diff);
+  assert.equal(merged.length, 1);
+  assert.deepEqual(merged[0], {
+    path: 'css/styles-1ee9793.css',
+    action: 'replace',
+    local: { size: 100, mtimeMs: 1 },
+    remote: { size: 90, mtimeMs: 2 },
+    suggested: 'replace',
+    staleRemotePaths: ['css/styles-38f505e.css'],
+  });
+});
+
+test('mergeReplaceEntries: collects multiple stale old-hash files onto one replace entry', () => {
+  const diff = [
+    { path: 'js/main-1ee9793.js', action: 'upload', local: { size: 100, mtimeMs: 1 }, remote: null, suggested: 'upload' },
+    { path: 'js/main-38f505e.js', action: 'download', local: null, remote: { size: 90, mtimeMs: 2 }, suggested: 'download' },
+    { path: 'js/main-abc1234.js', action: 'download', local: null, remote: { size: 80, mtimeMs: 3 }, suggested: 'download' },
+  ];
+  const merged = mergeReplaceEntries(diff);
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].action, 'replace');
+  assert.deepEqual(merged[0].staleRemotePaths.sort(), ['js/main-38f505e.js', 'js/main-abc1234.js']);
+});
+
+test('mergeReplaceEntries: does not pair across different directories', () => {
+  const diff = [
+    { path: 'css/styles-1ee9793.css', action: 'upload', local: { size: 100, mtimeMs: 1 }, remote: null, suggested: 'upload' },
+    { path: 'other/styles-38f505e.css', action: 'download', local: null, remote: { size: 90, mtimeMs: 2 }, suggested: 'download' },
+  ];
+  const merged = mergeReplaceEntries(diff);
+  assert.equal(merged.length, 2);
+  assert.deepEqual(
+    merged.map((e) => e.action).sort(),
+    ['download', 'upload'],
+  );
+});
+
+test('mergeReplaceEntries: does not pair files with different stems or extensions', () => {
+  const diff = [
+    { path: 'js/main-1ee9793.js', action: 'upload', local: { size: 100, mtimeMs: 1 }, remote: null, suggested: 'upload' },
+    { path: 'js/vendor-38f505e.js', action: 'download', local: null, remote: { size: 90, mtimeMs: 2 }, suggested: 'download' },
+    { path: 'js/main-abc1234.css', action: 'download', local: null, remote: { size: 80, mtimeMs: 3 }, suggested: 'download' },
+  ];
+  const merged = mergeReplaceEntries(diff);
+  assert.equal(merged.length, 3);
+  assert.equal(merged.filter((e) => e.action === 'replace').length, 0);
+});
+
+test('mergeReplaceEntries: leaves non hash-suffixed uploads/downloads and conflicts untouched', () => {
+  const diff = [
+    { path: 'favicon-v2.ico', action: 'download', local: null, remote: { size: 5, mtimeMs: 1 }, suggested: 'download' },
+    { path: 'index.html', action: 'conflict', local: { size: 10, mtimeMs: 1 }, remote: { size: 20, mtimeMs: 2 }, suggested: 'upload' },
+  ];
+  const merged = mergeReplaceEntries(diff);
+  assert.deepEqual(merged, diff);
+});
+
+test('mergeReplaceEntries: result is sorted by path', () => {
+  const diff = [
+    { path: 'z-1.txt', action: 'upload', local: { size: 1, mtimeMs: 1 }, remote: null, suggested: 'upload' },
+    { path: 'a-2.txt', action: 'upload', local: { size: 1, mtimeMs: 1 }, remote: null, suggested: 'upload' },
+  ];
+  const merged = mergeReplaceEntries(diff);
+  assert.deepEqual(
+    merged.map((e) => e.path),
+    ['a-2.txt', 'z-1.txt'],
   );
 });
 

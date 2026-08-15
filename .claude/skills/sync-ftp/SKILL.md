@@ -20,6 +20,17 @@ mirror and are **out of scope for this skill** — `dist/` has no `data`/
 `hist` entry at all, and `.ftp-sync.json`'s `includePaths` no longer lists
 them, so they're never diffed, uploaded, or downloaded.
 
+**Stale cache-busted files are surfaced as `replace`, not `upload` +
+`download`.** When a local-only file and a remote-only file are really the
+same build artifact under a different hash (same directory, stem, and
+extension — e.g. `css/styles-1ee9793.css` locally vs. the previous build's
+`css/styles-38f505e.css` still sitting on the remote), the diff merges
+them into a single `[replace]` entry instead of an unrelated upload and
+download. Applying a `replace` entry uploads the new file and **deletes**
+the old one(s) from the remote — this is the only case where the skill
+removes a remote file, and it only ever targets files matching that
+same-stem-different-hash pattern, never anything else.
+
 **Byte size decides whether a file is "in sync"** — modified time is
 shown in the report but never used to flag a difference on its own. Many
 FTP servers stamp a file's mtime with the moment it was uploaded rather
@@ -91,23 +102,30 @@ runs). Nothing is transferred in this step.
 ### 4. Present the diff to the user
 
 Summarize what the command printed: counts of uploads (local-only files),
-downloads (remote-only files), and conflicts (same path present on both
-sides with a differing byte size). Show the full list grouped by action.
-Call out conflicts specifically — each `[conflict]` line either has a
-`suggested` direction (based on which side has the newer mtime) or is
-`unresolved` (sizes differ but timestamps are equal/near-equal), which
-needs a manual pick.
+downloads (remote-only files), conflicts (same path present on both sides
+with a differing byte size), and replaces (a new-hash local build file
+paired with the old-hash remote file(s) it supersedes). Show the full list
+grouped by action. Call out conflicts specifically — each `[conflict]`
+line either has a `suggested` direction (based on which side has the newer
+mtime) or is `unresolved` (sizes differ but timestamps are equal/near-equal),
+which needs a manual pick. Call out replaces too — make clear that
+approving one **deletes** the listed stale remote path(s), since that's
+the one case where this skill removes something.
 
 ### 5. Human gate — ask before touching anything
 
 Use `AskUserQuestion` (do not just proceed) to ask the user what to do,
 offering choices like:
 
-- Sync everything as suggested
+- Sync everything as suggested (includes applying any `replace` entries,
+  i.e. deleting their stale remote file(s))
 - Uploads only
 - Downloads only
 - Pick specific files (ask which paths, and which direction for any
-  unresolved conflicts)
+  unresolved conflicts; note that a `replace` entry applied with its
+  suggested direction deletes its stale remote path(s) — offer forcing
+  `--direction upload` instead if the user wants the new file uploaded
+  without deleting the old one)
 - Abort — do nothing
 
 This step is mandatory every run. Do not skip it even if the diff looks
@@ -152,6 +170,13 @@ node scripts/ftp-sync.js --apply --yes
   [--direction upload|download]      # override suggested direction for the scoped entries
   [--no-open]                        # skip auto-opening the post-apply HTML report
 ```
+
+A scoped `replace` entry applies with its suggested direction (`replace`)
+by default — upload the new file, then delete the stale remote path(s) it
+supersedes (`staleRemotePaths` in `.ftp-sync-diff.json`). Passing an
+explicit `--direction upload|download` for a `replace` entry overrides
+that and does a plain upload/download of the entry's own path instead,
+leaving the stale remote file(s) untouched.
 
 Config lives in `.ftp-sync.json` (gitignored, template at
 `.ftp-sync.json.example`):
