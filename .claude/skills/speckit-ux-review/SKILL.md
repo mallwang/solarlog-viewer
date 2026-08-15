@@ -50,17 +50,22 @@ If empty, use the feature directory recorded in `.specify/feature.json`. If the 
 
 6. **Present the link and ask for feedback** using `AskUserQuestion` or plain text — whichever fits the kind of feedback needed (multiple-choice layout options vs. open-ended critique). Iterate: edit the file, redeploy via `Artifact` with the same `file_path` (and `url` if updating a previous session's artifact) to keep the same link stable across revisions.
 
-7. **On explicit approval**, write `specs/<feature>/design.md` capturing:
+7. **On explicit approval, save a local copy of the final HTML** as `specs/<feature>/mockup.html` — the Artifact link can go stale or be deleted later, so this file is the durable, offline-viewable copy.
+   - Copy the scratchpad file you've been iterating on, not a re-fetch of the published Artifact — you already have the final source on disk.
+   - If for some reason only the published Artifact is available (e.g. resuming a session where the scratchpad file is gone), fetch it with `WebFetch` on the `claude.ai/code/artifact/{uuid}` URL asking for the raw HTML source, then strip the injected `<!-- frame-runtime -->…<!-- /frame-runtime -->` script block and the frame-only `<meta>`/`<style>` tags before saving — that wrapper is Artifact-hosting plumbing, not part of the mockup. Keep everything from the mockup's own `<title>` tag onward, and wrap it in a standalone `<!doctype html><html>…</html>` document (own `<head>` with `<meta charset>`, the `<title>`, and the `<style>` block; `<body>` with the rest) so it opens correctly outside the Artifact frame.
+
+8. **Write `specs/<feature>/design.md`** capturing:
    - A short description of the approved layout per region/state (prose + simple ASCII/markdown sketch if helpful — this file is read by `/speckit-plan` later, not rendered visually).
    - Which spec requirements/acceptance scenarios each region satisfies (so plan/tasks can trace back).
    - Explicitly out-of-scope-for-this-mockup items noted in step 2.
-   - A link to the final Artifact URL, for future reference (note it may not stay live forever — the markdown description is the durable record).
+   - A **Mockup** line linking to the local `mockup.html` (the durable copy) followed by the original Artifact URL for reference, noting the remote link may go stale — see existing `specs/*/design.md` files for the exact phrasing pattern.
 
-8. **Add a one-line pointer in `spec.md`** near the top (e.g. under Input or as a new `**Design**` line) linking to `design.md`, so `/speckit-plan` and anyone reading the spec later finds it without being told.
+9. **Add a one-line pointer in `spec.md`** near the top (e.g. under Input or as a new `**Design**` line) linking to `design.md`, so `/speckit-plan` and anyone reading the spec later finds it without being told.
 
 ## Done When
 
 - [ ] Mockup published as an Artifact and reviewed with the user until they approve or explicitly say to move on without full approval
-- [ ] `specs/<feature>/design.md` written with the approved layout, requirement traceability, and Artifact link
+- [ ] Final HTML saved locally as `specs/<feature>/mockup.html`
+- [ ] `specs/<feature>/design.md` written with the approved layout, requirement traceability, and links to both the local mockup and the original Artifact
 - [ ] `spec.md` updated with a pointer to `design.md`
 - [ ] User told they can now proceed to `/speckit-plan`

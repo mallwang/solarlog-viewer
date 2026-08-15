@@ -2,9 +2,10 @@
 
 **Feature**: [spec.md](spec.md)
 **Status**: Approved 2026-08-14
-**Mockup**: https://claude.ai/code/artifact/766a79f0-8e2d-460c-827c-2a43d085d6a4 (non-functional
-review artifact — link may not stay live forever; this document is the durable record of what
-was approved).
+**Mockup**: [mockup.html](mockup.html) (local static snapshot, open directly in a browser) —
+originally reviewed at https://claude.ai/code/artifact/766a79f0-8e2d-460c-827c-2a43d085d6a4
+(non-functional review artifact; remote link may go stale, the local copy and this document are
+the durable record of what was approved).
 
 ## Approved layout
 

@@ -1,7 +1,7 @@
 # Design: Configurable Weather Backgrounds
 
 **Status**: Approved (2026-08-14)
-**Mockup**: https://claude.ai/code/artifact/eba2b5f6-d524-43b0-9f19-4a414c9a7238 (non-functional review artifact — static states only, no live data or real animation timing; may not stay live indefinitely, this file is the durable record)
+**Mockup**: [mockup.html](mockup.html) (local static snapshot, open directly in a browser) — originally reviewed at https://claude.ai/code/artifact/eba2b5f6-d524-43b0-9f19-4a414c9a7238 (non-functional review artifact — static states only, no live data or real animation timing; remote link may go stale, the local copy and this file are the durable record)
 
 ## Approved layout
 
