@@ -1,6 +1,7 @@
-import { test } from 'node:test';
+import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { sourceDirForDate, fetchFromBothSources } from './data-source.js';
+import { clearFetchCache } from './fetch-cache.js';
 
 function withFetch(impl, fn) {
   const original = globalThis.fetch;
@@ -9,6 +10,10 @@ function withFetch(impl, fn) {
     globalThis.fetch = original;
   });
 }
+
+beforeEach(() => {
+  clearFetchCache();
+});
 
 test('sourceDirForDate resolves dates before installation to hist', () => {
   assert.equal(sourceDirForDate('2026-07-28'), 'hist');

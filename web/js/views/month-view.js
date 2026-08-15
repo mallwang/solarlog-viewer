@@ -180,11 +180,17 @@ export async function render(container, { route, plant }) {
   // months.js is only written at day rollover - and isn't guaranteed to hit every one (observed:
   // stuck for 2+ days) - so the current month's checkpoint can be missing more than just today's
   // yield. Fold in every dailyBreakdown day newer than the checkpoint, not only today (see
-  // addMissingDays), so a skipped rollover doesn't silently disappear from the total.
-  const monthTotal = addMissingDays(
-    months.find((m) => m.month === key) ?? { month: key, perInverter: {}, dailyBreakdown: [] },
-    dailyBreakdown,
-  );
+  // addMissingDays), so a skipped rollover doesn't silently disappear from the total. This only
+  // makes sense for the in-progress month: for a completed month, hist/months.js's own asOfDate
+  // is the 1st of that month (not its last day - see parseMonthsFile), so applying addMissingDays
+  // there would fold in nearly every day of the month a second time on top of the already-final
+  // months.js total, roughly doubling it.
+  const foundMonth = months.find((m) => m.month === key) ?? {
+    month: key,
+    perInverter: {},
+    dailyBreakdown: [],
+  };
+  const monthTotal = isCurrentMonth ? addMissingDays(foundMonth, dailyBreakdown) : foundMonth;
   monthTotal.dailyBreakdown = dailyBreakdown;
 
   if (dailyBreakdown.length === 0) {
