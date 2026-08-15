@@ -12,7 +12,7 @@ import { fetchText } from '../data/fetch-text.js';
 import { DATA_DIR } from '../config.js';
 import { formatRoute } from '../router.js';
 import { emptyStateMarkup } from './empty-state.js';
-import { chartWithStatsLayoutMarkup, statsPanelMarkup } from './stats-panel.js';
+import { chartWithStatsLayoutMarkup, statsPanelMarkup, statValueMarkup } from './stats-panel.js';
 import { initChartBreakdownToggle } from './chart-breakdown-toggle.js';
 import { initChartTableToggle } from './chart-table-toggle.js';
 import { renderChartTable } from './chart-data-table.js';
@@ -39,7 +39,7 @@ function todayIso() {
  * @param {ReturnType<typeof import('../data/aggregates.js').deriveLifetimeSummary>} summary
  * @param {object | null} plant - PlantMetadata (see data/plant.js); Soll/tariff figures fall
  *   back to 0 when unavailable.
- * @returns {[string, string][]}
+ * @returns {([string, string] | [string, string, string])[]}
  */
 function totalStatsRows(summary, plant) {
   const yieldKwh = summary.totalYieldWh / 1000;
@@ -50,15 +50,15 @@ function totalStatsRows(summary, plant) {
 
   return [
     ['total.stats.yieldKwh', formatKwh(yieldKwh)],
-    ['total.stats.yieldEuro', formatCurrency(summary.feedInTotal)],
+    ['total.stats.yieldEuro', formatCurrency(summary.feedInTotal), 'explanations.yieldEuro'],
     ['total.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
     [
       'total.stats.maxYear',
-      best.year ? `${formatKwh(best.kwh)} (${best.year})` : formatKwh(best.kwh),
+      statValueMarkup(formatKwh(best.kwh), best.year ? `(${best.year})` : null),
     ],
-    ['total.stats.sollTotal', formatKwh(sollKwh)],
-    ['total.stats.ist', `${ist}%`],
-    ['total.stats.co2', formatCo2(summary.co2SavedKg)],
+    ['total.stats.sollTotal', formatKwh(sollKwh), 'explanations.soll'],
+    ['total.stats.ist', `${ist}%`, 'explanations.ist'],
+    ['total.stats.co2', formatCo2(summary.co2SavedKg), 'explanations.co2'],
   ];
 }
 

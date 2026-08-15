@@ -233,5 +233,12 @@
       "rain": "Rain",
       "snow": "Snow"
     }
+  },
+  "explanations": {
+    "yieldEuro": "The yield (kWh) multiplied by the configured feed-in tariff rate per kWh.",
+    "soll": "The target yield (Soll) configured for this period, calculated from the plant's capacity.",
+    "sollAuflaufend": "The prorated target up to today: the daily targets of every day of this period that has already passed, added up.",
+    "ist": "The actual yield as a percentage of the Soll figure shown alongside it — 100% means exactly on target.",
+    "co2": "The yield (kWh) multiplied by the German electricity grid mix's CO2 emission factor for that year."
   }
 }

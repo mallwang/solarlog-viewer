@@ -141,7 +141,7 @@ async function renderStats(mount, plant, { keepOnFailure = false } = {}) {
       ['widget.monthYield', formatKwh(summary.monthKwh)],
       ['widget.yearYield', formatKwh(summary.yearKwh)],
       ['widget.totalYield', formatKwh(summary.totalKwh)],
-      ['total.stats.co2', formatCo2(summary.co2SavedKg)],
+      ['total.stats.co2', formatCo2(summary.co2SavedKg), 'explanations.co2'],
       ['total.stats.yieldEuro', formatCurrency(summary.feedInTotal)],
     ]);
   } catch {

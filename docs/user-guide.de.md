@@ -146,6 +146,16 @@ dieses Jahr veröffentlicht, wird stattdessen ein fester Ersatzwert (0,363 kg/kW
 Wert wird vollständig aus bereits geladenen Daten berechnet — es wird keine zusätzliche
 Netzwerkanfrage dafür ausgelöst.
 
+## Erklär-Tooltips
+
+Mehrere Werte im Statistikbereich (Tages-/Monats-/Jahres-/Gesamt-/Willkommensansicht) — Ertrag
+in €, Soll, Soll (auflaufend), Ist und Vermiedenes CO2 — haben ein kleines „i“-Symbol neben ihrem
+Label. Am Desktop öffnet Hover oder Tab-Fokus ein kurzes Tooltip, das genau erklärt, wie dieser
+Wert berechnet wird (z. B. ist „Ist“ der tatsächliche Ertrag als Prozentsatz des danebenstehenden
+Soll-Werts). Auf reinen Touch-Geräten (Smartphone/Tablet) wird das Symbol gar nicht angezeigt —
+ein Tippen darauf hätte keinen sinnvollen Effekt, daher wird es komplett weggelassen statt inaktiv
+angezeigt.
+
 ## Voraussetzungen
 
 - Node.js 22+

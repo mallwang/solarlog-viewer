@@ -2,6 +2,10 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mallwang/solarlog-viewer)
 
+<p align="center">
+  <img src="solarlog-viewer.png" alt="Solarlog Viewer" width="120" />
+</p>
+
 Static viewer for SolarLog data exports (HTML/JS/CSS). `web/` is the single directory FTP'd to
 the Synology DiskStation — `web/index.html` is a single-page dashboard (vanilla ES modules,
 Tailwind CSS compiled to a static file, ApexCharts) showing current production plus the four
@@ -120,6 +124,29 @@ combinable, with removable chips and a reset button) narrow the table without re
 Von–Bis/WR/Dauer column headers sort (click to toggle direction) within whatever the filters
 currently show. See `web/js/data/events.js` (parsing/merge/dedupe/label-resolution, no DOM) and
 `web/js/views/events-view.js` (rendering + filter/sort state).
+
+## Explanatory tooltips
+
+Stats-panel rows (day/month/year/total/welcome views) can carry a small, focusable "i" info
+button next to their label. On desktop, hovering or keyboard-focusing it reveals a short tooltip
+explaining exactly how that figure is calculated; on touch-only devices the button isn't rendered
+at all (`@media (hover: hover) and (pointer: fine)` in `web/css/app.css`), so it never affects
+mobile layout. All rendering/positioning logic (including the edge-of-viewport flip that keeps a
+tooltip from being clipped) lives once in `web/js/views/stats-panel.js` — no view module builds
+this markup itself.
+
+To explain a new stat, no changes to `stats-panel.js` are needed:
+
+1. Add an `explanations.<key>` entry (German + English wording) to both `web/i18n/de.json` and
+   `web/i18n/en.json`, alongside the other UI strings.
+2. In the view's row-builder function (e.g. `monthStatsRows()` in `web/js/views/month-view.js`),
+   append the i18n key as a third element to that row's tuple: `[labelKey, value,
+'explanations.<key>']`. A row with only `[labelKey, value]` renders exactly as it always has —
+   the explanation is opt-in per row.
+
+The same `explanations.<key>` can be reused across views (e.g. "Soll" means the same thing on the
+day, month, year, and total views) — edit the i18n entry once and every view referencing it
+updates together. See `specs/020-explanatory-tooltips/` for the full spec/plan/contract.
 
 ## Dev server
 

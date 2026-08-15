@@ -5,6 +5,7 @@ import { initI18n, getLanguage, t } from './i18n.js';
 import { initTransparencyMode, isTransparencyEnabled, setTransparencyEnabled } from './settings.js';
 import { SHOW_LANGUAGE_SWITCHER, SKY_LOCATION_OVERRIDE, SITE_TITLE } from './config.js';
 import { icon } from './icons.js';
+import { initInfoTooltips } from './views/stats-panel.js';
 
 function todayParams() {
   const now = new Date();
@@ -212,6 +213,7 @@ async function bootstrap() {
   initNavToggle();
   initTransparencyToggle();
   initChromeHeightSync();
+  initInfoTooltips();
 
   const result = await fetchText('data/base_vars.js');
   if (result.ok) {

@@ -1777,12 +1777,171 @@ a {
 }
 
 /* .summary-table's width/border-collapse/margin-top are Tailwind utilities inline
-   (web/js/views/total-view.js); cell borders/padding have no Tailwind equivalent applied yet. */
+   (web/js/views/total-view.js); cell borders have no Tailwind equivalent applied yet.
+   `table-layout: fixed` plus an explicit label/value split (rather than each browser's own
+   content-based auto layout) is what makes every stats panel — day/month/year/total/welcome, all
+   built from the same statsPanelMarkup() — share one consistent left/right proportion instead of
+   each panel's columns landing wherever its own longest cell happens to push them. 56/44, no
+   horizontal cell padding (the `.stats-panel` card already insets everything 16px — see its own
+   padding below), and the smaller `--font-size-sm`/lighter label weight (rather than the
+   browser's own bold, 1rem default `<th>` styling) together fit the longest real label
+   ("Monatsertrag in €" plus its info icon) and longest real value ("107,1 kWh/kWp") at the
+   panel's ~30%-of-page desktop width without wrapping — this is the already-approved typography
+   from specs/020-explanatory-tooltips/mockup.html, ported here once the info icon (020) made the
+   previous unstyled/auto-layout table tight enough to start wrapping mid-label/mid-value. A label
+   that still doesn't fit (e.g. a future long explanation-bearing stat, or a narrow custom
+   viewport) truncates with an ellipsis instead of wrapping or overflowing the column. */
+.summary-table {
+  table-layout: fixed;
+}
+
 .summary-table th,
 .summary-table td {
-  text-align: left;
-  padding: var(--space-xs) var(--space-sm);
+  padding: var(--space-sm) 0;
   border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.summary-table th {
+  width: 56%;
+  /* Keeps a small gutter before the value column even when a label runs the full column width
+     (the ellipsis-truncation fallback below) — .summary-table td has no left padding of its own,
+     since it's right-aligned against the panel's own edge instead. Deliberately NOT
+     `overflow: hidden` here (unlike the truncation itself, which lives on .stat-label-text below)
+     — a `<th>` clipping its own overflow would also clip .info-trigger's absolutely positioned
+     .info-tooltip descendant, hiding the tooltip on hover/focus entirely. */
+  padding-right: var(--space-sm);
+  color: var(--color-text-muted);
+  font-weight: 400;
+  text-align: left;
+}
+
+.summary-table td {
+  width: 44%;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* The optional second line of a stat value (e.g. "38,0 kWh" / "(12. Juni)" — see
+   stats-panel.js's statValueMarkup()): smaller and muted so the primary number stays the visual
+   focus, and kept off the primary line entirely so the primary value's own unit never has to
+   wrap mid-phrase to make room for the parenthetical date/period qualifier. */
+.stat-value-detail {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* The label text itself (see stats-panel.js's statsRow()) — truncates with an ellipsis rather
+   than wrapping or overflowing into the value column when a label doesn't fit the fixed-width
+   `<th>` (e.g. a future long explanation-bearing stat, or a narrow custom viewport). Scoped to
+   just the text, not the `<th>`, so this never clips a sibling .info-trigger's .info-tooltip
+   (see .summary-table th above). `min-width: 0` is needed because this is also a flex item inside
+   .stat-label below, where flex items default to `min-width: auto` (refusing to shrink below
+   their content's intrinsic width) — without it, the ellipsis rule would never actually kick in. */
+.stat-label-text {
+  display: inline-block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Explanatory tooltips (020-explanatory-tooltips, views/stats-panel.js's infoTooltipMarkup()) —
+   the info icon + hover/focus-revealed tooltip next to a stats row's label. Reuses mockup.html's
+   approved visual treatment (specs/020-explanatory-tooltips/mockup.html), renamed .flip-right to
+   .info-trigger--flip for BEM consistency with the rest of the codebase. A stat with no
+   explanationKey never gets any of this markup at all (FR-009), so these rules only ever apply
+   to opted-in rows. */
+.stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  max-width: 100%;
+}
+
+.info-trigger {
+  /* A real, focusable button — not a decorative span — so it reaches FR-008 (keyboard operable)
+     for free via native tab order. Hidden by default; only shown on hover-capable, fine-pointer
+     devices below (FR-004) so it never affects touch-only layout/markup footprint. */
+  appearance: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  border: 1.2px solid currentColor;
+  font: inherit;
+  font-size: 0.65rem;
+  line-height: 1;
+  font-weight: 700;
+  font-style: italic;
+  cursor: help;
+  flex: none;
+  position: relative;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .info-trigger {
+    display: inline-flex;
+  }
+
+  .info-trigger:hover {
+    color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    background: var(--color-bg-elevated);
+  }
+}
+
+.info-trigger:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+.info-tooltip {
+  position: absolute;
+  z-index: 20;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 240px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  padding: var(--space-sm) 0.7rem;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.info-trigger:hover .info-tooltip,
+.info-trigger:focus-visible .info-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Right-anchored variant, toggled by initInfoTooltips() when the tooltip would otherwise overflow
+   the viewport's right edge (FR-007). */
+.info-trigger--flip .info-tooltip {
+  left: auto;
+  right: -6px;
+  transform: none;
 }
 
 /* .chart-table (feature 014, views/chart-data-table.js) — condensed reflection of the chart's

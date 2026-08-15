@@ -29,7 +29,7 @@ implementation and testing of each story, per FR/SC references in spec.md.
 dependency, no new directory, no build-tool change (plan.md Technical Context), so Setup is
 limited to a pre-flight check.
 
-- [ ] T001 Run `npm run test:scripts`, `npx playwright test --reporter=line`, `npm run lint`, and
+- [x] T001 Run `npm run test:scripts`, `npx playwright test --reporter=line`, `npm run lint`, and
       `npm run format:check` on the unmodified branch to confirm a green baseline before starting
       (so any later failure is attributable to this feature's changes)
 
@@ -46,35 +46,35 @@ story duplicates rendering/positioning logic (FR-006, US3).
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 [P] Add `explanations.yieldEuro`, `explanations.soll`, `explanations.sollAuflaufend`,
+- [x] T002 [P] Add `explanations.yieldEuro`, `explanations.soll`, `explanations.sollAuflaufend`,
       `explanations.ist`, `explanations.co2` (German wording, drafted from the actual calculation
       logic per data-model.md's table) to `web/i18n/de.json`
-- [ ] T003 [P] Add the same five `explanations.*` keys (English wording, same meaning) to
+- [x] T003 [P] Add the same five `explanations.*` keys (English wording, same meaning) to
       `web/i18n/en.json`
-- [ ] T004 [P] Write `node --test` unit tests in `web/js/views/stats-panel.test.js` for the
+- [x] T004 [P] Write `node --test` unit tests in `web/js/views/stats-panel.test.js` for the
       extended `statsRow()`/`statsPanelMarkup()` contract (contracts/info-tooltip.md): a 2-element
       row renders byte-identical markup to today's output (no `.info-trigger`); a 3-element row
       renders a `<button class="info-trigger">` with `aria-describedby` pointing at a
       `role="tooltip"` element containing the resolved explanation text; two rows in the same panel
       each get a distinct generated DOM id. Tests MUST fail against the current implementation
       before T005 lands.
-- [ ] T005 Implement the extended contract in `web/js/views/stats-panel.js`: add an internal
+- [x] T005 Implement the extended contract in `web/js/views/stats-panel.js`: add an internal
       `infoTooltipMarkup(explanationKey)` helper, extend `statsRow(labelKey, value,
-    explanationKey)` to call it only when `explanationKey` is present, and update
+explanationKey)` to call it only when `explanationKey` is present, and update
       `statsPanelMarkup()`'s JSDoc for the new `[labelKey, value, explanationKey]` triple shape
       (depends on T002, T003, T004 failing first)
-- [ ] T006 [P] Add CSS rules to `web/css/app.css` per contracts/info-tooltip.md's CSS contract
+- [x] T006 [P] Add CSS rules to `web/css/app.css` per contracts/info-tooltip.md's CSS contract
       table: `.stat-label` flex wrapper, `.info-trigger` (`display: none` by default, `inline-flex`
       only inside `@media (hover: hover) and (pointer: fine)`), `.info-trigger:hover
-    .info-tooltip`/`.info-trigger:focus-visible .info-tooltip` reveal rules, `.info-tooltip`
+.info-tooltip`/`.info-trigger:focus-visible .info-tooltip` reveal rules, `.info-tooltip`
       floating-callout styling (existing colour/spacing/radius custom properties only, per
       constitution Technical Standards), and the `.info-trigger--flip .info-tooltip` right-anchored
       modifier — reusing `mockup.html`'s approved visual treatment
-- [ ] T007 Implement and export `initInfoTooltips()` in `web/js/views/stats-panel.js`: a single
+- [x] T007 Implement and export `initInfoTooltips()` in `web/js/views/stats-panel.js`: a single
       delegated `focusin`/`pointerenter` listener that measures an about-to-show `.info-tooltip`'s
       projected right edge against `window.innerWidth` and toggles `.info-trigger--flip` (FR-007;
       depends on T005)
-- [ ] T008 Call `initInfoTooltips()` once during startup in `web/js/main.js`, alongside the other
+- [x] T008 Call `initInfoTooltips()` once during startup in `web/js/main.js`, alongside the other
       one-time `init*` calls (e.g. `initTransparencyMode`) — not from any view's `render()`
       (depends on T007)
 
@@ -96,37 +96,37 @@ content and disappears on mouse-out (spec.md's Independent Test for US1).
 
 ### Implementation for User Story 1
 
-- [ ] T009 [P] [US1] In `web/js/views/day-view.js`'s `dayStatsRows()`, add a third tuple element to
+- [x] T009 [P] [US1] In `web/js/views/day-view.js`'s `dayStatsRows()`, add a third tuple element to
       the `day.stats.yieldEuro` row (`'explanations.yieldEuro'`), `day.stats.soll` row
       (`'explanations.soll'`), `day.stats.ist` row (`'explanations.ist'`), and `day.stats.co2` row
       (`'explanations.co2'`)
-- [ ] T010 [P] [US1] In `web/js/views/month-view.js`'s `monthStatsRows()`, add a third tuple
+- [x] T010 [P] [US1] In `web/js/views/month-view.js`'s `monthStatsRows()`, add a third tuple
       element to the `month.stats.yieldEuro` row (`'explanations.yieldEuro'`), the conditional
       Soll row (`'explanations.sollAuflaufend'` when `isCurrentMonth`, else `'explanations.soll'`),
       the `month.stats.ist` row (`'explanations.ist'`), and the `month.stats.co2` row
       (`'explanations.co2'`)
-- [ ] T011 [P] [US1] In `web/js/views/year-view.js`'s `yearStatsRows()`, add a third tuple element
+- [x] T011 [P] [US1] In `web/js/views/year-view.js`'s `yearStatsRows()`, add a third tuple element
       to the `year.stats.yieldEuro` row (`'explanations.yieldEuro'`), the conditional Soll row
       (`'explanations.sollAuflaufend'` when `isCurrentYear`, else `'explanations.soll'`), the
       `year.stats.ist` row (`'explanations.ist'`), and the `year.stats.co2` row
       (`'explanations.co2'`)
-- [ ] T012 [P] [US1] In `web/js/views/total-view.js`'s `totalStatsRows()`, add a third tuple
+- [x] T012 [P] [US1] In `web/js/views/total-view.js`'s `totalStatsRows()`, add a third tuple
       element to the `total.stats.yieldEuro` row (`'explanations.yieldEuro'`), the
       `total.stats.sollTotal` row (`'explanations.soll'`), the `total.stats.ist` row
       (`'explanations.ist'`), and the `total.stats.co2` row (`'explanations.co2'`)
-- [ ] T013 [P] [US1] In `web/js/views/welcome-view.js`'s `renderStats()`, add a third tuple element
+- [x] T013 [P] [US1] In `web/js/views/welcome-view.js`'s `renderStats()`, add a third tuple element
       (`'explanations.co2'`) to the `total.stats.co2` row
-- [ ] T014 [US1] Add a Playwright test in `tests/e2e/explanatory-tooltips.spec.js` for hover-reveal
+- [x] T014 [US1] Add a Playwright test in `tests/e2e/explanatory-tooltips.spec.js` for hover-reveal
       (quickstart Scenario 1): navigate to a month view with data, hover the info icon next to
       "Monatsertrag in €", assert the tooltip text matches the yield×tariff explanation (not a
       Soll/Ist/CO2 message), then move the pointer off and assert the tooltip disappears; repeat
       for "Soll (auflaufend)", "Ist", "Vermiedenes CO2" on the month panel and "Tagesertrag in €"
       on a day view (depends on T009-T013)
-- [ ] T015 [US1] Add a Playwright test in `tests/e2e/explanatory-tooltips.spec.js` for
+- [x] T015 [US1] Add a Playwright test in `tests/e2e/explanatory-tooltips.spec.js` for
       keyboard-focus reveal (quickstart Scenario 2, FR-008/SC-005): Tab to an info icon, assert the
       same tooltip becomes visible on focus without moving the mouse, then Tab away and assert it
       disappears (depends on T009-T013)
-- [ ] T016 [US1] Add a Playwright test in `tests/e2e/explanatory-tooltips.spec.js` for the
+- [x] T016 [US1] Add a Playwright test in `tests/e2e/explanatory-tooltips.spec.js` for the
       viewport-edge flip (quickstart Scenario 4, FR-007/SC-004): narrow the browser window (or pick
       an icon near the right edge, e.g. "Ist"/"Vermiedenes CO2"), hover it, and assert the tooltip
       stays fully within the viewport (right-anchored via `.info-trigger--flip`) rather than being
@@ -149,7 +149,7 @@ Independent Test for US2).
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Add a Playwright test in `tests/e2e/explanatory-tooltips.spec.js`, using a
+- [x] T017 [US2] Add a Playwright test in `tests/e2e/explanatory-tooltips.spec.js`, using a
       touch-emulated device profile (`(hover: none)`, e.g. Playwright's `devices['iPhone 14']`),
       for quickstart Scenario 3 (User Story 2, SC-002): load the same annotated month view, assert
       no `.info-trigger` element is visible anywhere in the stats panel, assert the annotated row's
@@ -174,22 +174,22 @@ Test for US3).
 
 ### Implementation for User Story 3
 
-- [ ] T018 [P] [US3] Add a `node --test` unit test to `web/js/views/stats-panel.test.js` asserting
+- [x] T018 [P] [US3] Add a `node --test` unit test to `web/js/views/stats-panel.test.js` asserting
       the extensibility contract (US3 Acceptance Scenario 1): a `statsPanelMarkup()` call with a
       row tuple carrying an arbitrary, previously-unseen `explanationKey` (not one of the five
       initial keys) renders a working info-trigger/tooltip pair — proving `stats-panel.js` contains
       no hardcoded list of explanation keys
-- [ ] T019 [P] [US3] Add a `node --test` unit test to `web/js/views/stats-panel.test.js` asserting
+- [x] T019 [P] [US3] Add a `node --test` unit test to `web/js/views/stats-panel.test.js` asserting
       US3 Acceptance Scenario 2: two separate `statsPanelMarkup()` calls (simulating day view's
       "Soll" and month view's "Soll") that both pass `'explanations.soll'` each render their own
       independent info-trigger/tooltip markup reading the same resolved text, with distinct
       generated DOM ids (no id collision across panels)
-- [ ] T020 [US3] Manually perform quickstart.md Scenario 5's validation drill (add
+- [x] T020 [US3] Manually perform quickstart.md Scenario 5's validation drill (add
       `explanations.maxDaily` to `web/i18n/de.json`/`en.json`, wire it onto month-view's
       "Maximalwert" row, reload, confirm the icon/tooltip work with zero `stats-panel.js` changes,
       then revert the drill change) to confirm SC-003 end-to-end; not a permanent code change
       (depends on T005-T008)
-- [ ] T021 [US3] Document the "add a new explanation" process (central i18n key → row-tuple third
+- [x] T021 [US3] Document the "add a new explanation" process (central i18n key → row-tuple third
       element, no rendering-code change needed) in `README.md` and `README.de.md`, referencing
       `web/js/views/stats-panel.js` and the `explanations.*` i18n namespace
 
@@ -202,19 +202,19 @@ by an automated regression test, not just today's five entries.
 
 **Purpose**: Documentation and final validation across all user stories.
 
-- [ ] T022 [P] Update `user-guide/user-guide.md` and `user-guide/user-guide.de.md` to mention the
+- [x] T022 [P] Update `user-guide/user-guide.md` and `user-guide/user-guide.de.md` to mention the
       new info-icon tooltips (what they are, hover/keyboard access, desktop-only) alongside the
       existing stats-panel documentation
-- [ ] T023 [P] Confirm JSDoc is complete and accurate on every new/modified exported function
+- [x] T023 [P] Confirm JSDoc is complete and accurate on every new/modified exported function
       (`statsPanelMarkup()`, `initInfoTooltips()` in `stats-panel.js`; updated row-builder functions
       in day/month/year/total/welcome-view.js) per constitution Documentation Standards
-- [ ] T024 Run `npx eslint web/js/views/stats-panel.js web/js/views/stats-panel.test.js
-    web/js/views/day-view.js web/js/views/month-view.js web/js/views/year-view.js
-    web/js/views/total-view.js web/js/views/welcome-view.js web/js/main.js
-    tests/e2e/explanatory-tooltips.spec.js` and fix all errors and SonarLint warnings
-- [ ] T025 Run the full quickstart.md validation: all 5 manual scenarios plus `node --test
-    web/js/views/stats-panel.test.js`, `npx playwright test tests/e2e/explanatory-tooltips.spec.js
-    --reporter=line`, `npm run lint`, `npm run format:check` — all MUST pass (constitution
+- [x] T024 Run `npx eslint web/js/views/stats-panel.js web/js/views/stats-panel.test.js
+web/js/views/day-view.js web/js/views/month-view.js web/js/views/year-view.js
+web/js/views/total-view.js web/js/views/welcome-view.js web/js/main.js
+tests/e2e/explanatory-tooltips.spec.js` and fix all errors and SonarLint warnings
+- [x] T025 Run the full quickstart.md validation: all 5 manual scenarios plus `node --test
+web/js/views/stats-panel.test.js`, `npx playwright test tests/e2e/explanatory-tooltips.spec.js
+--reporter=line`, `npm run lint`, `npm run format:check` — all MUST pass (constitution
       Development Workflow §3/§5)
 
 ---
