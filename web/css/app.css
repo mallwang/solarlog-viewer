@@ -1995,6 +1995,19 @@ html[data-transparency='on'] {
   --transparency-panel-opacity: 0.4;
 }
 
+/* Night legibility floor (user report): 0.4 blends .chart-container/.stats-panel's light
+   --color-bg-elevated fill with whatever shows through the card — reads fine over the bright
+   daytime sky gradient, but composited over body[data-sky='night']'s near-black backdrop the
+   panel goes dark enough that the fixed dark --color-text/--color-text-muted (chart axis ticks,
+   stat values — see the "text/values stay at full opacity" comment below) drop below readable
+   contrast, most visibly the muted Y-axis/day labels. Scoped to both attributes at once (rather
+   than reopening `body[data-sky='night']` above, which SonarLint flags as a duplicate selector)
+   so it only overrides the 0.4 while transparency mode is actually on, keeping the glass effect
+   by day while keeping the card legible at night. */
+html[data-transparency='on'] body[data-sky='night'] {
+  --transparency-panel-opacity: 0.75;
+}
+
 /* Only the card background fades — text/values/chart lines stay at full opacity, so numbers and
    labels remain crisp instead of washing out along with the backdrop (using the CSS `opacity`
    property here would dim the content too, not just the card fill). `.chart-container`'s own
