@@ -174,7 +174,7 @@ export function createButterflyElement({ durationS, laneTopPct, direction = 'ltr
 
   const wingbeatDuration = 0.3 + Math.random() * 0.3; // [0.3, 0.6] s — faster than birds
   const wingbeatPhase = -(Math.random() * wingbeatDuration);
-  const butterflyScale = 0.3 + Math.random() * 0.3; // [0.3, 0.6]
+  const butterflyScale = 0.1 + Math.random() * 0.1; // [0.1, 0.2] — small relative to birds
 
   const sprite = document.createElement('div');
   sprite.className = 'sky-butterfly-sprite';
@@ -209,7 +209,7 @@ export function createDragonflyElement({ durationS, laneTopPct, direction = 'ltr
 
   const wingbeatDuration = 0.08 + Math.random() * 0.06; // [0.08, 0.14] s — very fast shimmer
   const wingbeatPhase = -(Math.random() * wingbeatDuration);
-  const dragonflyScale = 0.35 + Math.random() * 0.25; // [0.35, 0.6]
+  const dragonflyScale = 0.08 + Math.random() * 0.08; // [0.08, 0.16] — small relative to birds
 
   const sprite = document.createElement('div');
   sprite.className = 'sky-dragonfly-sprite';

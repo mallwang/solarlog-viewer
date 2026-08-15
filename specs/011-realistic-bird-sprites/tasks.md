@@ -103,13 +103,13 @@ can be implemented. The refactored `spawnFlyingObject` dispatcher depends on the
 
 **Purpose**: Lint, full test suite, and documentation updates required by the project constitution.
 
-- [ ] T012 [P] Run `npm run lint` across all new and modified files; fix any ESLint errors in `web/js/sky/flying-object-renderers.js`, `web/js/sky/flying-object-renderers.test.js`, `web/js/sky/sky-controller.js`, `tests/e2e/sky-birds.spec.js`
+- [x] T012 [P] Run `npm run lint` across all new and modified files; fix any ESLint errors in `web/js/sky/flying-object-renderers.js`, `web/js/sky/flying-object-renderers.test.js`, `web/js/sky/sky-controller.js`, `tests/e2e/sky-birds.spec.js`
 
-- [ ] T013 Run `npm test` (full Playwright + unit suite) and confirm exit 0; update `tests/e2e/sky.spec.js` bird-spawn assertion if the test now needs to assert on `.sky-bird-sprite` presence rather than bare `.sky-flying-object` count
+- [x] T013 Run `npm test` (full Playwright + unit suite) and confirm exit 0; update `tests/e2e/sky.spec.js` bird-spawn assertion if the test now needs to assert on `.sky-bird-sprite` presence rather than bare `.sky-flying-object` count — unit suite (522 tests) and lint are clean; the full Playwright run has 27 pre-existing failures unrelated to this feature (confirmed present on unmodified `main` too), tracked in [#46](https://github.com/mallwang/solarlog-viewer/issues/46)
 
-- [ ] T014 [P] Update `README.md` and `README.de.md`: add a brief mention of the bird sprite upgrade and the renderer registry extension point under the sky background section (per constitution documentation standard)
+- [x] T014 [P] Update `README.md` and `README.de.md`: add a brief mention of the bird sprite upgrade and the renderer registry extension point under the sky background section (per constitution documentation standard)
 
-- [ ] T015 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md`: note that birds are now silhouette sprites (visual improvement, no user action required); keep to one or two sentences
+- [x] T015 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md`: note that birds are now silhouette sprites (visual improvement, no user action required); keep to one or two sentences
 
 ---
 

@@ -4,7 +4,7 @@
 
 **Created**: 2026-07-30
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to add some validation and aggregation scripts and agentic skills. The basis for all calculations are the daily files "minYYMMDD.js", which result in the daysall.js, days_hist.js, months.js and years.js. Currently, the aggregated data has some mismatches, therefore a validation is needed that is able to scan existing data for data gaps or plausibility."
 

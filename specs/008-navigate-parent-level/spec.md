@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-10
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to enable the user to navigate from the child page to the parent page, e.g. from the current day to the month, from the month to the year, from the year to the total. A button similar like the "Heute" / "Dieser Monat" would be nice to have for the user to click on it to navigate"
 

@@ -2,8 +2,14 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mallwang/solarlog-viewer)
 
+**[Live Application](https://wolfsbach.synology.me)**
+
 <p align="center">
   <img src="solarlog-viewer.png" alt="Solarlog Viewer Icon" width="120" />
+</p>
+
+<p align="center">
+  <sub>Cloud sun cloudy weather Icon by Matt Cooper on <a href="https://icon-icons.com/authors/268-matt-cooper">Icon-Icons.com</a></sub>
 </p>
 
 Static viewer for SolarLog data exports (HTML/JS/CSS). `web/` is the single directory FTP'd to
@@ -46,7 +52,9 @@ geocoding cached in `localStorage` if unset), then used to poll the free, keyles
   sunset, crossfading smoothly at the boundary and staying dimly visible through dense cloud.
 - **Flying objects** — birds, butterflies, dragonflies, and goose V-formations cross the sky
   using animated SVG sprite sheets (realistic silhouettes, not emoji); planes, balloons, and a
-  moon-bound rocket easter egg appear rarely.
+  moon-bound rocket easter egg appear rarely. Each kind's rendering logic lives behind a single
+  `FLYING_OBJECT_RENDERERS` registry in `web/js/sky/flying-object-renderers.js` — adding a new
+  kind is a matter of registering one more entry there.
 
 Any failure (no location, no network, a failed request) falls back silently to the original
 static backdrop — there is no error UI and no impact on the dashboard's PV-data functionality.
@@ -279,3 +287,7 @@ To add the next published year's factor once UBA releases it: convert the publis
 figure to kg/kWh (divide by 1000) and add it as a single new `year: factor` key to
 `CO2_FACTOR_KG_PER_KWH_BY_YEAR` — no other file needs to change; every view picks it up on next
 load.
+
+## License
+
+MIT — see [LICENSE.md](LICENSE.md).

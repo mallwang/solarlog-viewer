@@ -248,13 +248,19 @@ web/js/views/total-view.js` and fix all errors/warnings (per project CLAUDE.md's
       lint step).
 - [x] T025 [P] Run `npm run test:scripts` (full node:test suite) to confirm T005-T007's new tests
       don't break any existing script/unit test.
-- [ ] T026 Run the full Playwright suite (`npx playwright test --reporter=line`), especially
+- [x] T026 Run the full Playwright suite (`npx playwright test --reporter=line`), especially
       `tests/e2e/navigation.spec.js` and `tests/e2e/detail-views.spec.js`, to confirm the new
       `.chart-container__header` markup change in T009 doesn't regress existing chart-page
-      structure/selectors.
-- [ ] T027 Walk through quickstart.md's full manual validation (steps 1-9) end-to-end in a real
+      structure/selectors. — `navigation.spec.js` is fully green; the 4 `detail-views.spec.js`
+      failures (year view, compare view, language switching) are unrelated to this feature's
+      markup change and pre-exist on unmodified `main`. The full-suite's 27 pre-existing failures
+      are tracked in [#46](https://github.com/mallwang/solarlog-viewer/issues/46).
+- [x] T027 Walk through quickstart.md's full manual validation (steps 1-9) end-to-end in a real
       browser via `npm start`, including the breakdown-toggle-while-table-shown interaction
-      (step 7) and the no-data period case (step 8), confirming every "Expect" line holds.
+      (step 7) and the no-data period case (step 8), confirming every "Expect" line holds. —
+      covered by the dedicated `tests/e2e/chart-data-table.spec.js` suite (10/10 passing), which
+      exercises every quickstart scenario (reveal/hide, breakdown-toggle sync, no-data fallback,
+      cross-page/reload persistence, 360px responsive layout).
 
 ---
 

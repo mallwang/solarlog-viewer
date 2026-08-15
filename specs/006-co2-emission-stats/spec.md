@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-09
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to use a historical factor for the reduced co2 emissions, starting with 2006 up to the upcoming years based on the UBA historical values. The values should be stored locally as reference and not requested for each diagram/view. For future years which does not have a statistics yet, a konstant should be used, e.g. the suggested one from 1. (0,363)."
 

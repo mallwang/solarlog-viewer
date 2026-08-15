@@ -90,7 +90,8 @@ keine Wetterdaten abgerufen werden (kein Netzwerk, keine konfigurierte Position)
 Kulisse einfach ihr ursprüngliches statisches Aussehen bei; der Rest des Dashboards ist davon
 nicht betroffen. Ist in System/Browser "Bewegung reduzieren" aktiviert, werden sämtliche
 Himmel-Animationen und fliegenden Objekte unterdrückt, während Wolkendichte und Sonne-/
-Mond-Zustand weiterhin aktualisiert werden.
+Mond-Zustand weiterhin aktualisiert werden. Vögel werden als animierte Silhouetten-Sprites
+dargestellt statt als einfache Form — eine rein optische Verbesserung ohne Konfigurationsbedarf.
 
 ## Globales Desktop-Infopanel
 

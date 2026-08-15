@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-14
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to enhance the background weather animation with a fixed set of backgrounds: sunny, mixed, cloudy, rain, snow. Currently there are already some of them which should be extended and triggered at certain criteria based on the already requested weather api and the navigation bar text should match to the selected background (this requires to at first check which values are returned from the api). Furthermore, I would like to allow the user to configure the background weather settings in the config file (enable/disable like "off"/"auto", and to overwrite it with a fixed weather like "sunny", "rain")."
 

@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-15
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "I would like to add different tooltips at different places across the application, each with an information icon, that only shows on mouse over on desktop, not on mobile. Mainly to explain the calculations behind some values like the "Tagesertrag in €", the "Soll", "Soll (auflaufend", "Ist", "Vermiedenes CO2". They should be easily extendible in the future when we decide to add more."
 
