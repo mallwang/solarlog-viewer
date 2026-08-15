@@ -47,7 +47,7 @@ const DIST_DIR = resolve('dist');
 /**
  * Rewrite `web/index.html` for production: collapse the three `<link rel="stylesheet">` tags
  * into one hashed `styles-<buildId>.css`, point the module `<script>` at `main-<buildId>.js`, and
- * append `?v=<buildId>` to every `favicon-v2.ico` reference (the `<link rel="icon">` and the
+ * append `?v=<buildId>` to every `favicon.ico` reference (the `<link rel="icon">` and the
  * header logo `<img>`).
  *
  * @param {string} html - raw contents of `web/index.html`
@@ -73,7 +73,7 @@ export function rewriteIndexHtml(html, buildId) {
   }
   out = out.replace(scriptTag, `<script type="module" src="js/main-${buildId}.js"></script>`);
 
-  return out.replaceAll('favicon-v2.ico"', `favicon-v2.ico?v=${buildId}"`);
+  return out.replaceAll('favicon.ico"', `favicon.ico?v=${buildId}"`);
 }
 
 /**
@@ -160,7 +160,7 @@ async function main() {
     // vendored UMD build separately too would just be dead weight.
     filter: (src) => !src.includes(join('vendor', 'apexcharts')),
   });
-  cpSync(join(WEB_DIR, 'favicon-v2.ico'), join(DIST_DIR, 'favicon-v2.ico'));
+  cpSync(join(WEB_DIR, 'favicon.ico'), join(DIST_DIR, 'favicon.ico'));
 
   console.log(`Built dist/ (buildId ${buildId})`);
 }

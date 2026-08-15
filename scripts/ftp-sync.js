@@ -18,7 +18,7 @@
  * The `data` and `hist` directories are the SolarLog device's own web UI mirror (live-overwritten
  * readings / frozen historical archive) and are **out of scope for this script** — they're never
  * uploaded, downloaded, or diffed. `.ftp-sync.json`'s `includePaths` lists only the app's own
- * assets (`index.html`, `js`, `css`, `i18n`, `img`, `vendor`, `favicon-v2.ico`); the device
+ * assets (`index.html`, `js`, `css`, `i18n`, `img`, `vendor`, `favicon.ico`); the device
  * manages `data`/`hist` itself, and a frozen copy of the historical `hist` archive lives at
  * `archive/web-hist.tar.gz` instead.
  *
@@ -35,7 +35,7 @@
  *
  * The local tree walked is `dist/`, not `web/` — `dist/` is the production build artifact
  * produced by `npm run build` (`scripts/build.js`): hashed/cache-busted `js/main-<sha>.js` and
- * `css/styles-<sha>.css`, plus copies of `i18n`/`img`/`vendor`/`favicon-v2.ico`. `dist/` no
+ * `css/styles-<sha>.css`, plus copies of `i18n`/`img`/`vendor`/`favicon.ico`. `dist/` no
  * longer contains `data`/`hist` at all — those are the device's own data mirror, untouched by
  * this project. Run `npm run build` before `--diff`/`--apply`, or you'll be diffing/uploading a
  * stale or missing `dist/`.
@@ -529,7 +529,7 @@ export function isAllowedTopLevelEntry(name, includePaths) {
  * Convert a simple glob pattern (only `*` as a wildcard, no `?`/`[]`) into a
  * case-insensitive RegExp matching a whole filename.
  *
- * @param {string} pattern - e.g. `"*.js"` or `"favicon-v2.ico"`
+ * @param {string} pattern - e.g. `"*.js"` or `"favicon.ico"`
  * @returns {RegExp}
  */
 function globToRegExp(pattern) {
@@ -752,7 +752,7 @@ async function buildIndexes(config) {
  * @returns {string|null} `data:` URI, or null if the favicon file isn't present
  */
 function loadFaviconDataUri() {
-  const faviconPath = join(LOCAL_ROOT, 'favicon-v2.ico');
+  const faviconPath = join(LOCAL_ROOT, 'favicon.ico');
   if (!existsSync(faviconPath)) return null;
   return `data:image/x-icon;base64,${readFileSync(faviconPath).toString('base64')}`;
 }
