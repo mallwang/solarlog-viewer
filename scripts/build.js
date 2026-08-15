@@ -155,6 +155,12 @@ async function main() {
     format: 'esm',
     outfile: join(DIST_DIR, 'js', `main-${buildId}.js`),
     define: { __BUILD_ID__: JSON.stringify(buildId) },
+    logOverride: {
+      // vendor/apexcharts/apexcharts.esm.js is a UMD bundle that feature-detects its environment
+      // via `typeof module !== 'undefined'` — never dereferenced, so it's safe in a browser
+      // bundle (where `module` is undefined) despite esbuild's static-analysis warning here.
+      'commonjs-variable-in-esm': 'silent',
+    },
   });
 
   const tokensCss = readFileSync(join(WEB_DIR, 'css', 'tokens.css'), 'utf8');
