@@ -3,6 +3,7 @@ import { parseMinFile } from '../data/min-file.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { t } from '../i18n.js';
 import { DATA_DIR, DATA_REFRESH_INTERVAL_MS, PLANT_PHOTOS } from '../config.js';
+import { getBuildId } from '../build-info.js';
 import { emptyStateBody } from './empty-state.js';
 import { carouselMarkup, initCarousel } from './photo-carousel.js';
 import { plantDetailsMarkup } from './plant-details-panel.js';
@@ -186,7 +187,7 @@ export async function render(container, { plant }) {
 
   let carouselCleanup = () => {};
   try {
-    const photoSrcs = PLANT_PHOTOS.map((fileName) => `img/plant/${fileName}`);
+    const photoSrcs = PLANT_PHOTOS.map((fileName) => `img/plant/${fileName}?v=${getBuildId()}`);
     carouselMount.innerHTML = carouselMarkup(photoSrcs);
     carouselCleanup = initCarousel(carouselMount.querySelector('.carousel')) ?? (() => {});
   } catch {

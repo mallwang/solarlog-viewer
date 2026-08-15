@@ -59,6 +59,9 @@ export default [
         Date: 'readonly',
         URLSearchParams: 'readonly',
         ResizeObserver: 'readonly',
+        // Injected by scripts/build.js via esbuild's `define`; undefined outside a production
+        // build — see web/js/build-info.js's `typeof` guard.
+        __BUILD_ID__: 'readonly',
       },
     },
   },

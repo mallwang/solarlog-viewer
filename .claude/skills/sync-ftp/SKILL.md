@@ -1,13 +1,22 @@
 ---
 name: sync-ftp
-description: Compare the remote SolarLog FTP web directory against the local web/ tree and, only after explicit user approval, sync the differences in either direction. Use when asked to "sync ftp", "check what's changed on the FTP", or "upload/download to the SolarLog".
+description: Compare the remote SolarLog FTP web directory against the local dist/ build artifact and, only after explicit user approval, sync the differences in either direction. Use when asked to "sync ftp", "check what's changed on the FTP", or "upload/download to the SolarLog".
 ---
 
-# Sync the local `web/` tree with the remote FTP server
+# Sync the local `dist/` build artifact with the remote FTP server
 
 Diffs the remote FTP `web` directory (reachable only over VPN) against the
-local `web/` tree by file size, then transfers only what the user
-explicitly approves. Never transfers anything automatically.
+local `dist/` tree — the cache-busted production build produced from
+`web/` by `npm run build` (`scripts/build.js`), not `web/` itself — by
+file size, then transfers only what the user explicitly approves. Never
+transfers anything automatically.
+
+`dist/js/main-<sha>.js` and `dist/css/styles-<sha>.css` get a new
+filename on every build (`<sha>` = current git short SHA), so a diff run
+after any source change will always show those two as "upload" — that's
+expected, it's the whole point (cache-busting), not a sign something's
+wrong. `dist/data`/`dist/hist` are symlinks straight through to
+`web/data`/`web/hist`, so those still behave exactly as before.
 
 **Byte size decides whether a file is "in sync"** — modified time is
 shown in the report but never used to flag a difference on its own. Many
@@ -47,13 +56,23 @@ conflict, ignoring mtime entirely.
 
 ## Steps
 
-### 1. Confirm VPN is up
+### 1. Build `dist/`
+
+```bash
+npm run build
+```
+
+Regenerates `dist/` from the current `web/` source — must be run before
+every diff/apply, since `dist/` is gitignored and not kept around between
+sessions. Skipping this diffs/uploads a stale or missing `dist/`.
+
+### 2. Confirm VPN is up
 
 Ask the user to confirm the VPN is connected if it's not already clear from
 context. Don't attempt the diff blind — a bad connection just times out
 slowly.
 
-### 2. Run the diff (read-only)
+### 3. Run the diff (read-only)
 
 ```bash
 npm run ftp:diff
@@ -66,7 +85,7 @@ formatted table). The HTML report opens automatically in the default
 browser (best-effort — pass `--no-open` to skip, e.g. in CI or headless
 runs). Nothing is transferred in this step.
 
-### 3. Present the diff to the user
+### 4. Present the diff to the user
 
 Summarize what the command printed: counts of uploads (local-only files),
 downloads (remote-only files), and conflicts (same path present on both
@@ -76,7 +95,7 @@ Call out conflicts specifically — each `[conflict]` line either has a
 `unresolved` (sizes differ but timestamps are equal/near-equal), which
 needs a manual pick.
 
-### 4. Human gate — ask before touching anything
+### 5. Human gate — ask before touching anything
 
 Use `AskUserQuestion` (do not just proceed) to ask the user what to do,
 offering choices like:
@@ -91,17 +110,17 @@ offering choices like:
 This step is mandatory every run. Do not skip it even if the diff looks
 small or "obviously" one-directional.
 
-### 5. Apply only what was approved
+### 6. Apply only what was approved
 
 ```bash
 # everything, using each entry's suggested direction
 node scripts/ftp-sync.js --apply --yes
 
 # only specific paths
-node scripts/ftp-sync.js --apply --yes --only web/js/app.js,web/data/foo.json
+node scripts/ftp-sync.js --apply --yes --only js/main-abc123.js,data/foo.json
 
 # force a direction for a scoped set (e.g. resolving unresolved conflicts, or overriding a suggestion)
-node scripts/ftp-sync.js --apply --yes --only web/data/foo.json --direction download
+node scripts/ftp-sync.js --apply --yes --only data/foo.json --direction download
 ```
 
 `--yes` is mandatory for `--apply` — the script refuses to transfer
@@ -109,7 +128,7 @@ anything without it. If any selected entry has no resolvable direction
 (ambiguous conflict, no `--direction` given), the script fails and lists
 which paths need a manual `--direction` — never guesses.
 
-### 6. Verify
+### 7. Verify
 
 `--apply` automatically re-runs the diff afterward and prints a
 convergence summary. Report the final state back to the user (fully in
@@ -144,28 +163,46 @@ Config lives in `.ftp-sync.json` (gitignored, template at
   "includePaths": ["index.html", "favicon-v2.ico", "js", "i18n", "data", "css", "hist", "vendor"],
   "dirFilePatterns": {
     "data": [
-      "base_vars.js", "days.js", "days_hist.js", "events.js", "events_day.js",
-      "favicon-v2.ico", "ftpstat.csv", "min*.js", "months.js", "pm.csv", "pm.js", "years.js"
+      "base_vars.js",
+      "days.js",
+      "days_hist.js",
+      "events.js",
+      "events_day.js",
+      "favicon-v2.ico",
+      "ftpstat.csv",
+      "min*.js",
+      "months.js",
+      "pm.csv",
+      "pm.js",
+      "years.js"
     ],
     "hist": ["days_hist.js", "days.js", "favicon-v2.ico", "min*.js", "months.js", "years.js"]
   },
   "mtimeSensitivePaths": ["data/min_cur.js"],
   "remoteAuthoritativePaths": [
-    "data/days_hist.js", "data/events_day.js", "data/min_day.js", "data/min_cur.js",
-    "data/days.js", "data/months.js", "data/years.js", "data/events.js",
-    "data/ftpstat.csv", "data/pm.js", "data/pm.csv"
+    "data/days_hist.js",
+    "data/events_day.js",
+    "data/min_day.js",
+    "data/min_cur.js",
+    "data/days.js",
+    "data/months.js",
+    "data/years.js",
+    "data/events.js",
+    "data/ftpstat.csv",
+    "data/pm.js",
+    "data/pm.csv"
   ]
 }
 ```
 
 `includePaths` is a whitelist of root-level entries under `remoteRoot` /
-`web/` to walk. The remote `web` directory is shared hosting for unrelated
+`dist/` to walk. The remote `web` directory is shared hosting for unrelated
 apps (e.g. a "reality"/hoymiles folder lives alongside this project's
 files), so only these listed root files/directories are ever touched —
 everything else at the root is left alone on both sides. Omit
 `includePaths` (or set it to `[]`) to fall back to syncing the entire tree.
 
-`dirFilePatterns` further restricts which *files* are walked within
+`dirFilePatterns` further restricts which _files_ are walked within
 specific directories, by simple glob (`*` wildcard only, case-insensitive).
 The SolarLog device mirrors its own web UI into `data/` and `hist/` —
 not just html/gif/jpg/css chrome but a pile of its own `.js` files too
@@ -173,11 +210,11 @@ not just html/gif/jpg/css chrome but a pile of its own `.js` files too
 broad `*.js` glob isn't tight enough; these entries are exact filenames
 except for the `min*.js` wildcard, which matches the daily-generated
 `minYYMMDD.js` readings files (plus `min_cur.js`/`min_day.js`). Keyed by
-the directory's path relative to `web/`; a directory with no entry here is
+the directory's path relative to `dist/`; a directory with no entry here is
 left unrestricted. Omit `dirFilePatterns` (or set it to `{}`) to disable
 this filtering entirely.
 
-`mtimeSensitivePaths` lists relative paths (relative to `web/`, same form
+`mtimeSensitivePaths` lists relative paths (relative to `dist/`, same form
 as diff/apply's `--only`) that are rewritten in place at a fixed size, so
 a size-only compare would miss real updates to them. For these paths only,
 a drifted mtime (beyond the small clock-skew tolerance) is also treated as

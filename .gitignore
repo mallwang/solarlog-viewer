@@ -14,6 +14,10 @@ previewConfig.json
 .ftp-sync-diff.json
 .ftp-sync-diff.html
 
+# Production build artifact (scripts/build.js) — per-build hashed filenames + symlinks, not
+# meant to be versioned; regenerate with `npm run build`.
+/dist/
+
 # Tests
 test-results
 
