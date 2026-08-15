@@ -82,21 +82,18 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
   concatenates existing assets.
 - **Principle V / VI (Charting, five visualization modes)** — PASS. Not touched.
 - **Technical Standards → Frontend ("no bundler is required unless bundle size or tree-shaking
-  becomes a documented concern")** — **CONDITIONAL / FLAGGED, see Complexity Tracking below.**
-  This feature introduces `esbuild` as a JS bundler for the _deploy artifact only_ — `web/`
-  itself still ships hand-authored native ES modules with no bundler involved in day-to-day
-  development (`npm start` continues to serve `web/` directly, unbundled). The constitution's
-  narrow precedent for an offline build step is currently scoped to Tailwind CSS compilation
-  (005-tailwind-css-dashboard-ui) and explicitly does not extend to introducing a JS framework —
-  it is silent on JS _bundling_ specifically. Given the shipped implementation already bundles
-  JS for the production artifact, this plan treats that as a **documented deviation requiring a
-  constitution amendment** (see Complexity Tracking), not a violation to redesign away.
+  becomes a documented concern")** — **PASS (post-amendment).** Constitution v2.2.0 adds an
+  approved, narrowly-scoped exception for an offline production-build JS bundler, driven by this
+  feature (see `.specify/memory/constitution.md` Technical Standards → Frontend). This feature's
+  use of `esbuild` satisfies that exception's scope: it runs offline/at build time only, never as
+  a runtime/CDN dependency; `web/` itself still ships hand-authored native ES modules with no
+  bundler involved in day-to-day development (`npm start` continues to serve `web/` directly,
+  unbundled); the bundled output is content-hash-versioned (cache-busting, not mere obfuscation);
+  and it introduces no JS UI framework.
 
-**Recommendation**: file a constitution amendment (via `/speckit-constitution`) adding an
-approved, narrowly-scoped exception for an offline production-build JS bundler, mirroring the
-existing Tailwind CSS exception's shape (offline/build-time only, never a runtime/CDN dependency,
-`web/`'s day-to-day development experience unchanged). Until that amendment lands, this plan
-records the gap rather than silently treating it as compliant.
+Originally flagged during planning as a gap (the constitution's only prior build-step precedent
+was scoped to Tailwind CSS, not JS bundling) — resolved by amending the constitution to v2.2.0
+before this plan was finalized. See git history on this branch for the amendment commit.
 
 ## Project Structure
 
@@ -145,8 +142,9 @@ structure and conventions for day-to-day (unbundled) development via `npm start`
 
 ## Complexity Tracking
 
-> Constitution Check flagged one deviation from a Technical Standards default. Recorded here per
-> that section's process, pending a formal amendment.
+> Constitution Check originally flagged one deviation from a Technical Standards default. Recorded
+> here per that section's process; resolved by the v2.2.0 amendment (see Constitution Check
+> above), kept for the historical record of why the design took this shape.
 
 | Violation                                                               | Why Needed                                                                                                                                                                                                                                                                                                                                                                                                                                   | Simpler Alternative Rejected Because                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -1,20 +1,20 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.0.0 → 2.1.0
+Version change: 2.1.0 → 2.2.0
 Modified sections:
-  - Technical Standards → Frontend — added an approved, narrowly-scoped
-    exception permitting Tailwind CSS as the project's CSS framework,
-    compiled via an offline build step into a static CSS file; JavaScript
-    continues to load via native ES modules with no bundler introduced for
-    it; existing CSS custom properties remain the source-of-truth design
-    tokens that Tailwind config must track.
+  - Technical Standards → Frontend — added a second approved, narrowly-scoped
+    exception permitting an offline production-build JS bundler (esbuild),
+    scoped strictly to producing the deployable dist/ artifact; day-to-day
+    development (npm start) continues to serve web/ unbundled via native ES
+    modules; explicitly does not extend to introducing a JS UI framework.
 Rationale for MINOR bump: this is a material expansion of existing Frontend
-guidance (an explicit, scoped exception to the "no framework"/"no bundler"
-defaults), not a removal or fundamental redefinition of a principle — no
-principle heading changed meaning. Driven by feature
-005-tailwind-css-dashboard-ui, which requires Tailwind CSS with a compiled
-build step for the dashboard redesign.
+guidance (an explicit, scoped exception to the "no bundler" default,
+alongside the existing Tailwind CSS exception), not a removal or
+fundamental redefinition of a principle — no principle heading changed
+meaning. Driven by feature 019-cache-busting-build, which requires
+bundling web/js/main.js's import graph into one hashed file so browsers
+stop serving stale cached JS/CSS after a deploy.
 Added sections: none
 Removed sections: none
 Templates checked:
@@ -188,7 +188,7 @@ single static, optimized CSS file that is committed to or produced for the
 deployed site. This exception is scoped narrowly:
 
 - The compiled Tailwind build step MUST run offline/at build time (an `npm
-  run build:css`-style script) — never as a runtime/CDN script loaded by the
+run build:css`-style script) — never as a runtime/CDN script loaded by the
   browser at page-view time.
 - The resulting static CSS file is what ships to the browser; no bundler is
   introduced for JavaScript, which continues to load via native ES modules
@@ -200,6 +200,27 @@ deployed site. This exception is scoped narrowly:
 - This exception does not extend to introducing a JavaScript UI framework
   (React, Vue, Svelte, etc.) — that still requires a separate, explicit
   constitution amendment.
+
+**Approved exception — offline production-build JS bundler**: Per feature
+019-cache-busting-build, an **offline production build step** (an `npm run
+build`-style script, e.g. `scripts/build.js`) MAY use a JS bundler (e.g.
+`esbuild`) to bundle and minify `web/`'s native ES module import graph into a
+single hashed file (e.g. `main-<buildId>.js`) for the deployable artifact.
+This exception is scoped narrowly:
+
+- The bundler MUST run offline/at build time only — never as a runtime/CDN
+  script loaded by the browser at page-view time.
+- Day-to-day development MUST continue to serve `web/` directly, unbundled,
+  via native ES modules (`npm start` / the dev server) — the bundler applies
+  only to producing the separate deploy artifact (e.g. `dist/`), never to the
+  editable source tree itself.
+- The build MUST give bundled/hashed outputs a filename (or reference) that
+  changes whenever their content changes, so the bundling step also serves
+  cache-busting — it MUST NOT be used merely to obscure or restructure source
+  without that cache-busting benefit.
+- This exception does not extend to introducing a JavaScript UI framework
+  (React, Vue, Svelte, etc.) — that still requires a separate, explicit
+  constitution amendment, same as the Tailwind CSS exception above.
 
 ### Backend
 
@@ -309,4 +330,4 @@ Versioning policy:
 All feature specifications and implementation plans MUST include a Constitution
 Check section confirming which principles apply and how they are satisfied.
 
-**Version**: 2.1.0 | **Ratified**: 2026-07-29 | **Last Amended**: 2026-08-06
+**Version**: 2.2.0 | **Ratified**: 2026-07-29 | **Last Amended**: 2026-08-15
