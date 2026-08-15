@@ -38,6 +38,11 @@
  * further restricts, per relative directory, which filenames are walked at all — directories with
  * no entry there stay unrestricted.
  *
+ * `reuploadOnReplacePaths` lists paths (e.g. `index.html`) that must be force-reuploaded whenever
+ * the diff contains a `replace` entry, even if their own byte size matches on both sides — see
+ * {@link addForcedReuploads} for why a size-only diff can't otherwise detect that they've gone
+ * stale.
+ *
  * Every `--diff` run also opens `.ftp-sync-diff.html` in the default
  * browser (best-effort; pass `--no-open` to skip).
  *
@@ -241,6 +246,46 @@ export function mergeReplaceEntries(diffEntries) {
   }
 
   return [...others, ...merged].sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/**
+ * Force specific paths back into the diff as upload-suggested conflict
+ * entries whenever the diff contains at least one `replace` entry, even if
+ * their byte size matches on both sides. `index.html` is the motivating
+ * case: it isn't itself cache-busted, but its content embeds the hashed
+ * `js/main-<sha>.js` / `css/styles-<sha>.css` filenames a `replace` entry
+ * just swapped out. Since git short SHAs are a fixed 7 characters, the
+ * built `index.html` stays byte-identical across builds even though it now
+ * points at different files — invisible to a size-only diff. Left alone,
+ * the remote keeps serving an `index.html` referencing files a `replace`
+ * apply just deleted.
+ *
+ * A no-op when `paths` is empty/null, or when the diff has no `replace`
+ * entry (nothing changed hashes, so a same-size `index.html` really is in
+ * sync), or when a path is already present in the diff under its own
+ * entry (nothing to add).
+ *
+ * @param {ReturnType<typeof mergeReplaceEntries>} diff
+ * @param {Map<string, {size: number, mtimeMs: number}>} localIndex
+ * @param {Map<string, {size: number, mtimeMs: number}>} remoteIndex
+ * @param {string[]|null} paths - relative paths to force-reupload alongside a replace (config's `reuploadOnReplacePaths`)
+ * @returns {ReturnType<typeof mergeReplaceEntries>}
+ */
+export function addForcedReuploads(diff, localIndex, remoteIndex, paths) {
+  if (!paths || paths.length === 0) return diff;
+  if (!diff.some((entry) => entry.action === 'replace')) return diff;
+
+  const existing = new Set(diff.map((entry) => entry.path));
+  const forced = [];
+  for (const path of paths) {
+    if (existing.has(path)) continue;
+    const local = localIndex.get(path) ?? null;
+    if (!local) continue; // nothing local to upload
+    const remote = remoteIndex.get(path) ?? null;
+    forced.push({ path, action: 'conflict', local, remote, suggested: 'upload' });
+  }
+  if (forced.length === 0) return diff;
+  return [...diff, ...forced].sort((a, b) => a.path.localeCompare(b.path));
 }
 
 /**
@@ -754,7 +799,7 @@ export function loadConfig() {
   if (config.includePaths !== undefined && !Array.isArray(config.includePaths)) {
     throw new Error('.ftp-sync.json field "includePaths" must be an array of strings if present');
   }
-  for (const field of ['mtimeSensitivePaths', 'remoteAuthoritativePaths']) {
+  for (const field of ['mtimeSensitivePaths', 'remoteAuthoritativePaths', 'reuploadOnReplacePaths']) {
     if (config[field] !== undefined && !Array.isArray(config[field])) {
       throw new Error(`.ftp-sync.json field "${field}" must be an array of strings if present`);
     }
@@ -777,6 +822,7 @@ export function loadConfig() {
     dirFilePatterns: null,
     mtimeSensitivePaths: null,
     remoteAuthoritativePaths: null,
+    reuploadOnReplacePaths: null,
     ...config,
   };
 }
@@ -871,7 +917,8 @@ async function runDiff({ open = true } = {}) {
   const config = loadConfig();
   const { localIndex, remoteIndex } = await buildIndexes(config);
   const rawDiff = diffTrees(localIndex, remoteIndex, config.mtimeSensitivePaths, config.remoteAuthoritativePaths);
-  const diff = mergeReplaceEntries(rawDiff);
+  const merged = mergeReplaceEntries(rawDiff);
+  const diff = addForcedReuploads(merged, localIndex, remoteIndex, config.reuploadOnReplacePaths);
   const generatedAt = new Date().toISOString();
 
   console.log(formatDiffReport(diff));

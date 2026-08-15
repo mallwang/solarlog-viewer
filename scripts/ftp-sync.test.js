@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  addForcedReuploads,
   diffTrees,
   formatDiffHtml,
   formatDiffReport,
@@ -208,6 +209,57 @@ test('mergeReplaceEntries: result is sorted by path', () => {
     merged.map((e) => e.path),
     ['a-2.txt', 'z-1.txt'],
   );
+});
+
+test('addForcedReuploads: no-op when there are no replace entries', () => {
+  const diff = [{ path: 'js/foo.js', action: 'upload', local: { size: 1, mtimeMs: 1 }, remote: null, suggested: 'upload' }];
+  const localIndex = new Map([['index.html', { size: 10, mtimeMs: 1 }]]);
+  const remoteIndex = new Map([['index.html', { size: 10, mtimeMs: 1 }]]);
+  const result = addForcedReuploads(diff, localIndex, remoteIndex, ['index.html']);
+  assert.deepEqual(result, diff);
+});
+
+test('addForcedReuploads: no-op when paths is empty/null', () => {
+  const diff = [{ path: 'js/main-abc.js', action: 'replace', local: {}, remote: {}, suggested: 'replace', staleRemotePaths: ['js/main-old.js'] }];
+  const localIndex = new Map([['index.html', { size: 10, mtimeMs: 1 }]]);
+  const remoteIndex = new Map([['index.html', { size: 10, mtimeMs: 1 }]]);
+  assert.deepEqual(addForcedReuploads(diff, localIndex, remoteIndex, null), diff);
+  assert.deepEqual(addForcedReuploads(diff, localIndex, remoteIndex, []), diff);
+});
+
+test('addForcedReuploads: forces a same-size index.html back into the diff alongside a replace', () => {
+  const diff = [{ path: 'js/main-abc.js', action: 'replace', local: {}, remote: {}, suggested: 'replace', staleRemotePaths: ['js/main-old.js'] }];
+  const localIndex = new Map([['index.html', { size: 10, mtimeMs: 5 }]]);
+  const remoteIndex = new Map([['index.html', { size: 10, mtimeMs: 1 }]]);
+  const result = addForcedReuploads(diff, localIndex, remoteIndex, ['index.html']);
+  assert.equal(result.length, 2);
+  const forced = result.find((e) => e.path === 'index.html');
+  assert.deepEqual(forced, {
+    path: 'index.html',
+    action: 'conflict',
+    local: { size: 10, mtimeMs: 5 },
+    remote: { size: 10, mtimeMs: 1 },
+    suggested: 'upload',
+  });
+});
+
+test('addForcedReuploads: skips a forced path already present in the diff', () => {
+  const diff = [
+    { path: 'js/main-abc.js', action: 'replace', local: {}, remote: {}, suggested: 'replace', staleRemotePaths: ['js/main-old.js'] },
+    { path: 'index.html', action: 'conflict', local: { size: 10, mtimeMs: 1 }, remote: { size: 20, mtimeMs: 2 }, suggested: 'download' },
+  ];
+  const localIndex = new Map([['index.html', { size: 10, mtimeMs: 1 }]]);
+  const remoteIndex = new Map([['index.html', { size: 20, mtimeMs: 2 }]]);
+  const result = addForcedReuploads(diff, localIndex, remoteIndex, ['index.html']);
+  assert.deepEqual(result, diff);
+});
+
+test('addForcedReuploads: skips a forced path with no local file', () => {
+  const diff = [{ path: 'js/main-abc.js', action: 'replace', local: {}, remote: {}, suggested: 'replace', staleRemotePaths: ['js/main-old.js'] }];
+  const localIndex = new Map();
+  const remoteIndex = new Map([['index.html', { size: 10, mtimeMs: 1 }]]);
+  const result = addForcedReuploads(diff, localIndex, remoteIndex, ['index.html']);
+  assert.deepEqual(result, diff);
 });
 
 test('isAllowedTopLevelEntry: no includePaths (undefined/null/empty) allows everything', () => {
