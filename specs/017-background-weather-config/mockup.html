@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Weather Backgrounds Review</title>
+<style>
+  :root {
+    color-scheme: light;
+
+    /* Copied verbatim from web/css/tokens.css */
+    --color-bg: #ffffff;
+    --color-bg-app: #e3f2fd;
+    --color-bg-elevated: #f4f6f8;
+    --color-text: #1a1d21;
+    --color-text-muted: #5b6470;
+    --color-border: #d8dee4;
+    --color-primary: #ff9800;
+    --color-primary-dark: #e65100;
+    --color-accent: #2e7d32;
+    --color-danger: #c62828;
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.75rem;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Review-tool-only tokens */
+    --review-bg: #f6f5f2;
+    --review-ink: #33312c;
+    --review-muted: #7a7669;
+    --review-line: #ddd9d0;
+    --review-accent: #b45f2c;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--review-bg);
+    color: var(--review-ink);
+    font-family: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, p {
+    text-wrap: balance;
+  }
+
+  /* ============ Review-tool chrome ============ */
+
+  .review-header {
+    padding: var(--space-lg) var(--space-xl) var(--space-md);
+    border-bottom: 1px solid var(--review-line);
+  }
+
+  .review-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--review-accent);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs);
+  }
+
+  .review-header h1 {
+    margin: 0 0 var(--space-xs);
+    font-size: 1.375rem;
+    font-weight: 700;
+  }
+
+  .review-header p {
+    margin: 0;
+    color: var(--review-muted);
+    font-size: 0.9rem;
+    max-width: 62ch;
+  }
+
+  .review-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    align-items: center;
+    padding: var(--space-md) var(--space-xl);
+    background: #fff;
+    border-bottom: 1px solid var(--review-line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .control-group span.label {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--review-muted);
+    font-weight: 600;
+  }
+
+  .segmented {
+    display: inline-flex;
+    border: 1px solid var(--review-line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: #fff;
+    color: var(--review-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    border-right: 1px solid var(--review-line);
+  }
+
+  .segmented button:last-child {
+    border-right: none;
+  }
+
+  .segmented button:hover {
+    background: #f1efe9;
+  }
+
+  .segmented button:focus-visible {
+    outline: 2px solid var(--review-accent);
+    outline-offset: -2px;
+  }
+
+  .segmented button[aria-pressed='true'] {
+    background: var(--review-accent);
+    color: #fff;
+  }
+
+  .review-stage {
+    padding: var(--space-xl);
+    display: flex;
+    justify-content: center;
+  }
+
+  .stage-frame {
+    width: 100%;
+    max-width: 1180px;
+    background: #d9d4c8;
+    border-radius: 14px;
+    padding: var(--space-lg);
+    transition: max-width 0.2s ease;
+  }
+
+  .stage-frame[data-viewport='mobile'] {
+    max-width: 400px;
+  }
+
+  .stage-frame-label {
+    font-size: 0.75rem;
+    color: var(--review-muted);
+    text-align: center;
+    margin: 0 0 var(--space-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .canvas {
+    background: var(--color-bg, #fff);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .review-footer {
+    padding: 0 var(--space-xl) var(--space-xl);
+    max-width: 1180px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--review-muted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .review-footer code {
+    background: #fff;
+    border: 1px solid var(--review-line);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    font-size: 0.8em;
+  }
+
+  /* ============ Weather Backgrounds: layout-specific styles ============ */
+
+  /* --- mocked app header (rebuilt from web/index.html + tokens.css) --- */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-lg);
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-family);
+    position: relative;
+    z-index: 2;
+  }
+
+  .app-header__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  .app-header__logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  }
+
+  .app-header__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .app-nav {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .stage-frame[data-viewport='mobile'] .app-nav {
+    display: none;
+  }
+
+  .info-panel {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .stage-frame[data-viewport='mobile'] .info-panel--desktop {
+    display: none;
+  }
+
+  .info-panel__weather {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    text-align: right;
+  }
+
+  .info-panel__weather-current {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  .info-panel__weather-forecast {
+    font-size: 0.75rem;
+  }
+
+  /* --- the actual feature: the animated weather backdrop area under review --- */
+  .sky-stage {
+    position: relative;
+    height: 320px;
+    overflow: hidden;
+  }
+
+  .stage-frame[data-viewport='mobile'] .sky-stage {
+    height: 260px;
+  }
+
+  .mock-sky {
+    position: absolute;
+    inset: 0;
+    transition: background 0.6s ease;
+  }
+
+  /* Five weather categories (FR-001/FR-003) */
+  .mock-sky[data-weather='sunny'] {
+    background: linear-gradient(to bottom, #48b0f7 0%, #bfe6ff 100%);
+  }
+  .mock-sky[data-weather='mixed'] {
+    background: linear-gradient(to bottom, #6ab0e0 0%, #d3e6ef 100%);
+  }
+  .mock-sky[data-weather='cloudy'] {
+    background: linear-gradient(to bottom, #8b98a3 0%, #c3cbd1 100%);
+  }
+  .mock-sky[data-weather='rain'] {
+    background: linear-gradient(to bottom, #57626e 0%, #8d97a1 100%);
+  }
+  .mock-sky[data-weather='snow'] {
+    background: linear-gradient(to bottom, #a9b7c4 0%, #e7edf2 100%);
+  }
+  /* "off" config: today's static default appearance, independent of weather (FR-007) */
+  .mock-sky[data-config='off'] {
+    background: linear-gradient(to bottom, #4a90d9 0%, #cfe8fb 100%) !important;
+  }
+
+  .mock-sun {
+    position: absolute;
+    top: 14%;
+    left: 74%;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff6c8 0%, #ffd54a 70%, #ffb200 100%);
+    transition: opacity 0.6s ease, filter 0.6s ease;
+  }
+  .mock-sky[data-weather='cloudy'] .mock-sun,
+  .mock-sky[data-weather='rain'] .mock-sun,
+  .mock-sky[data-weather='snow'] .mock-sun {
+    opacity: 0.25;
+    filter: blur(2px);
+  }
+  .mock-sky[data-weather='mixed'] .mock-sun {
+    opacity: 0.85;
+  }
+  .mock-sky[data-config='off'] .mock-sun {
+    opacity: 1;
+    filter: none;
+  }
+
+  .mock-cloud {
+    position: absolute;
+    top: var(--top, 30%);
+    left: var(--left, 10%);
+    width: 110px;
+    height: 44px;
+    background: #fff;
+    border-radius: 50%;
+    filter: blur(1px);
+    opacity: var(--op, 0.9);
+  }
+  .mock-cloud::before,
+  .mock-cloud::after {
+    content: '';
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+  }
+  .mock-cloud::before { width: 68px; height: 68px; top: -34px; left: 10px; }
+  .mock-cloud::after { width: 84px; height: 58px; top: -20px; left: 52px; }
+
+  /* Per-category cloud density: fewer/fainter for sunny, dense/dark for cloudy+rain+snow */
+  .mock-sky[data-weather='sunny'] .mock-cloud { opacity: 0.3; }
+  .mock-sky[data-weather='mixed'] .mock-cloud { opacity: 0.65; }
+  .mock-sky[data-weather='cloudy'] .mock-cloud,
+  .mock-sky[data-weather='rain'] .mock-cloud,
+  .mock-sky[data-weather='snow'] .mock-cloud {
+    opacity: 0.92;
+    filter: blur(1px) brightness(0.85);
+  }
+  .mock-sky[data-config='off'] .mock-cloud { opacity: 0.6; filter: none; }
+
+  /* new: rain streak layer (only visible for the rain category) */
+  .mock-rain {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    background-image: repeating-linear-gradient(
+      100deg,
+      transparent 0,
+      transparent 18px,
+      rgba(255, 255, 255, 0.55) 19px,
+      transparent 22px
+    );
+    background-size: 40px 40px;
+  }
+  .mock-sky[data-weather='rain']:not([data-config='off']) .mock-rain {
+    opacity: 0.5;
+  }
+
+  /* new: snowflake layer (only visible for the snow category) */
+  .mock-snow {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    background-image:
+      radial-gradient(circle, #fff 1.5px, transparent 1.6px),
+      radial-gradient(circle, #fff 1.5px, transparent 1.6px),
+      radial-gradient(circle, #fff 1.5px, transparent 1.6px);
+    background-size: 60px 60px, 90px 90px, 130px 130px;
+    background-position: 0 0, 30px 20px, 70px 50px;
+  }
+  .mock-sky[data-weather='snow']:not([data-config='off']) .mock-snow {
+    opacity: 0.8;
+  }
+
+  .sky-badge {
+    position: absolute;
+    top: var(--space-sm);
+    left: var(--space-sm);
+    background: rgba(26, 29, 33, 0.72);
+    color: #fff;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    padding: 0.3em 0.7em;
+    border-radius: 999px;
+    z-index: 2;
+  }
+
+  .sky-caption {
+    position: absolute;
+    bottom: var(--space-md);
+    left: var(--space-md);
+    right: var(--space-md);
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    font-size: 0.85rem;
+    z-index: 2;
+  }
+
+  /* --- config reference panel (static, illustrates config.js — not part of the on-screen UI) --- */
+  .config-panel {
+    padding: var(--space-lg);
+    background: var(--color-bg-elevated);
+    border-top: 1px solid var(--color-border);
+    font-family: var(--font-family);
+  }
+
+  .config-panel h3 {
+    margin: 0 0 var(--space-sm);
+    font-size: 0.9rem;
+    color: var(--color-text);
+  }
+
+  .config-panel p.hint {
+    margin: 0 0 var(--space-md);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    max-width: 60ch;
+  }
+
+  pre.config-snippet {
+    margin: 0;
+    padding: var(--space-md);
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    color: var(--color-text);
+  }
+
+  pre.config-snippet .cm { color: var(--color-text-muted); }
+  pre.config-snippet .kw { color: #7c3aed; }
+  pre.config-snippet .str { color: #1976d2; }
+  pre.config-snippet .active { background: #fff3e0; display: inline-block; padding: 0 2px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header class="review-header">
+  <p class="review-eyebrow">Non-functional review mockup</p>
+  <h1>Configurable weather backgrounds — layout review (017-background-weather-config)</h1>
+  <p>
+    Five weather categories driving both the animated sky backdrop and the nav bar's weather
+    text, plus the three configuration modes (auto / off / fixed). This mockup is static —
+    no real API calls, no animation timing — it exists to review the visual states, not the code.
+  </p>
+</header>
+
+<div class="review-controls">
+  <div class="control-group">
+    <span class="label">Viewport</span>
+    <div class="segmented" id="viewport-toggle">
+      <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+      <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="label">Weather category</span>
+    <div class="segmented" id="weather-toggle">
+      <button type="button" data-weather="sunny" aria-pressed="true">Sunny</button>
+      <button type="button" data-weather="mixed" aria-pressed="false">Mixed</button>
+      <button type="button" data-weather="cloudy" aria-pressed="false">Cloudy</button>
+      <button type="button" data-weather="rain" aria-pressed="false">Rain</button>
+      <button type="button" data-weather="snow" aria-pressed="false">Snow</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="label">Config setting</span>
+    <div class="segmented" id="config-toggle">
+      <button type="button" data-config="auto" aria-pressed="true">auto</button>
+      <button type="button" data-config="off" aria-pressed="false">off</button>
+      <button type="button" data-config="fixed" aria-pressed="false">fixed</button>
+    </div>
+  </div>
+</div>
+
+<div class="review-stage">
+  <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+    <p class="stage-frame-label" id="stage-frame-label">Desktop — split layout</p>
+    <div class="canvas" id="canvas">
+      <!-- Mocked app header, rebuilt from the current web/index.html + tokens.css -->
+      <div class="app-header">
+        <div class="app-header__brand">
+          <span class="app-header__logo" aria-hidden="true"></span>
+          <h1 class="app-header__title">PV Allwang</h1>
+        </div>
+        <nav class="app-nav"><span>Tag</span><span>Monat</span><span>Jahr</span><span>Gesamt</span></nav>
+        <div class="info-panel info-panel--desktop">
+          <div class="info-panel__weather">
+            <span class="info-panel__weather-current" id="nav-weather-current">Aktuell: Sonnig · 24°C</span>
+            <span class="info-panel__weather-forecast" id="nav-weather-forecast">Heute: Sonnig · 27° / 15°</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- The actual feature under review: the weather-driven sky backdrop -->
+      <div class="sky-stage">
+        <div class="mock-sky" id="mock-sky" data-weather="sunny">
+          <div class="mock-sun"></div>
+          <div class="mock-cloud" style="--top:18%; --left:8%; --op:0.9;"></div>
+          <div class="mock-cloud" style="--top:38%; --left:52%; --op:0.75; transform:scale(0.8);"></div>
+          <div class="mock-cloud" style="--top:55%; --left:22%; --op:0.6; transform:scale(0.65);"></div>
+          <div class="mock-rain"></div>
+          <div class="mock-snow"></div>
+          <span class="sky-badge" id="sky-badge">config: auto — live from Open-Meteo</span>
+          <p class="sky-caption" id="sky-caption">
+            Background category: <strong id="sky-caption-value">sunny</strong> — matches the nav bar text above.
+          </p>
+        </div>
+      </div>
+
+      <!-- Static reference: not part of the on-screen UI, illustrates the config.js setting -->
+      <div class="config-panel">
+        <h3>web/js/config.js</h3>
+        <p class="hint">
+          One setting, edited by the operator, takes effect on next page load (FR-005–FR-010).
+          Toggle "Config setting" above to see which line is <span style="color:var(--color-primary-dark); font-weight:600;">active</span>.
+        </p>
+        <pre class="config-snippet" id="config-snippet"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="review-footer">
+  <p><strong>Fixed constraints from the spec:</strong> exactly five categories (sunny, mixed, cloudy, rain, snow); background and nav bar text always derived from one shared classification (FR-002); unrecognized config values fall back to <code>"auto"</code> (FR-008); last-known-good category is retained on fetch failure (FR-009).</p>
+  <p><strong>Out of scope for this mockup:</strong> real animation timing/motion (drift speed, particle count, spawn cadence), the exact WMO-code→category mapping table, `prefers-reduced-motion` handling, and the mobile sub-nav weather row (same text, different position — not re-drawn here).</p>
+</footer>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const stageFrame = document.getElementById('stage-frame');
+  const stageLabel = document.getElementById('stage-frame-label');
+  const mockSky = document.getElementById('mock-sky');
+  const skyBadge = document.getElementById('sky-badge');
+  const skyCaption = document.getElementById('sky-caption-value');
+  const navCurrent = document.getElementById('nav-weather-current');
+  const navForecast = document.getElementById('nav-weather-forecast');
+  const configSnippet = document.getElementById('config-snippet');
+
+  const LABELS = {
+    sunny: 'Sonnig',
+    mixed: 'Wechselnd bewölkt',
+    cloudy: 'Bewölkt',
+    rain: 'Regen',
+    snow: 'Schnee',
+  };
+  const TEMPS = { sunny: 24, mixed: 19, cloudy: 14, rain: 11, snow: -1 };
+
+  let weather = 'sunny';
+  let config = 'auto';
+
+  function wire(groupId, attr, onChange) {
+    const group = document.getElementById(groupId);
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-' + attr + ']');
+      if (!btn) return;
+      const value = btn.getAttribute('data-' + attr);
+      [...group.querySelectorAll('button')].forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)),
+      );
+      onChange(value);
+    });
+  }
+
+  function render() {
+    mockSky.dataset.weather = weather;
+    mockSky.dataset.config = config;
+
+    // Nav bar weather text (info-panel-controller.js) is a fully independent widget: it always
+    // reports the real, live weather/forecast — it never follows the background config setting.
+    // The "Weather category" picker above therefore represents live conditions for BOTH the nav
+    // bar text and (in "auto" mode only) the background; "off"/"fixed" only change the
+    // *background*, never the nav bar.
+    navCurrent.textContent = `Aktuell: ${LABELS[weather]} · ${TEMPS[weather]}°C`;
+    navForecast.textContent = `Heute: ${LABELS[weather]} · ${TEMPS[weather] + 3}° / ${TEMPS[weather] - 6}°`;
+
+    if (config === 'off') {
+      skyBadge.textContent = 'config: off — plain default background, real weather ignored';
+      skyCaption.textContent = 'default (weather-driven background disabled)';
+    } else if (config === 'fixed') {
+      skyBadge.textContent = `config: fixed="${weather === 'sunny' ? 'sunny' : weather}" — background pinned regardless of live weather`;
+      skyCaption.textContent = weather + ' (pinned by config — nav bar above still shows real conditions)';
+    } else {
+      skyBadge.textContent = 'config: auto — background follows live weather (same data as the nav bar)';
+      skyCaption.textContent = weather;
+    }
+
+    const lines = [
+      `<span class="cm">// web/js/config.js</span>`,
+      `<span class="kw">export const</span> BACKGROUND_WEATHER =`,
+      `  ${config === 'auto' ? `<span class="active"><span class="str">'auto'</span></span>` : `<span class="str">'auto'</span>`}; ${config === 'auto' ? '<span class="cm">// ← active: live, API-driven</span>' : ''}`,
+      `<span class="cm">// BACKGROUND_WEATHER = ${config === 'off' ? `<span class="active"><span class="str">'off'</span></span>` : `<span class="str">'off'</span>`};${config === 'off' ? ' ← active: disabled' : ''}</span>`,
+      `<span class="cm">// BACKGROUND_WEATHER = ${config === 'fixed' ? `<span class="active"><span class="str">'${weather}'</span></span>` : `<span class="str">'${weather}'</span>`};${config === 'fixed' ? ` ← active: pinned to "${weather}"` : ''}</span>`,
+    ];
+    configSnippet.innerHTML = lines.join('\n');
+  }
+
+  wire('viewport-toggle', 'viewport', (value) => {
+    stageFrame.setAttribute('data-viewport', value);
+    stageLabel.textContent = value === 'mobile' ? 'Mobile — stacked layout' : 'Desktop — split layout';
+  });
+  wire('weather-toggle', 'weather', (value) => { weather = value; render(); });
+  wire('config-toggle', 'config', (value) => { config = value; render(); });
+
+  render();
+</script>
+
+</body>
+</html>

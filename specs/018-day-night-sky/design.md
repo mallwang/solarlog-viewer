@@ -1,9 +1,10 @@
 # Design: Day/Night Sky Background
 
 **Status**: Approved (2026-08-14)
-**Mockup**: https://claude.ai/code/artifact/90b74546-0ad4-49e7-b74a-b0ee078aee73 (non-functional
-review artifact — static states only, no live data, no real animation timing; may not stay live
-indefinitely, this file is the durable record)
+**Mockup**: [mockup.html](mockup.html) (local static snapshot, open directly in a browser) —
+originally reviewed at https://claude.ai/code/artifact/90b74546-0ad4-49e7-b74a-b0ee078aee73
+(non-functional review artifact — static states only, no live data, no real animation timing;
+remote link may go stale, the local copy and this file are the durable record)
 
 ## Approved layout
 
