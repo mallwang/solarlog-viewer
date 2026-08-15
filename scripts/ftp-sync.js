@@ -9,6 +9,14 @@
  * human's behalf) to review. Nothing is ever transferred without
  * `--apply --yes`.
  *
+ * A local-only file and a remote-only file that are really the same
+ * cache-busted build artifact under a different hash (`js/main-<sha>.js`,
+ * `css/styles-<sha>.css` — see `scripts/build.js`) are merged into one
+ * `replace` entry instead of showing as an unrelated upload + download (see
+ * {@link mergeReplaceEntries}). Applying a `replace` entry uploads the new
+ * file and deletes the stale one(s) from the remote, so old builds don't
+ * pile up there forever.
+ *
  * The remote `web` directory is shared hosting for unrelated apps (e.g. a
  * "reality"/hoymiles folder alongside this one), so only the root-level
  * files/directories listed in `.ftp-sync.json`'s `includePaths` are ever
@@ -151,6 +159,91 @@ function diffPresentOnBothSides(path, local, remote, sensitivePaths, authoritati
 }
 
 /**
+ * Split a relative POSIX path into its parent directory and base filename.
+ *
+ * @param {string} path - relative POSIX path (e.g. `"css/styles-abc123.css"`)
+ * @returns {{dir: string, base: string}}
+ */
+function splitPath(path) {
+  const idx = path.lastIndexOf('/');
+  return idx === -1 ? { dir: '', base: path } : { dir: path.slice(0, idx), base: path.slice(idx + 1) };
+}
+
+// Matches a cache-busted filename like `styles-1ee9793.css` or
+// `main-38f505e.js`: captures the stem before the hash, the hash itself, and
+// the extension, so two filenames can be compared for "same file, different
+// build" (identical stem+extension, different hash).
+const HASH_SUFFIX_RE = /^(.+)-([0-9a-f]{6,40})(\.[^./]+)$/i;
+
+/**
+ * Merge matching upload/download pairs produced by {@link diffTrees} into a
+ * single `replace` entry, for the cache-busted build artifacts (see
+ * `scripts/build.js`) whose filename changes on every build
+ * (`js/main-<sha>.js`, `css/styles-<sha>.css`). Without this, a rebuild
+ * always shows the new hash as an `upload` and the previous build's now-
+ * orphaned file as an unrelated `download` — but the old file was never
+ * meant to be pulled back down, it's stale and should be deleted from the
+ * remote once the new one is in place.
+ *
+ * A pair is merged when an `upload` entry and a `download` entry live in the
+ * same directory and their filenames match {@link HASH_SUFFIX_RE} with an
+ * identical stem and extension but a different hash. Multiple stale remote
+ * files can match one new upload (e.g. several old builds never cleaned up);
+ * all of them are collected onto the merged entry's `staleRemotePaths`.
+ * Entries that don't pair up (including any `conflict` entries) pass through
+ * unchanged.
+ *
+ * @param {ReturnType<typeof diffTrees>} diffEntries
+ * @returns {Array<ReturnType<typeof diffTrees>[number] & {staleRemotePaths?: string[]}>}
+ */
+export function mergeReplaceEntries(diffEntries) {
+  const uploads = diffEntries.filter((e) => e.action === 'upload');
+  const downloads = diffEntries.filter((e) => e.action === 'download');
+  const others = diffEntries.filter((e) => e.action !== 'upload' && e.action !== 'download');
+
+  const consumed = new Set();
+  const merged = [];
+
+  for (const upload of uploads) {
+    const { dir, base } = splitPath(upload.path);
+    const match = HASH_SUFFIX_RE.exec(base);
+    if (!match) {
+      merged.push(upload);
+      continue;
+    }
+    const [, stem, hash, ext] = match;
+
+    const stale = downloads.filter((candidate) => {
+      if (consumed.has(candidate.path)) return false;
+      const c = splitPath(candidate.path);
+      if (c.dir !== dir) return false;
+      const candidateMatch = HASH_SUFFIX_RE.exec(c.base);
+      return candidateMatch && candidateMatch[1] === stem && candidateMatch[3] === ext && candidateMatch[2] !== hash;
+    });
+
+    if (stale.length === 0) {
+      merged.push(upload);
+      continue;
+    }
+    for (const s of stale) consumed.add(s.path);
+    merged.push({
+      path: upload.path,
+      action: 'replace',
+      local: upload.local,
+      remote: stale[0].remote,
+      suggested: 'replace',
+      staleRemotePaths: stale.map((s) => s.path),
+    });
+  }
+
+  for (const download of downloads) {
+    if (!consumed.has(download.path)) merged.push(download);
+  }
+
+  return [...others, ...merged].sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/**
  * Render a diff as a human-readable report: a summary count line per
  * action, followed by a table of every entry.
  *
@@ -160,11 +253,12 @@ function diffPresentOnBothSides(path, local, remote, sensitivePaths, authoritati
 export function formatDiffReport(diffEntries) {
   if (diffEntries.length === 0) return 'No differences — local and remote are in sync.';
 
-  const counts = { upload: 0, download: 0, conflict: 0 };
+  const counts = { upload: 0, download: 0, conflict: 0, replace: 0 };
   for (const entry of diffEntries) counts[entry.action]++;
 
   const lines = [
-    `${diffEntries.length} difference(s): ${counts.upload} upload, ${counts.download} download, ${counts.conflict} conflict`,
+    `${diffEntries.length} difference(s): ${counts.upload} upload, ${counts.download} download, ` +
+      `${counts.conflict} conflict, ${counts.replace} replace`,
     '',
   ];
 
@@ -173,6 +267,7 @@ export function formatDiffReport(diffEntries) {
     const remoteDesc = entry.remote ? `${entry.remote.size}B @ ${new Date(entry.remote.mtimeMs).toISOString()}` : '—';
     const suffix = entry.action === 'conflict' ? ` (suggested: ${entry.suggested ?? 'unresolved — pick manually'})` : '';
     lines.push(`[${entry.action}]${suffix} ${entry.path}`, `    local:  ${localDesc}`, `    remote: ${remoteDesc}`);
+    if (entry.action === 'replace') lines.push(`    deletes: ${entry.staleRemotePaths.join(', ')}`);
   }
 
   return lines.join('\n');
@@ -211,7 +306,7 @@ function formatBytes(bytes) {
   return `${value.toFixed(1)} ${units[unitIndex]}`;
 }
 
-const ACTION_LABELS = { upload: 'Upload', download: 'Download', conflict: 'Conflict' };
+const ACTION_LABELS = { upload: 'Upload', download: 'Download', conflict: 'Conflict', replace: 'Replace' };
 
 /**
  * Render one side (local/remote) of a diff entry as a table cell's inner HTML.
@@ -239,7 +334,7 @@ function renderSideCell(side) {
  * @returns {string} a complete HTML document
  */
 export function formatDiffHtml(diffEntries, generatedAt, faviconDataUri = null) {
-  const counts = { upload: 0, download: 0, conflict: 0 };
+  const counts = { upload: 0, download: 0, conflict: 0, replace: 0 };
   for (const entry of diffEntries) counts[entry.action]++;
 
   const rows = diffEntries
@@ -247,6 +342,8 @@ export function formatDiffHtml(diffEntries, generatedAt, faviconDataUri = null) 
       let suggestedLabel = '';
       if (entry.action === 'conflict') {
         suggestedLabel = entry.suggested ? `→ ${ACTION_LABELS[entry.suggested]}` : 'unresolved';
+      } else if (entry.action === 'replace') {
+        suggestedLabel = `deletes ${entry.staleRemotePaths.join(', ')}`;
       }
       const sortAttrs = [
         `data-path="${escapeHtml(entry.path.toLowerCase())}"`,
@@ -296,6 +393,8 @@ ${faviconTag}
     --download-bg: #f1eafe;
     --conflict: #a15c07;
     --conflict-bg: #fdf1e0;
+    --replace: #b0224a;
+    --replace-bg: #fce4ec;
     --row-hover: #eef1f5;
   }
   @media (prefers-color-scheme: dark) {
@@ -312,6 +411,8 @@ ${faviconTag}
       --download-bg: #2b2247;
       --conflict: #e8a94e;
       --conflict-bg: #3a2a10;
+      --replace: #f0699b;
+      --replace-bg: #3a1425;
       --row-hover: #1f242e;
     }
   }
@@ -368,6 +469,7 @@ ${faviconTag}
   .pill-upload strong { color: var(--upload); }
   .pill-download strong { color: var(--download); }
   .pill-conflict strong { color: var(--conflict); }
+  .pill-replace strong { color: var(--replace); }
   .table-wrap {
     overflow-x: auto;
     border: 1px solid var(--border);
@@ -427,6 +529,7 @@ ${faviconTag}
   .badge-upload { color: var(--upload); background: var(--upload-bg); }
   .badge-download { color: var(--download); background: var(--download-bg); }
   .badge-conflict { color: var(--conflict); background: var(--conflict-bg); }
+  .badge-replace { color: var(--replace); background: var(--replace-bg); }
   td.side { font-variant-numeric: tabular-nums; }
   td.side .size { display: block; font-weight: 600; }
   td.side .time { display: block; color: var(--text-muted); font-size: 0.78rem; }
@@ -448,6 +551,7 @@ ${faviconTag}
     <span class="pill pill-upload"><strong>${counts.upload}</strong> upload</span>
     <span class="pill pill-download"><strong>${counts.download}</strong> download</span>
     <span class="pill pill-conflict"><strong>${counts.conflict}</strong> conflict</span>
+    <span class="pill pill-replace"><strong>${counts.replace}</strong> replace</span>
   </div>
   ${
     diffEntries.length === 0
@@ -766,7 +870,8 @@ function loadFaviconDataUri() {
 async function runDiff({ open = true } = {}) {
   const config = loadConfig();
   const { localIndex, remoteIndex } = await buildIndexes(config);
-  const diff = diffTrees(localIndex, remoteIndex, config.mtimeSensitivePaths, config.remoteAuthoritativePaths);
+  const rawDiff = diffTrees(localIndex, remoteIndex, config.mtimeSensitivePaths, config.remoteAuthoritativePaths);
+  const diff = mergeReplaceEntries(rawDiff);
   const generatedAt = new Date().toISOString();
 
   console.log(formatDiffReport(diff));
@@ -780,6 +885,12 @@ async function runDiff({ open = true } = {}) {
 /**
  * Run apply mode: transfer only the approved entries, in the resolved
  * direction, then re-diff to report convergence.
+ *
+ * `replace` entries (see {@link mergeReplaceEntries}) upload the new
+ * cache-busted file and then delete the stale remote file(s) it supersedes.
+ * Passing an explicit `--direction` for a scoped `replace` entry overrides
+ * that and does a plain upload/download of `entry.path` instead, without
+ * touching `staleRemotePaths`.
  *
  * @param {{only: string[]|null, direction: string|null, yes: boolean, open?: boolean}} options
  * @returns {Promise<void>}
@@ -820,6 +931,14 @@ async function runApply({ only, direction, yes, open = true }) {
         await client.cd('/');
         await client.uploadFrom(localPath, remotePath);
         console.log(`uploaded ${entry.path}`);
+      } else if (entry.resolvedDirection === 'replace') {
+        await client.ensureDir(dirname(remotePath));
+        await client.cd('/');
+        await client.uploadFrom(localPath, remotePath);
+        for (const stalePath of entry.staleRemotePaths) {
+          await client.remove(`${config.remoteRoot}/${stalePath}`);
+        }
+        console.log(`replaced ${entry.staleRemotePaths.join(', ')} -> ${entry.path}`);
       } else {
         mkdirSync(dirname(localPath), { recursive: true });
         await client.downloadTo(localPath, remotePath);

@@ -4,5 +4,5 @@
   "user": "your-ftp-user",
   "password": "your-ftp-password",
   "remoteRoot": "/web",
-  "includePaths": ["index.html", "favicon-v2.ico", "js", "i18n", "img", "css", "vendor"]
+  "includePaths": ["index.html", "favicon.ico", "js", "i18n", "img", "css", "vendor"]
 }
