@@ -7,6 +7,8 @@
     "totalView": "Gesamterträge",
     "welcomeView": "Anlageninfo",
     "eventsView": "Ereignisse",
+    "userGuideView": "Benutzerhandbuch",
+    "opensNewTab": "öffnet in neuem Tab",
     "ariaLabel": "Hauptnavigation",
     "toggleLabel": "Navigation ein-/ausblenden",
     "transparencyToggleLabel": "Transparenzmodus umschalten"

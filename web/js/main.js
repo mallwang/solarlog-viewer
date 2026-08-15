@@ -38,6 +38,20 @@ const NAV_ITEMS = [
   },
   { view: 'total', labelKey: 'nav.totalView', icon: 'presentationChartBar', params: {} },
   { view: 'events', labelKey: 'nav.eventsView', icon: 'listBullet', params: {} },
+  // External link, not a routed view: opens the language-specific user guide on GitHub in a
+  // new tab. `href` is a function (not a static string) so it re-resolves the language-specific
+  // file (docs/user-guide.md vs docs/user-guide.de.md) on every renderNav() call, picking up a
+  // language switch without a page reload.
+  {
+    view: 'userGuide',
+    labelKey: 'nav.userGuideView',
+    icon: 'documentText',
+    external: true,
+    href: () =>
+      `https://github.com/mallwang/solarlog-viewer/blob/main/docs/user-guide${
+        getLanguage() === 'de' ? '.de' : ''
+      }.md`,
+  },
 ];
 
 let plant = null;
@@ -70,12 +84,25 @@ function renderNav() {
   applyNavLabels();
   viewNavList.innerHTML = '';
   for (const item of NAV_ITEMS) {
-    const params = typeof item.params === 'function' ? item.params() : item.params;
     const li = document.createElement('li');
     const link = document.createElement('a');
-    link.href = formatRoute({ view: item.view, params });
-    link.innerHTML = `${icon(item.icon)}<span>${t(item.labelKey)}</span>`;
-    if (currentRoute.view === item.view) link.setAttribute('aria-current', 'page');
+    if (item.external) {
+      // Not a routed view — an outbound link to the GitHub-hosted user guide, so it gets its
+      // own branch here rather than going through formatRoute()/aria-current below. Plain
+      // document icon, no visible "opens in new tab" badge (reads more natural alongside the
+      // other nav icons) — the sr-only suffix still tells screen-reader users it leaves the app.
+      link.href = item.href();
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.innerHTML = `${icon(item.icon)}<span>${t(item.labelKey)}<span class="sr-only"> (${t(
+        'nav.opensNewTab',
+      )})</span></span>`;
+    } else {
+      const params = typeof item.params === 'function' ? item.params() : item.params;
+      link.href = formatRoute({ view: item.view, params });
+      link.innerHTML = `${icon(item.icon)}<span>${t(item.labelKey)}</span>`;
+      if (currentRoute.view === item.view) link.setAttribute('aria-current', 'page');
+    }
     link.addEventListener('click', () => closeNav());
     li.append(link);
     viewNavList.append(li);

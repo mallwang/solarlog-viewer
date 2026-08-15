@@ -87,6 +87,33 @@ topic.
 3. **Given** either document, **When** a reader is at the top of the page, **Then** a small
    language-toggle link lets them switch to the other language's equivalent document.
 
+---
+
+### User Story 4 - Discover the user guide from inside the running dashboard (Priority: P4)
+
+Someone already viewing the deployed dashboard wants to consult the user guide without knowing
+it exists as a separate `docs/user-guide.md` file in the repository — they expect the app itself
+to point them at it.
+
+**Why this priority**: This closes the loop between the restructured user guide (User Story 2)
+and its actual audience, who reach it through the running app, not the repository file listing.
+It depends on the user guide already being restructured and language-mirrored (User Stories 2–3).
+
+**Independent Test**: Can be fully tested by opening the deployed dashboard in each supported
+language and confirming the navigation bar offers a link that opens the matching language's user
+guide on GitHub in a new tab.
+
+**Acceptance Scenarios**:
+
+1. **Given** the dashboard's navigation bar, **When** a reader looks below the "Events" nav item,
+   **Then** they find a document-icon nav item linking to the user guide.
+2. **Given** that nav item, **When** a screen-reader user inspects its accessible name, **Then**
+   it identifies that activating it leaves the app in a new tab, even though the icon itself
+   stays a plain document glyph with no visible badge.
+3. **Given** the dashboard set to German, **When** a reader activates the nav item, **Then** it
+   opens `docs/user-guide.de.md` on GitHub; **given** the dashboard set to English, it opens
+   `docs/user-guide.md` instead — both in a new browser tab, leaving the dashboard open.
+
 ### Edge Cases
 
 - What happens to implementation-level detail (specific file names, function names, config
@@ -140,6 +167,12 @@ topic.
 - **FR-012**: Every feature currently documented in the existing README or user guide MUST remain
   discoverable somewhere in the restructured document set — either summarized in the README,
   detailed in the user guide, or linked out to a developer doc — with none silently dropped.
+- **FR-013**: The dashboard's navigation bar MUST include a nav item, positioned directly below
+  the "Events" nav item, linking to the GitHub-hosted user guide matching the dashboard's current
+  language (`docs/user-guide.md` for English, `docs/user-guide.de.md` for German). It MUST open
+  in a new browser tab (`target="_blank"` with `rel="noopener noreferrer"`) and MUST expose that
+  fact to assistive technology (e.g. a screen-reader-only "opens in new tab" suffix) even though
+  its icon is the plain document glyph used elsewhere in the nav, with no visible badge.
 
 ## Success Criteria _(mandatory)_
 
@@ -157,6 +190,9 @@ topic.
   missing heading.
 - **SC-005**: One hundred percent of features mentioned in the pre-overhaul README and user guide
   are still discoverable somewhere in the restructured document set.
+- **SC-006**: From the dashboard's navigation bar, in either supported language, a reader reaches
+  the correctly-localized user guide on GitHub in one click, without leaving the current tab
+  behind.
 
 ## Assumptions
 
