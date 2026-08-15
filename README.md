@@ -1,8 +1,8 @@
-# SolarLog Viewer
+**English** · [Deutsch](README.de.md)
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mallwang/solarlog-viewer)
 
-**[Live Application](https://wolfsbach.synology.me)**
+# SolarLog Viewer
 
 <p align="center">
   <img src="solarlog-viewer.png" alt="Solarlog Viewer Icon" width="120" />
@@ -12,151 +12,30 @@
   <sub>Cloud sun cloudy weather Icon by Matt Cooper on <a href="https://icon-icons.com/authors/268-matt-cooper">Icon-Icons.com</a></sub>
 </p>
 
-Static viewer for SolarLog data exports (HTML/JS/CSS). `web/` is the single directory FTP'd to
-the Synology DiskStation — `web/index.html` is a single-page dashboard (vanilla ES modules,
-Tailwind CSS compiled to a static file, ApexCharts) showing current production plus the four
-summary totals (today/month/year/lifetime), with hash-routed detail views for daily, monthly,
-yearly, lifetime, and year-over-year comparison charts (`#/day/YYYY/MM/DD`, `#/month/YYYY/MM`,
-`#/year/YYYY`, `#/total`, `#/compare`), plus an "Ereignisse" (events) page (`#/events`) listing
-every inverter status/fault event from `web/data/events.js`/`web/data/events_day.js`, filterable
-by inverter/day/status/error and sortable by start time/inverter/duration — see
-[Ereignisse (events) page](#ereignisse-events-page) below. All views share one Tailwind-based
-visual design in both light and dark mode. A responsive navigation menu lists all views and
-highlights the active one — persistent at desktop widths, a hamburger-triggered menu below
-~768px, usable from 320px to 2560px wide with no horizontal scrolling. DE/EN language selection
-persists across reloads. The previous frameset-based site is preserved read-only as
-`archive/legacy-site.tar.gz` (`tar -xzf archive/legacy-site.tar.gz` extracts it if you need to
-reference it — it's no longer part of the working tree or served anywhere).
+SolarLog Viewer is a static dashboard for SolarLog solar-plant data exports. It shows current
+production alongside daily, monthly, yearly, lifetime, and year-over-year comparison views, an
+event log for inverter status/fault history, a live weather-aware sky backdrop, and a desktop
+info panel that keeps the plant's current output and forecast visible from anywhere in the app.
+Everything runs as static HTML/JS/CSS with no backend — the whole app is a folder FTP'd to the
+hosting device.
 
-SolarLog data is split across `web/hist/` (frozen historical data through 2026-07-28, from the
-original device) and `web/data/` (the current device's live, continuously-overwritten output
-since its 2026-07-29 installation); the app merges the two wherever a query spans that boundary
-— see `specs/001-website-modernization/data-model.md`. The month/year/total/dashboard/welcome
-views and the info panel all load their `months.js`/`years.js`/`days_hist.js` aggregates through
-one shared helper (`fetchFromBothSources`, `web/js/data/data-source.js`), which caches each file
-in memory (`web/js/data/fetch-cache.js`) instead of re-fetching on every navigation: `hist/*` is
-cached for the page's lifetime since it never changes, `data/*` for `DATA_REFRESH_INTERVAL_MS`
-since the live device only rewrites it once a day at boot. A full reload starts the cache over.
+- Five hash-routed views (day/month/year/total/compare) plus a dashboard and an events page, all
+  sharing one responsive Tailwind design in light and dark mode, usable from 320px phones to
+  2560px monitors
+- A dynamic sky background that reflects the plant's real current weather and time of day
+- A persistent desktop info panel showing live production, weather, and forecast
+- An "Ereignisse" (events) page listing every inverter status/fault event, filterable and sortable
+- Explanatory tooltips on stats-panel figures explaining exactly how each is calculated
+- German/English UI language, remembered across reloads
 
-## Dynamic sky background
+For the full walkthrough of using the deployed dashboard — navigation, charts, events, tooltips —
+see the [User Guide](docs/user-guide.md).
 
-The animated cloud backdrop behind the dashboard reflects the installation's real current
-weather and local time of day rather than always looking the same. Coordinates are resolved
-from the plant's configured address (`SKY_LOCATION_OVERRIDE` in `web/js/config.js`, or automatic
-geocoding cached in `localStorage` if unset), then used to poll the free, keyless
-[Open-Meteo](https://open-meteo.com) API every 15 minutes for cloud cover and sunrise/sunset:
+## Live Application
 
-- **Cloud density** — sparse, moderate, or dense clouds depending on the current cloud-cover
-  tier (clear/partly/overcast).
-- **Sun/moon position** — a sun or moon tracks a simplified day/night arc between sunrise and
-  sunset, crossfading smoothly at the boundary and staying dimly visible through dense cloud.
-- **Flying objects** — birds, butterflies, dragonflies, and goose V-formations cross the sky
-  using animated SVG sprite sheets (realistic silhouettes, not emoji); planes, balloons, and a
-  moon-bound rocket easter egg appear rarely. Each kind's rendering logic lives behind a single
-  `FLYING_OBJECT_RENDERERS` registry in `web/js/sky/flying-object-renderers.js` — adding a new
-  kind is a matter of registering one more entry there.
+https://wolfsbach.synology.me
 
-Any failure (no location, no network, a failed request) falls back silently to the original
-static backdrop — there is no error UI and no impact on the dashboard's PV-data functionality.
-`prefers-reduced-motion: reduce` suppresses all animation and flying-object spawning while still
-reflecting real conditions through static cues. See
-`specs/007-dynamic-sky-weather/` for the full spec/plan.
-
-## Global desktop info panel
-
-A persistent panel in the header (visible at desktop widths only, `768px` and above) shows the
-plant's current production, the current weather condition, and today's remaining forecast for
-the installation's location — visible from every view, not just the dashboard. It polls
-`data/min_cur.js` (plus `days.js`/`months.js` for the yield figures) every
-`DATA_REFRESH_INTERVAL_MS` (`web/js/config.js`, default 1 minute) — the same constant the day
-detail view's own auto-refresh uses (see below), so the nav bar and the day chart never drift out
-of sync with each other. [Open-Meteo](https://open-meteo.com) polls separately on its own, slower
-`WEATHER_REFRESH_INTERVAL_MS` (default 10 minutes) — weather doesn't change meaningfully minute to
-minute, so polling it as often as the PV data would just waste requests. A small pulsing indicator
-next to the
-production value scales its size/speed with `currentPacW / capacityKwp` (idle near zero, most
-active near the plant's configured peak output). Next to the production wattage, the panel also
-shows the inverter's current efficiency (ΣPAC ÷ ΣPDC, e.g. "1234 W · 94%") whenever DC input data
-is available and non-zero — omitted rather than showing a misleading 0%/∞ when it isn't. The day
-detail view (`#/day/YYYY/MM/DD`) shows the same efficiency figure as a second curve on a secondary
-y-axis alongside the power curve, gapped wherever PDC is zero/missing, and absent entirely for
-backfilled/archived days that only have a reconstructed yield curve. The day chart also carries a
-single "UDC" (DC string voltage) legend entry with its own right-hand axis, drawn as a bold average
-line (averaged rather than summed across reporting strings — a sum would produce an implausible
-reading above 1000 V) with a soft shaded band behind it spanning that point's min/max across
-strings; internally these are two ApexCharts series (a rangeArea band plus a line), but the band's
-own legend row is hidden (via a CSS rule keyed to its runtime legend index — see
-`hideUdcRangeLegendEntry` in `web/js/charts/chart-factory.js`) and its visibility is kept in
-lockstep with the line's on every click, so the pair behaves as one activation point. Hidden by
-default and revealed via a click on the legend entry, omitted entirely on days with no voltage
-data. That shown/hidden choice is remembered (`localStorage`) and applied to the next day chart
-opened. The tooltip shows the average in bold with a "Min: … / Max: …" detail line beneath whenever
-UDC is visible. The day chart's three y-axes (feed-in W, Wirkungsgrad %, UDC V) use fixed
-ranges/tick steps rather than scaling to
-each day's own data, so days are visually comparable at a glance and the scale doesn't jump around
-while paging between days; the x-axis defaults to spanning just that day's actual data (padded a
-configurable number of minutes on each side so the line's start/end aren't flush against the plot
-edge) but can be switched to always span the full 00:00–24:00 day instead — all configurable via
-`DAY_CHART_AXES`, `DAY_CHART_X_AXIS_RANGE`, and `DAY_CHART_X_AXIS_PADDING_MINUTES` in
-`web/js/config.js`. The month/year/total (lifetime) bar charts offer a persisted "Gesamt" /
-"Wechselrichter" toggle above the chart: "Gesamt" (default) shows the single combined bar exactly
-as before this feature; switching to "Wechselrichter" stacks one segment per inverter string
-instead, with the tooltip then showing the combined total plus each string's value. The selection
-is remembered (`localStorage`) across reloads and between the three views. Drill-down-by-click
-still works on any bar/segment in either mode. Clicking the weather/forecast area opens a
-wetteronline.de search for the installation's configured address in a new tab — the plant owner's
-usual weather source. Production and weather/forecast each show an independent "unavailable" state
-if their own data source can't be retrieved, without affecting the other. See
-`specs/010-global-info-panel/` for the full spec/plan.
-
-The day detail view (`#/day/YYYY/MM/DD`) auto-refreshes itself the same way when it's showing
-_today_: every `DATA_REFRESH_INTERVAL_MS` (the same constant the info panel uses, above) it
-re-fetches `min_day.js` and redraws the stats panel, the chart, and the data table in place — so
-the page can be left open for hours (e.g. on a wall display) and keep reflecting new
-readings without a manual reload. Past days don't poll, since their min files are static once
-archived. A failed refresh is skipped silently, leaving the last good reading on screen rather than
-clearing the view. The welcome page (`#/`, "Anlageninfo") auto-refreshes its today-chart and
-yield-summary stats card on the same `DATA_REFRESH_INTERVAL_MS` cycle, so all three "live" surfaces
-— nav bar, day chart, welcome page — always agree on how current their figures are.
-
-## Ereignisse (events) page
-
-`#/events` renders every inverter status/fault event as one deduplicated, most-recent-first
-table, combining the historical archive (`web/data/events.js`) and the current day's log
-(`web/data/events_day.js`) — an event still without an end time (today's most recent one) shows
-a pulsing "aktiv" badge instead of a blank cell. Status/error codes are decoded per-inverter via
-`StatusCodes[]`/`FehlerCodes[]` in `web/data/base_vars.js` (the same numeric code means different
-things on WR1 vs. WR2); an out-of-range status code falls back to "Offline", an out-of-range
-error code shows its raw numeric code. Four dropdown filters (Wechselrichter/Tag/Status/Fehler,
-combinable, with removable chips and a reset button) narrow the table without re-fetching; the
-Von–Bis/WR/Dauer column headers sort (click to toggle direction) within whatever the filters
-currently show. See `web/js/data/events.js` (parsing/merge/dedupe/label-resolution, no DOM) and
-`web/js/views/events-view.js` (rendering + filter/sort state).
-
-## Explanatory tooltips
-
-Stats-panel rows (day/month/year/total/welcome views) can carry a small, focusable "i" info
-button next to their label. On desktop, hovering or keyboard-focusing it reveals a short tooltip
-explaining exactly how that figure is calculated; on touch-only devices the button isn't rendered
-at all (`@media (hover: hover) and (pointer: fine)` in `web/css/app.css`), so it never affects
-mobile layout. All rendering/positioning logic (including the edge-of-viewport flip that keeps a
-tooltip from being clipped) lives once in `web/js/views/stats-panel.js` — no view module builds
-this markup itself.
-
-To explain a new stat, no changes to `stats-panel.js` are needed:
-
-1. Add an `explanations.<key>` entry (German + English wording) to both `web/i18n/de.json` and
-   `web/i18n/en.json`, alongside the other UI strings.
-2. In the view's row-builder function (e.g. `monthStatsRows()` in `web/js/views/month-view.js`),
-   append the i18n key as a third element to that row's tuple: `[labelKey, value,
-'explanations.<key>']`. A row with only `[labelKey, value]` renders exactly as it always has —
-   the explanation is opt-in per row.
-
-The same `explanations.<key>` can be reused across views (e.g. "Soll" means the same thing on the
-day, month, year, and total views) — edit the i18n entry once and every view referencing it
-updates together. See `specs/020-explanatory-tooltips/` for the full spec/plan/contract.
-
-## Dev server
+## Getting started / Dev server
 
 ```bash
 npm install
@@ -169,34 +48,55 @@ the Tailwind CLI in `--watch` mode alongside `browser-sync`, so CSS changes hot-
 Run `npm run open` to open the viewer in your default browser.
 
 `bs-config.cjs` proxies every `/data/*` and `/hist/*` request straight through to the live
-SolarLog device at `https://wolfsbach.synology.me` instead of serving from disk, so the dev
-server always shows current readings without any local copy at all. `web/data/` and `web/hist/`
-no longer exist in this repo (checked out or otherwise) — they were the device's own live/frozen
-data mirror and have been deleted; the device serves them directly and `npm start` proxies
-straight to it. `scripts/ftp-sync.js` (and the `sync-ftp` skill) no longer touch `data`/`hist`
-either — see [Validation & Aggregation Scripts](#validation--aggregation-scripts) below for what
-that means for the scripts that used to read those directories from disk. The frozen historical
-archive that used to live at `web/hist/` is preserved as `archive/web-hist.tar.gz`
-(`tar -xzf archive/web-hist.tar.gz -C web` extracts it back to `web/hist/` if you need it
-locally for one of those scripts).
+SolarLog device instead of serving from disk, so the dev server always shows current readings
+without any local copy at all — `web/data/` and `web/hist/` no longer exist in this repo's working
+tree. See [Validation & aggregation scripts](#validation--aggregation-scripts) below for what that
+means for scripts that read those directories from disk.
 
-`npm run build:css` compiles `web/css/tailwind.css` into the committed `web/css/tailwind.generated.css`
-static file used in production — no CDN/runtime script.
+`npm run build:css` compiles `web/css/tailwind.css` into the committed
+`web/css/tailwind.generated.css` static file used in production — no CDN/runtime script.
 
 ## Production build & deploy
 
 `npm run build` (`scripts/build.js`) produces `dist/`, the tree that actually gets FTP'd —
-`web/` itself is deploy-only in the sense that it's the dev-server-served source, not what ships.
-The build bundles+minifies the whole JS import graph into one `js/main-<sha>.js` and the three
-stylesheets into one `css/styles-<sha>.css` (`<sha>` = the current git short SHA), and rewrites
-`dist/index.html` to reference them — this is the cache-busting fix: every deploy gets fresh,
-never-before-seen asset URLs, so browsers can no longer serve a stale cached copy after an update.
-`i18n/*.json`, `img/plant/*.jpg`, and `vendor/*.svg` are copied through unchanged but cache-busted
-with a `?v=<sha>` query string instead of a renamed file, since those paths are referenced at
-runtime rather than known at build time. `dist/` contains no `data`/`hist` directory or symlink —
-the device manages those itself and this project no longer touches them at all. Run
-`npm run build` before syncing; `scripts/ftp-sync.js` (and the `sync-ftp` skill) diff/upload
-`dist/`, not `web/`, and only the app's own assets — `data`/`hist` are out of scope for it.
+`web/` itself is the dev-server-served source, not what ships. The build bundles+minifies the
+whole JS import graph and stylesheets into cache-busted, SHA-tagged files and rewrites
+`dist/index.html` to reference them, so every deploy gets fresh, never-before-seen asset URLs and
+browsers can't serve a stale cached copy after an update. Run `npm run build` before syncing;
+`scripts/ftp-sync.js` (and the `sync-ftp` skill) diff/upload `dist/`, not `web/`, and only the
+app's own assets.
+
+## Dynamic sky background
+
+The animated cloud backdrop behind the dashboard reflects the installation's real current weather
+and local time of day instead of always looking the same — cloud density, a sun/moon arc across
+the sky, and occasional flying objects (birds, planes, balloons, a rare rocket) all respond to
+live conditions polled every 15 minutes. Any failure (no location, no network) falls back silently
+to the original static backdrop, and reduced-motion preferences suppress animation while still
+reflecting real conditions through static cues. See `specs/007-dynamic-sky-weather/` for the full
+spec/plan.
+
+## Global desktop info panel
+
+A persistent panel in the header, visible at desktop widths, shows the plant's current production,
+current weather, and today's remaining forecast from every view — not just the dashboard. It keeps
+its production/yield figures in sync with the day chart's own auto-refresh, and weather refreshes
+on a separate, slower schedule. See `specs/010-global-info-panel/` for the full spec/plan.
+
+## Ereignisse (events) page
+
+`#/events` lists every inverter status/fault event as one deduplicated, most-recent-first table,
+combining the historical archive with the current day's log. Four combinable dropdown filters
+narrow the table, and the Von–Bis/WR/Dauer columns sort by click. See
+[Ereignisse (events) page](docs/user-guide.md#ereignisse-events-page) in the user guide for the
+full walkthrough.
+
+## Explanatory tooltips
+
+Stats-panel rows across the day/month/year/total/welcome views can carry a small, focusable "i"
+info button that reveals a short tooltip explaining exactly how that figure is calculated —
+omitted entirely on touch-only devices where it wouldn't be useful. See
+`specs/020-explanatory-tooltips/` for the full spec/plan/contract.
 
 ## Frontend tests
 
@@ -209,69 +109,18 @@ npm run format:check
 
 ## Data files
 
-The `min*.js` files (one per day, ~7000+ files) contain the raw solar yield data exported from the SolarLog device. The `days*.js` and `days_hist*.js` files contain aggregated daily/monthly summaries. These live on the SolarLog device (`web/data/` current, `web/hist/` frozen historical) and are no longer mirrored in this repo's working tree — see [Dev server](#dev-server) above.
+The `min*.js` files (one per day, ~7000+ files) contain the raw solar yield data exported from the
+SolarLog device. The `days*.js` and `days_hist*.js` files contain aggregated daily/monthly
+summaries. These live on the SolarLog device (`web/data/` current, `web/hist/` frozen historical)
+and are no longer mirrored in this repo's working tree — see
+[Getting started / Dev server](#getting-started--dev-server) above.
 
-## Validation & Aggregation Scripts
+## Validation & aggregation scripts
 
-> **⚠️ Currently unusable without manual setup.** Every script below reads `web/data/`/`web/hist/`
-> straight off the filesystem, but those directories were deleted from the repo (see
-> [Dev server](#dev-server)) and `scripts/ftp-sync.js`/`sync-ftp` no longer fetch them. To run any
-> of these, first manually repopulate the directories you need — e.g.
-> `tar -xzf archive/web-hist.tar.gz -C web` for `web/hist/`, and a manual FTP/SCP copy of the
-> device's `data/` folder to `web/data/` for the live side — then delete them again afterward.
-
-Run from the repo root with Node.js 22+.
-
-**Detect missing daily files (scans `min*.js` filenames):**
-
-```bash
-node scripts/gap-detect.js
-node scripts/gap-detect.js --since 2020-01-01
-node scripts/gap-detect.js --output json --out-file gap-report.json
-```
-
-**Detect missing entries in `days_hist.js`:**
-
-```bash
-node scripts/gap-detect.js --source days_hist
-node scripts/gap-detect.js --source days_hist --since 2020-01-01
-```
-
-**Cross-check min file totals against `days_hist.js`:**
-
-```bash
-node scripts/validate-plausibility.js
-node scripts/validate-plausibility.js --tolerance 10
-```
-
-**Fill missing entries in `days_hist.js` for a month (two-pass: days files → min file):**
-
-```bash
-node scripts/fill-days-hist.js 2026-06 --dry-run
-node scripts/fill-days-hist.js 2026-06 --force
-```
-
-**Regenerate a monthly total in `months.js`:**
-
-```bash
-node scripts/fill-months.js 2026-06 --dry-run
-node scripts/fill-months.js 2026-06 --force
-```
-
-**Regenerate an annual total in `years.js`:**
-
-```bash
-node scripts/fill-years.js 2026 --dry-run
-node scripts/fill-years.js 2026 --force
-```
-
-**Agentic skills (Claude Code):**
-
-```
-/backfill-days-hist 2026-06
-/backfill-months 2026-06
-/backfill-years 2026
-```
+Scripts for detecting data gaps, validating totals, and repairing aggregated files live in
+`scripts/` and are documented in the [Developer Guide](docs/developer-guide.md), including the
+manual setup required before they'll run (`web/data`/`web/hist` no longer exist in this repo's
+working tree).
 
 ## Maintaining the CO2 emission-factor reference table
 
@@ -291,3 +140,5 @@ load.
 ## License
 
 MIT — see [LICENSE.md](LICENSE.md).
+</content>
+</invoke>

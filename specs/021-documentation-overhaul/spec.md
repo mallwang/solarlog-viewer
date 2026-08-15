@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-15
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "I would like to overhaul the documentation, both the READMEs and user guides. The goal is to use a similar approach like https://github.com/mallwang/klaro, both for the english and german README and for the both docs/user-guide.md files."
 

@@ -35,7 +35,7 @@ are touched (plan.md Structure Decision).
 **Purpose**: Confirm the working tree matches the assumptions data-model.md's line-range mapping
 was built on, before any content moves.
 
-- [ ] T001 Diff the current line ranges in `README.md` and `docs/user-guide.md` against the
+- [x] T001 Diff the current line ranges in `README.md` and `docs/user-guide.md` against the
       "Source" column of [data-model.md](data-model.md)'s two section tables; note any drift so
       later tasks cite the right lines
 
@@ -52,16 +52,16 @@ neither story's trim/removal step is safe until the destination holds the conten
 **⚠️ CRITICAL**: Do not trim README's script section (Phase 3) or remove user-guide's script
 sections (Phase 4) until this phase is complete.
 
-- [ ] T002 Create `docs/developer-guide.md` with title "Developer Guide: Validation & Aggregation
+- [x] T002 Create `docs/developer-guide.md` with title "Developer Guide: Validation & Aggregation
       Scripts", a scope note (who it's for), and a "Prerequisites" section moved verbatim in
       substance from `docs/user-guide.md`'s existing Prerequisites (Node 22+, manual
       `web/data`/`web/hist` repopulation caveat)
-- [ ] T003 Add Steps 1–5 to `docs/developer-guide.md` (Detect gaps → `gap-detect.js`, Validate
+- [x] T003 Add Steps 1–5 to `docs/developer-guide.md` (Detect gaps → `gap-detect.js`, Validate
       daily totals → `validate-plausibility.js`, Fill gaps → `fill-days-hist.js`, Regenerate
       monthly totals → `fill-months.js`, Regenerate annual totals → `fill-years.js`), each moved
       from `docs/user-guide.md`'s current Step 1–5 content and each script's flags/examples
       converted to a markdown table (R4)
-- [ ] T004 Add "Agentic skills (Claude Code)" and "Typical workflow" sections to
+- [x] T004 Add "Agentic skills (Claude Code)" and "Typical workflow" sections to
       `docs/developer-guide.md`, moved from `docs/user-guide.md`'s current end-of-file content
       (`/backfill-days-hist`, `/backfill-months`, `/backfill-years` shortcuts + end-to-end example
       sequence)
@@ -82,39 +82,39 @@ getting-started.
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Add a language-toggle link pair ("English · [Deutsch](README.de.md)") to
+- [x] T005 [US1] Add a language-toggle link pair ("English · [Deutsch](README.de.md)") to
       `README.md`, directly below the title/badges block (FR-005; target file arrives in Phase 5,
       link is added now so Phase 5 only needs to confirm it resolves)
-- [ ] T006 [US1] Rewrite `README.md`'s opening into 1–2 concise paragraphs describing what the app
+- [x] T006 [US1] Rewrite `README.md`'s opening into 1–2 concise paragraphs describing what the app
       does, free of implementation narrative, followed by a scannable features bullet list (sky,
       info panel, events, tooltips, five view modes, i18n, etc.) (FR-001)
-- [ ] T007 [US1] Move the existing "Dev server" section up to immediately follow the
+- [x] T007 [US1] Move the existing "Dev server" section up to immediately follow the
       opening/features content, retitled "Getting started / Dev server", keeping its
       copy-pasteable `npm install && npm start && npm run open` commands and proxy-behavior note
       (FR-002)
-- [ ] T008 [US1] Add a link from `README.md`'s getting-started/opening area to
+- [x] T008 [US1] Add a link from `README.md`'s getting-started/opening area to
       `docs/user-guide.md` as the destination for the full end-user dashboard walkthrough, instead
       of repeating that walkthrough inline (FR-003)
-- [ ] T009 [US1] Strip file/function/config-name detail from the "Dynamic sky background" section
+- [x] T009 [US1] Strip file/function/config-name detail from the "Dynamic sky background" section
       in `README.md`, condense to 1–3 plain-language sentences, keep the existing
       `specs/007-dynamic-sky-weather/` link (FR-004, R2)
-- [ ] T010 [US1] Strip file/function/config-name detail from the "Global desktop info panel"
+- [x] T010 [US1] Strip file/function/config-name detail from the "Global desktop info panel"
       section in `README.md`, condense to 1–3 sentences, keep the existing
       `specs/010-global-info-panel/` link (FR-004, R2)
-- [ ] T011 [US1] Strip file/function/config-name detail from the "Ereignisse (events) page"
+- [x] T011 [US1] Strip file/function/config-name detail from the "Ereignisse (events) page"
       section in `README.md`, condense to 1–3 sentences, keep/add a link to
       `docs/user-guide.md#ereignisse-events-page` (FR-004, R2)
-- [ ] T012 [US1] Strip file/function/config-name detail from the "Explanatory tooltips" section in
+- [x] T012 [US1] Strip file/function/config-name detail from the "Explanatory tooltips" section in
       `README.md`, condense to 1–3 sentences, keep the existing `specs/020-explanatory-tooltips/`
       link (FR-004, R2)
-- [ ] T013 [US1] Trim `README.md`'s "Validation & aggregation scripts" section to a short pointer
+- [x] T013 [US1] Trim `README.md`'s "Validation & aggregation scripts" section to a short pointer
       into `docs/developer-guide.md` (built in T002–T004), removing the duplicated walkthrough
       (R3)
-- [ ] T014 [US1] Re-order `README.md`'s sections to match [data-model.md](data-model.md)'s
+- [x] T014 [US1] Re-order `README.md`'s sections to match [data-model.md](data-model.md)'s
       11-section target list (Getting started; Production build & deploy; Dynamic sky background;
       Global desktop info panel; Ereignisse page; Explanatory tooltips; Frontend tests; Data
       files; Validation & aggregation scripts pointer; CO2 emission-factor maintenance; License)
-- [ ] T015 [US1] Confirm `README.md`'s unchanged sections (Production build & deploy, Frontend
+- [x] T015 [US1] Confirm `README.md`'s unchanged sections (Production build & deploy, Frontend
       tests, Data files, CO2 emission-factor table maintenance, License) still carry their
       existing external links — DeepWiki badge, live-app link, `LICENSE.md`, icon attribution —
       untouched (FR-011)
@@ -134,19 +134,19 @@ the table of contents, without full-text search.
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Retitle `docs/user-guide.md`'s heading to drop "Validation & Aggregation
+- [x] T016 [US2] Retitle `docs/user-guide.md`'s heading to drop "Validation & Aggregation
       Workflow" and reflect its end-user-only scope (FR-007)
-- [ ] T017 [US2] Add a numbered table of contents near the top of `docs/user-guide.md`, one entry
+- [x] T017 [US2] Add a numbered table of contents near the top of `docs/user-guide.md`, one entry
       per top-level section (Dashboard navigation & charts; Ereignisse page; Dynamic sky
       background; Global desktop info panel; Day view & welcome page auto-refresh; CO2 avoidance
       figures; Explanatory tooltips), each entry linking to its heading (FR-006)
-- [ ] T018 [US2] Convert the "Dashboard navigation & charts" section's option/mode lists in
+- [x] T018 [US2] Convert the "Dashboard navigation & charts" section's option/mode lists in
       `docs/user-guide.md` to a markdown table (FR-009)
-- [ ] T019 [US2] Convert the "Ereignisse (events) page" section's four filter types in
+- [x] T019 [US2] Convert the "Ereignisse (events) page" section's four filter types in
       `docs/user-guide.md` to a markdown table (FR-009)
-- [ ] T020 [US2] Remove the "Prerequisites" through "Typical workflow" sections from
+- [x] T020 [US2] Remove the "Prerequisites" through "Typical workflow" sections from
       `docs/user-guide.md` (now fully covered by `docs/developer-guide.md` from Phase 2) (FR-007)
-- [ ] T021 [US2] Confirm `docs/user-guide.md`'s remaining sections (Dynamic sky background, Global
+- [x] T021 [US2] Confirm `docs/user-guide.md`'s remaining sections (Dynamic sky background, Global
       desktop info panel, Day view & welcome page auto-refresh, CO2 avoidance figures, Explanatory
       tooltips) keep end-user framing and match [data-model.md](data-model.md)'s 7-section order
 
@@ -168,17 +168,17 @@ structure) complete — this phase mirrors their finished shape, not a moving ta
 
 ### Implementation for User Story 3
 
-- [ ] T022 [P] [US3] Create `README.de.md` mirroring `README.md`'s final structure (title/badges,
+- [x] T022 [P] [US3] Create `README.de.md` mirroring `README.md`'s final structure (title/badges,
       language toggle, opening description, features list, and all 11 numbered sections from
       [data-model.md](data-model.md)), German prose, with a "Deutsch · [English](README.md)"
       toggle link at the top (FR-005)
-- [ ] T023 [P] [US3] Create `docs/user-guide.de.md` mirroring `docs/user-guide.md`'s final
+- [x] T023 [P] [US3] Create `docs/user-guide.de.md` mirroring `docs/user-guide.md`'s final
       structure (title, language toggle, numbered TOC, all 7 sections from
       [data-model.md](data-model.md)), German prose, with the same language-toggle link pair
       pointing at `docs/user-guide.md` (FR-008)
-- [ ] T024 [US3] Confirm `README.md`'s language-toggle link (added in T005) now resolves to the
+- [x] T024 [US3] Confirm `README.md`'s language-toggle link (added in T005) now resolves to the
       `README.de.md` created in T022 (FR-005)
-- [ ] T025 [US3] Confirm `docs/user-guide.md` carries a language-toggle link pair pointing at the
+- [x] T025 [US3] Confirm `docs/user-guide.md` carries a language-toggle link pair pointing at the
       `docs/user-guide.de.md` created in T023, matching FR-008
 
 **Checkpoint**: All three user stories independently functional — EN/DE parity achieved (SC-003).
@@ -190,20 +190,20 @@ structure) complete — this phase mirrors their finished shape, not a moving ta
 **Purpose**: Run the full quickstart.md validation checklist across the finished document set and
 close out the feature.
 
-- [ ] T026 [P] Run [quickstart.md](quickstart.md) Check 3 (EN/DE structural parity) for
+- [x] T026 [P] Run [quickstart.md](quickstart.md) Check 3 (EN/DE structural parity) for
       `README.md`/`README.de.md` and `docs/user-guide.md`/`docs/user-guide.de.md` — expect zero
       mismatches (SC-003)
-- [ ] T027 [P] Run [quickstart.md](quickstart.md) Check 4 (no dead internal anchors) across all
+- [x] T027 [P] Run [quickstart.md](quickstart.md) Check 4 (no dead internal anchors) across all
       four restructured docs — expect no output from any `comm -23` line (SC-004)
-- [ ] T028 [P] Run [quickstart.md](quickstart.md) Check 5 (no dropped content) — cross-reference
+- [x] T028 [P] Run [quickstart.md](quickstart.md) Check 5 (no dropped content) — cross-reference
       pre-overhaul README/user-guide headings (`git show HEAD:...`) against the new
       README/user-guide/developer-guide structure (SC-005)
-- [ ] T029 [P] Run [quickstart.md](quickstart.md) Check 6 (external links preserved) — confirm
+- [x] T029 [P] Run [quickstart.md](quickstart.md) Check 6 (external links preserved) — confirm
       DeepWiki badge, live-app link, `LICENSE.md`, and icon attribution all still present in
       `README.md`/`README.de.md` (FR-011)
-- [ ] T030 Run [quickstart.md](quickstart.md) Checks 1–2 (README scan test, user-guide TOC test)
+- [x] T030 Run [quickstart.md](quickstart.md) Checks 1–2 (README scan test, user-guide TOC test)
       manually for both English and German documents (SC-001, SC-002)
-- [ ] T031 Update `**Status**` in [spec.md](spec.md) from `Draft` to `Implemented` (only once every
+- [x] T031 Update `**Status**` in [spec.md](spec.md) from `Draft` to `Implemented` (only once every
       task above is checked off `[X]`)
 
 ---
