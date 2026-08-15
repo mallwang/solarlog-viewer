@@ -20,7 +20,12 @@ persists across reloads. The previous frameset-based site is preserved read-only
 SolarLog data is split across `web/hist/` (frozen historical data through 2026-07-28, from the
 original device) and `web/data/` (the current device's live, continuously-overwritten output
 since its 2026-07-29 installation); the app merges the two wherever a query spans that boundary
-— see `specs/001-website-modernization/data-model.md`.
+— see `specs/001-website-modernization/data-model.md`. The month/year/total/dashboard/welcome
+views and the info panel all load their `months.js`/`years.js`/`days_hist.js` aggregates through
+one shared helper (`fetchFromBothSources`, `web/js/data/data-source.js`), which caches each file
+in memory (`web/js/data/fetch-cache.js`) instead of re-fetching on every navigation: `hist/*` is
+cached for the page's lifetime since it never changes, `data/*` for `DATA_REFRESH_INTERVAL_MS`
+since the live device only rewrites it once a day at boot. A full reload starts the cache over.
 
 ## Dynamic sky background
 
