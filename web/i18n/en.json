@@ -7,6 +7,8 @@
     "totalView": "Total Yields",
     "welcomeView": "Plant Info",
     "eventsView": "Events",
+    "userGuideView": "User Guide",
+    "opensNewTab": "opens in new tab",
     "ariaLabel": "Main navigation",
     "toggleLabel": "Toggle navigation",
     "transparencyToggleLabel": "Toggle transparency mode"

@@ -1,6 +1,20 @@
-# User Guide: Validation & Aggregation Workflow
+# User Guide: SolarLog Viewer
 
-This guide describes how to detect data gaps, validate totals, and repair aggregated files using the scripts in `scripts/`.
+English · [Deutsch](user-guide.de.md)
+
+This guide covers how to use the deployed SolarLog Viewer dashboard. Looking to run the project
+locally or work with the validation/aggregation scripts instead? See the
+[README](../README.md) and [Developer Guide](developer-guide.md).
+
+## Table of contents
+
+1. [Dashboard navigation & charts](#dashboard-navigation--charts)
+2. [Ereignisse (events) page](#ereignisse-events-page)
+3. [Dynamic sky background](#dynamic-sky-background)
+4. [Global desktop info panel](#global-desktop-info-panel)
+5. [Day view & welcome page auto-refresh](#day-view--welcome-page-auto-refresh)
+6. [CO2 avoidance figures](#co2-avoidance-figures)
+7. [Explanatory tooltips](#explanatory-tooltips)
 
 ## Dashboard navigation & charts
 
@@ -19,31 +33,12 @@ current period" link (e.g. "Heute"/"Dieser Monat"), and a link to zoom out to th
 period (day → month → year → total) — e.g. from a day view, click "Monat" to jump straight to
 that day's month view. The total view has no such link since it's the top of the hierarchy.
 
-The day view's chart legend includes a single "UDC (V)" entry for the DC string voltage, with its
-own right-hand axis — clicking it reveals a bold average line (averaged across all reporting
-inverter strings, not summed — a sum would read as an implausible reading above 1000 V) with a soft
-shaded band behind it, spanning that point's lowest-to-highest string reading, so you can see how
-much the strings varied at a glance as well as the average. It's hidden by default so the chart
-isn't cluttered; clicking it again hides both the line and the band together. Hovering the chart
-while it's visible shows the average in the tooltip in bold with a "Min: … V / Max: … V" line
-beneath it. That shown/hidden choice is remembered across page reloads and other day charts, so a
-revealed UDC line stays revealed until you hide it again. Days with no recorded voltage data (e.g.
-backfilled/archived days that only show the reconstructed yield curve) don't offer the UDC legend
-entry at all, since there's nothing to plot. The day chart's three
-y-axes (feed-in W, Wirkungsgrad %, UDC V) always use the same fixed range and gridline spacing
-regardless of the day, so a low-yield day doesn't visually stretch to look as strong as a
-high-yield one, and the scale doesn't jump around as you page between days. The x-axis normally
-zooms to just the times that day actually has data for (with a small pad on each side so the line
-doesn't start/end flush against the plot edge, which also makes those points easier to hover); a
-site administrator can switch it to always show the full 00:00–24:00 day instead — see
-`DAY_CHART_AXES`, `DAY_CHART_X_AXIS_RANGE`, and `DAY_CHART_X_AXIS_PADDING_MINUTES` in
-`web/js/config.js`. The month, year, and total (lifetime) views show a "Gesamt" / "Wechselrichter"
-toggle above the chart: "Gesamt" (the default) shows the single combined bar per period exactly
-as before, while switching to "Wechselrichter" breaks each bar into one stacked segment per
-inverter string (WR1, WR2, …), with the tooltip then showing the combined total alongside each
-string's individual value. The chosen mode is remembered (stored in the browser) and applied
-again automatically the next time any of these three views is opened. Clicking any part of a bar,
-in either mode, still drills into the next-finer view exactly as before.
+| Chart element                                     | Behavior                                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UDC (V) legend entry (day view)                   | Hidden by default. Click reveals a bold average line across reporting inverter strings (averaged, not summed) with a shaded min/max band; click again to hide both. Choice is remembered across reloads and other day charts. Omitted on days with no voltage data.                          |
+| Day chart y-axes                                  | Feed-in (W), Wirkungsgrad (%), and UDC (V) always use the same fixed range/gridline spacing regardless of the day, so days stay visually comparable and the scale doesn't jump while paging.                                                                                                 |
+| Day chart x-axis                                  | Zooms to the day's actual data by default (small padding on each side); a site administrator can switch it to always show the full 00:00–24:00 day via `DAY_CHART_AXES`, `DAY_CHART_X_AXIS_RANGE`, and `DAY_CHART_X_AXIS_PADDING_MINUTES` in `web/js/config.js`.                             |
+| Gesamt / Wechselrichter toggle (month/year/total) | "Gesamt" (default) shows one combined bar per period; "Wechselrichter" stacks one segment per inverter string, with the tooltip showing the combined total plus each string's value. Remembered across reloads and shared between the three views. Drill-down-by-click works in either mode. |
 
 ## Ereignisse (events) page
 
@@ -56,19 +51,23 @@ start–end time ("Von – Bis", end shown as just a time-of-day when it's the s
 the start), the inverter (a colored dot plus WR label), duration, a colored status pill, and the
 fault/error (a muted dash when there was none, a bold red label when there was).
 
-Four dropdown filters sit above the table — Wechselrichter (inverter), Tag (day), Status, Fehler
-(error) — and can be combined; each active filter also shows as a removable pill chip, and
-"Filter zurücksetzen" clears them all at once. The title row's count ("401 Ereignisse" or
-"18 von 401 Ereignissen") always reflects how many rows the current filters leave visible. If a
-filter combination matches nothing, the table is replaced with a "Keine Ereignisse gefunden"
-message instead of an empty grid.
-
 The Von–Bis, WR, and Dauer column headers are clickable to sort: click once to sort by that
 column (an arrow in the header shows the direction), click again to reverse it. Sorting only
 reorders the rows already passing the active filters — it never changes which events are shown.
-Status and Fehler are filter targets, not sort targets. On narrow screens the filter bar wraps
-onto multiple rows and the table scrolls horizontally within its own frame rather than widening
-the page.
+On narrow screens the filter bar wraps onto multiple rows and the table scrolls horizontally
+within its own frame rather than widening the page. If a filter combination matches nothing, the
+table is replaced with a "Keine Ereignisse gefunden" message instead of an empty grid. The title
+row's count ("401 Ereignisse" or "18 von 401 Ereignissen") always reflects how many rows the
+current filters leave visible.
+
+| Filter         | Narrows by             | Combinable | Sort target |
+| -------------- | ---------------------- | ---------- | ----------- |
+| Wechselrichter | Inverter (WR1, WR2, …) | Yes        | No          |
+| Tag            | Calendar day           | Yes        | No          |
+| Status         | Status pill value      | Yes        | No          |
+| Fehler         | Fault/error code       | Yes        | No          |
+
+Each active filter shows as a removable pill chip; "Filter zurücksetzen" clears them all at once.
 
 ## Dynamic sky background
 
@@ -82,7 +81,6 @@ simply keeps its original static appearance; nothing else on the dashboard is af
 system/browser has "reduce motion" enabled, all sky animation and flying objects are suppressed
 while the cloud density/sun-moon state still updates. Birds are rendered as animated silhouette
 sprites rather than a plain shape — a purely visual upgrade that needs no configuration.
-while the cloud density/sun-moon state still updates.
 
 ## Global desktop info panel
 
@@ -141,130 +139,5 @@ or Tab to it to see a short tooltip explaining exactly how that figure is calcul
 is the actual yield as a percentage of the Soll figure shown alongside it). On touch-only devices
 (phones/tablets) the icon isn't shown at all — there's nothing useful a tap could do with it, so
 it's left out entirely rather than shown inert.
-
-## Prerequisites
-
-- Node.js 22+
-- Run all commands from the **repo root** (where `days_hist.js`, `months.js`, `years.js`, and `min*.js` files live)
-
----
-
-## Step 1 — Detect gaps in archive data
-
-`gap-detect.js` can check two data sources:
-
-**Min files** (default) — scans `min*.js` filenames for missing calendar days:
-
-```bash
-node scripts/gap-detect.js
-node scripts/gap-detect.js --since 2020-01-01
-node scripts/gap-detect.js --output json --out-file gap-report.json
-```
-
-**`days_hist.js`** — checks for missing entries in the aggregated history file:
-
-```bash
-node scripts/gap-detect.js --source days_hist
-node scripts/gap-detect.js --source days_hist --since 2020-01-01
-```
-
-Both modes produce the same output format: a human-readable list of missing date ranges, or "No gaps detected." The `--since`, `--output json`, and `--out-file` flags work with both sources.
-
----
-
-## Step 2 — Validate daily totals against days_hist.js
-
-```bash
-node scripts/validate-plausibility.js
-```
-
-Compares each `minYYMMDD.js` first-line Wh total against the matching entry in `days_hist.js`. Days that differ by more than ±1 Wh (default tolerance) are flagged with per-inverter deltas.
-
-Override the tolerance:
-
-```bash
-node scripts/validate-plausibility.js --tolerance 10
-```
-
-JSON output:
-
-```bash
-node scripts/validate-plausibility.js --output json --out-file validation.json
-```
-
----
-
-## Step 3 — Fill gaps in days_hist.js
-
-For a month where entries are missing in `days_hist.js`:
-
-Preview without writing:
-
-```bash
-node scripts/fill-days-hist.js 2026-06 --dry-run
-```
-
-Apply (confirms before writing):
-
-```bash
-node scripts/fill-days-hist.js 2026-06
-```
-
-Apply without prompt:
-
-```bash
-node scripts/fill-days-hist.js 2026-06 --force
-```
-
-The script uses a two-pass strategy per missing day:
-
-- **Pass 1**: looks for the date in any `days*.js` file and copies Wh and feed values verbatim
-- **Pass 2**: if not found in days files, reads the first line of `minYYMMDD.js` for Wh totals (feed set to 0)
-
-Dates with no source in either pass are reported as unfillable.
-
----
-
-## Step 4 — Regenerate monthly totals
-
-```bash
-node scripts/fill-months.js 2026-06 --dry-run
-node scripts/fill-months.js 2026-06 --force
-```
-
-Reads all `min2606*.js` files, sums WR1 and WR2 Wh totals, and writes or updates the `mo[mx++]=` entry for that month in `months.js`.
-
----
-
-## Step 5 — Regenerate annual totals
-
-```bash
-node scripts/fill-years.js 2026 --dry-run
-node scripts/fill-years.js 2026 --force
-```
-
-Reads all `min26*.js` files for the year and writes or updates the `ye[yx++]=` entry in `years.js`.
-
----
-
-## Agentic skills (Claude Code)
-
-If you use Claude Code, the following skills wrap the fill scripts with a dry-run → confirm → apply flow:
-
-```
-/backfill-days-hist 2026-06
-/backfill-months 2026-06
-/backfill-years 2026
-```
-
-Each skill shows a preview first, asks for confirmation, then applies the change and reports a summary.
-
----
-
-## Typical workflow
-
-```
-gap-detect → validate-plausibility → fill-days-hist → fill-months → fill-years
-```
-
-Run in order: detect what is missing, validate what is present, then fill from the bottom up.
+</content>
+</invoke>
