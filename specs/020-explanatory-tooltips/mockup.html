@@ -1,0 +1,799 @@
+<title>Erklär-Tooltips — layout review (020-explanatory-tooltips)</title>
+<style>
+  :root {
+    color-scheme: light;
+
+    /* App tokens, copied verbatim from web/css/tokens.css (2026-08-15) */
+    --color-bg: #ffffff;
+    --color-bg-app: #e3f2fd;
+    --color-bg-elevated: #f4f6f8;
+    --color-text: #1a1d21;
+    --color-text-muted: #5b6470;
+    --color-border: #d8dee4;
+    --color-primary: #ff9800;
+    --color-primary-dark: #e65100;
+    --color-accent: #2e7d32;
+    --color-danger: #c62828;
+
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+
+    --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.75rem;
+
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Review-tool-only tokens (not part of the app's own palette) */
+    --review-bg: #f6f5f2;
+    --review-ink: #33312c;
+    --review-muted: #7a7669;
+    --review-line: #ddd9d0;
+    --review-accent: #b45f2c;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--review-bg);
+    color: var(--review-ink);
+    font-family: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, p {
+    text-wrap: balance;
+  }
+
+  /* ============ Review-tool chrome (reusable as-is) ============ */
+
+  .review-header {
+    padding: var(--space-lg) var(--space-xl) var(--space-md);
+    border-bottom: 1px solid var(--review-line);
+  }
+
+  .review-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--review-accent);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs);
+  }
+
+  .review-header h1 {
+    margin: 0 0 var(--space-xs);
+    font-size: 1.375rem;
+    font-weight: 700;
+  }
+
+  .review-header p {
+    margin: 0;
+    color: var(--review-muted);
+    font-size: 0.9rem;
+    max-width: 62ch;
+  }
+
+  .review-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    align-items: center;
+    padding: var(--space-md) var(--space-xl);
+    background: #fff;
+    border-bottom: 1px solid var(--review-line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .control-group span.label {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--review-muted);
+    font-weight: 600;
+  }
+
+  .segmented {
+    display: inline-flex;
+    border: 1px solid var(--review-line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: #fff;
+    color: var(--review-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    border-right: 1px solid var(--review-line);
+  }
+
+  .segmented button:last-child {
+    border-right: none;
+  }
+
+  .segmented button:hover {
+    background: #f1efe9;
+  }
+
+  .segmented button:focus-visible {
+    outline: 2px solid var(--review-accent);
+    outline-offset: -2px;
+  }
+
+  .segmented button[aria-pressed='true'] {
+    background: var(--review-accent);
+    color: #fff;
+  }
+
+  .review-stage {
+    padding: var(--space-xl);
+    display: flex;
+    justify-content: center;
+  }
+
+  .stage-frame {
+    width: 100%;
+    max-width: 1180px;
+    background: #d9d4c8;
+    border-radius: 14px;
+    padding: var(--space-lg);
+    transition: max-width 0.2s ease;
+  }
+
+  .stage-frame[data-viewport='mobile'] {
+    max-width: 400px;
+  }
+
+  .stage-frame-label {
+    font-size: 0.75rem;
+    color: var(--review-muted);
+    text-align: center;
+    margin: 0 0 var(--space-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .canvas {
+    background: var(--color-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .review-footer {
+    padding: 0 var(--space-xl) var(--space-xl);
+    max-width: 1180px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--review-muted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .review-footer code {
+    background: #fff;
+    border: 1px solid var(--review-line);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    font-size: 0.8em;
+  }
+
+  /* ============ generic state-visibility mechanism ============ */
+  [data-state] [data-show] {
+    display: none;
+  }
+
+  /* ---- explanatory-tooltips: per-state visibility overrides ---- */
+  [data-state='desktop-hover'] [data-show='desktop-hover'],
+  [data-state='desktop-focus'] [data-show='desktop-focus'],
+  [data-state='mobile'] [data-show='mobile'] {
+    display: block;
+  }
+  [data-state='desktop-hover'] [data-show='desktop-hover-inline'],
+  [data-state='desktop-focus'] [data-show='desktop-focus-inline'] {
+    display: inline-flex;
+  }
+
+  /* ============ explanatory-tooltips: mocked app header ============ */
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-family);
+  }
+
+  .app-header__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  .app-header__logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  }
+
+  .app-header__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .app-nav {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .app-nav span[data-active='true'] {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  .stage-frame[data-viewport='mobile'] .app-nav {
+    display: none;
+  }
+
+  .app-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  /* ============ explanatory-tooltips: layout-specific styles ============ */
+
+  .view-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    padding: var(--space-md) var(--space-lg) 0;
+    margin: 0 0 var(--space-md);
+  }
+
+  .view-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text);
+  }
+
+  .period-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: 0 var(--space-lg) var(--space-lg);
+  }
+
+  .stage-frame[data-viewport='desktop'] .period-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .chart-container {
+    flex: 7;
+    min-width: 0;
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    min-height: 220px;
+  }
+
+  .chart-placeholder {
+    height: 190px;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    padding: var(--space-sm);
+  }
+
+  .chart-placeholder .bar {
+    flex: 1;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-primary-dark));
+    border-radius: 3px 3px 0 0;
+    opacity: 0.85;
+  }
+
+  .stats-panel {
+    width: 100%;
+    margin-top: var(--space-lg);
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    box-sizing: border-box;
+  }
+
+  .stage-frame[data-viewport='desktop'] .stats-panel {
+    flex: 3;
+    margin-top: 0;
+  }
+
+  .stats-panel h3 {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    margin: 0 0 var(--space-sm);
+    color: var(--color-text);
+  }
+
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .summary-table tr {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .summary-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .summary-table th,
+  .summary-table td {
+    text-align: left;
+    padding: 0.55rem 0;
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+  }
+
+  .summary-table th {
+    color: var(--color-text-muted);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .summary-table td {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  /* ---- the actual feature: label + info icon + tooltip ---- */
+
+  .stat-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .info-trigger {
+    /* This is a real, focusable button in the implementation — not a decorative span — so it
+       reaches FR-008 (keyboard operable) for free via native tab order. */
+    appearance: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    border: 1.2px solid currentColor;
+    font: inherit;
+    font-size: 0.65rem;
+    line-height: 1;
+    font-weight: 700;
+    font-style: italic;
+    cursor: help;
+    flex: none;
+    position: relative;
+  }
+
+  /* Hover-capable pointers only (FR-002/FR-004): a touch-only device never gets a hover ring or
+     a floating tooltip from a tap, and the icon never eats the tap. */
+  @media (hover: hover) and (pointer: fine) {
+    .info-trigger:hover {
+      color: var(--color-primary-dark);
+      border-color: var(--color-primary-dark);
+      background: #fff3e0;
+    }
+  }
+
+  /* Touch-only devices don't just lose the hover behavior — the icon itself is never rendered
+     (FR-004 revised): there's nothing useful a tap could do with it, so it's removed instead of
+     left inert. Real CSS uses `(hover: none)`; this mockup simulates it off the viewport toggle
+     since an artifact viewed on a desktop browser can't be genuinely touch-only. */
+  .stage-frame[data-viewport='mobile'] .info-trigger {
+    display: none;
+  }
+
+  .info-trigger:focus-visible {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 2px;
+  }
+
+  .info-tooltip {
+    position: absolute;
+    z-index: 20;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 240px;
+    background: var(--color-text);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: left;
+    padding: 0.55rem 0.7rem;
+    border-radius: 6px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    pointer-events: none;
+  }
+
+  .info-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--color-text);
+  }
+
+  /* Edge-flip demo row: the rightmost stat's tooltip anchors from the right edge of the icon
+     instead of centering, so it never gets clipped by the panel boundary (FR-007). */
+  .info-trigger.flip-right .info-tooltip {
+    left: auto;
+    right: -6px;
+    transform: none;
+  }
+
+  .info-trigger.flip-right .info-tooltip::after {
+    left: auto;
+    right: 10px;
+    transform: none;
+  }
+
+  .callout-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: flex-start;
+    background: #fff;
+    border: 1px dashed var(--review-line);
+    border-radius: 8px;
+    padding: var(--space-sm) var(--space-md);
+    margin: 0 var(--space-lg) var(--space-md);
+    font-size: 0.82rem;
+    color: var(--review-muted);
+  }
+
+  .callout-row strong {
+    color: var(--review-ink);
+  }
+
+  .mobile-note {
+    margin: 0 var(--space-lg) var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: #fff;
+    border: 1px dashed var(--review-line);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: var(--review-muted);
+  }
+</style>
+
+<header class="review-header">
+  <p class="review-eyebrow">Non-functional review mockup</p>
+  <h1>Erklär-Tooltips — layout review (020-explanatory-tooltips)</h1>
+  <p>
+    Shows the information icon + hover/focus tooltip next to explained stats (Tagesertrag in €,
+    Soll, Soll (auflaufend), Ist, Vermiedenes CO2) in the month view's stats panel, plus how it
+    disappears on touch. Switch "Content state" to see hover, keyboard-focus, and the mobile
+    (no-hover) behavior; switch "Viewport" to see the panel reflow.
+  </p>
+</header>
+
+<div class="review-controls">
+  <div class="control-group">
+    <span class="label">Viewport</span>
+    <div class="segmented" id="viewport-toggle">
+      <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+      <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="label">Content state</span>
+    <div class="segmented" id="state-toggle">
+      <button type="button" data-state="desktop-hover" aria-pressed="true">Hover (mouse)</button>
+      <button type="button" data-state="desktop-focus" aria-pressed="false">
+        Keyboard focus
+      </button>
+      <button type="button" data-state="mobile" aria-pressed="false">Touch (no hover)</button>
+    </div>
+  </div>
+</div>
+
+<div class="review-stage">
+  <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+    <p class="stage-frame-label" id="stage-frame-label">Desktop — split layout</p>
+    <div class="canvas" data-state="desktop-hover" id="canvas">
+      <div class="app-header">
+        <a class="app-header__brand" href="#">
+          <span class="app-header__logo" aria-hidden="true"></span>
+          <h1 class="app-header__title">SolarLog Viewer</h1>
+        </a>
+        <nav class="app-nav">
+          <span>Tag</span><span data-active="true">Monat</span><span>Jahr</span
+          ><span>Gesamt</span>
+        </nav>
+        <div class="app-header__actions">
+          <span>Heute</span>
+          <strong style="color: var(--color-text)">14,2 kWh</strong>
+        </div>
+      </div>
+
+      <div class="view-header">
+        <h2 class="view-title">Monatsansicht – August 2026</h2>
+      </div>
+
+      <div class="period-layout">
+        <div class="chart-container">
+          <div class="chart-placeholder">
+            <div class="bar" style="height: 40%"></div>
+            <div class="bar" style="height: 62%"></div>
+            <div class="bar" style="height: 55%"></div>
+            <div class="bar" style="height: 78%"></div>
+            <div class="bar" style="height: 30%"></div>
+            <div class="bar" style="height: 90%"></div>
+            <div class="bar" style="height: 70%"></div>
+            <div class="bar" style="height: 45%"></div>
+            <div class="bar" style="height: 60%"></div>
+            <div class="bar" style="height: 20%"></div>
+            <div class="bar" style="height: 85%"></div>
+            <div class="bar" style="height: 65%"></div>
+            <div class="bar" style="height: 50%"></div>
+            <div class="bar" style="height: 72%"></div>
+          </div>
+        </div>
+
+        <div class="stats-panel">
+          <h3>Statistik</h3>
+          <table class="summary-table">
+            <tbody>
+              <tr>
+                <th><span class="stat-label">Monatsertrag</span></th>
+                <td>412,6 kWh</td>
+              </tr>
+              <tr>
+                <th>
+                  <span class="stat-label">
+                    Monatsertrag in €
+                    <span class="info-trigger" tabindex="0" aria-describedby="tip-euro">
+                      i
+                      <span
+                        class="info-tooltip"
+                        id="tip-euro"
+                        role="tooltip"
+                        data-show="desktop-hover-inline"
+                      >
+                        Der Monatsertrag (kWh) multipliziert mit dem hinterlegten
+                        Einspeisetarif pro kWh.
+                      </span>
+                      <span
+                        class="info-tooltip"
+                        role="tooltip"
+                        data-show="desktop-focus-inline"
+                      >
+                        Der Monatsertrag (kWh) multipliziert mit dem hinterlegten
+                        Einspeisetarif pro kWh.
+                      </span>
+                    </span>
+                  </span>
+                </th>
+                <td>61,89 €</td>
+              </tr>
+              <tr>
+                <th><span class="stat-label">Ertrag spezifisch</span></th>
+                <td>68,8 kWh/kWp</td>
+              </tr>
+              <tr>
+                <th><span class="stat-label">Maximalwert</span></th>
+                <td>18,4 kWh (9. August)</td>
+              </tr>
+              <tr>
+                <th>
+                  <span class="stat-label">
+                    Soll (auflaufend)
+                    <span class="info-trigger" tabindex="0" aria-describedby="tip-soll">
+                      i
+                      <span
+                        class="info-tooltip"
+                        id="tip-soll"
+                        role="tooltip"
+                        data-show="desktop-hover-inline"
+                      >
+                        Das anteilige Monatsziel bis heute: die Tagesziele aller bereits
+                        vergangenen Tage dieses Monats aufsummiert.
+                      </span>
+                      <span
+                        class="info-tooltip"
+                        role="tooltip"
+                        data-show="desktop-focus-inline"
+                      >
+                        Das anteilige Monatsziel bis heute: die Tagesziele aller bereits
+                        vergangenen Tage dieses Monats aufsummiert.
+                      </span>
+                    </span>
+                  </span>
+                </th>
+                <td>398,1 kWh</td>
+              </tr>
+              <tr>
+                <th>
+                  <span class="stat-label">
+                    Ist
+                    <span
+                      class="info-trigger flip-right"
+                      tabindex="0"
+                      aria-describedby="tip-ist"
+                    >
+                      i
+                      <span
+                        class="info-tooltip"
+                        id="tip-ist"
+                        role="tooltip"
+                        data-show="desktop-hover-inline"
+                      >
+                        Der tatsächliche Ertrag als Prozentsatz von "Soll (auflaufend)" — 100%
+                        heißt genau im Plan.
+                      </span>
+                      <span
+                        class="info-tooltip"
+                        role="tooltip"
+                        data-show="desktop-focus-inline"
+                      >
+                        Der tatsächliche Ertrag als Prozentsatz von "Soll (auflaufend)" — 100%
+                        heißt genau im Plan.
+                      </span>
+                    </span>
+                  </span>
+                </th>
+                <td>104 %</td>
+              </tr>
+              <tr>
+                <th>
+                  <span class="stat-label">
+                    Vermiedenes CO2
+                    <span
+                      class="info-trigger flip-right"
+                      tabindex="0"
+                      aria-describedby="tip-co2"
+                    >
+                      i
+                      <span
+                        class="info-tooltip"
+                        id="tip-co2"
+                        role="tooltip"
+                        data-show="desktop-hover-inline"
+                      >
+                        Monatsertrag (kWh) multipliziert mit dem CO2-Emissionsfaktor des
+                        deutschen Strommixes im jeweiligen Jahr.
+                      </span>
+                      <span
+                        class="info-tooltip"
+                        role="tooltip"
+                        data-show="desktop-focus-inline"
+                      >
+                        Monatsertrag (kWh) multipliziert mit dem CO2-Emissionsfaktor des
+                        deutschen Strommixes im jeweiligen Jahr.
+                      </span>
+                    </span>
+                  </span>
+                </th>
+                <td>187,3 kg</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="callout-row" data-show="desktop-hover">
+        <strong>Hover state</strong>
+        — moving the mouse onto an "i" icon (here: "Monatsertrag in €") reveals its tooltip
+        above the icon; moving away hides it again. Icons near the panel's right edge (Ist,
+        Vermiedenes CO2) anchor their tooltip from the right instead of centering, so it never
+        gets clipped by the panel boundary (FR-007).
+      </div>
+      <div class="callout-row" data-show="desktop-focus">
+        <strong>Keyboard-focus state</strong>
+        — tabbing to an icon reveals the same tooltip via <code>:focus-visible</code>, satisfying
+        FR-008: the explanation isn't hover-only. Shown here on "Monatsertrag in €".
+      </div>
+      <div class="mobile-note" data-show="mobile">
+        <strong>Touch / no-hover state</strong> — on a touch-only device the info icons are not
+        rendered at all (see the panel above with the viewport switched to Mobile): there's
+        nothing a tap could usefully do with one, so rather than shipping an inert icon the
+        feature removes it, keeping the stats panel exactly as clean as it is today. Detection is
+        via <code>(hover: hover) and (pointer: fine)</code>, not screen width, so a touchscreen
+        laptop with a trackpad still gets the icon and hover behavior (see spec Assumptions).
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="review-footer">
+  <p>
+    <strong>Fixed constraints:</strong> icon is a real focusable <code>&lt;button&gt;</code>
+    element (not a decorative span) so keyboard tabbing reaches it for free; tooltip text is
+    sourced from a single central label→explanation map (FR-006) so the month/year views can
+    reuse the same "Soll"/"Ist"/"Vermiedenes CO2" entries; both the hover/focus tooltip and the
+    icon's very presence are gated behind <code>(hover: hover) and (pointer: fine)</code> — on a
+    touch-only device the icon isn't rendered at all, never a screen-width breakpoint.
+  </p>
+  <p>
+    <strong>Out of scope for this mockup:</strong> the exact tooltip positioning library/algorithm
+    (illustrative CSS only — flip-on-edge is real behavior, but "smart" auto-placement for every
+    possible icon position is a plan-time concern); the day/year/total/welcome views' stats
+    panels, which reuse the identical <code>.stats-panel</code>/<code>.summary-table</code>
+    markup shown here (see <code>stats-panel.js</code>) and are not re-mocked per view; touch
+    devices with an attached mouse mid-session (assumption documents the pointer-capability
+    approach, not a live toggle demo).
+  </p>
+</footer>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const stageFrame = document.getElementById('stage-frame');
+  const stageLabel = document.getElementById('stage-frame-label');
+
+  function wire(groupId, attr, target, onChange) {
+    const group = document.getElementById(groupId);
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-' + attr + ']');
+      if (!btn) return;
+      const value = btn.getAttribute('data-' + attr);
+      target.setAttribute('data-' + attr, value);
+      [...group.querySelectorAll('button')].forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)),
+      );
+      if (onChange) onChange(value);
+    });
+  }
+
+  wire('viewport-toggle', 'viewport', stageFrame, (value) => {
+    stageLabel.textContent =
+      value === 'mobile' ? 'Mobile — stacked layout' : 'Desktop — split layout';
+  });
+  wire('state-toggle', 'state', canvas);
+</script>
