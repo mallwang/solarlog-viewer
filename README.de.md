@@ -20,7 +20,14 @@ unter `legacy-site/`.
 Die SolarLog-Daten sind aufgeteilt auf `web/hist/` (eingefrorene historische Daten bis
 einschließlich 28.07.2026 vom alten Gerät) und `web/data/` (laufend überschriebene Live-Daten des
 seit 29.07.2026 installierten neuen Geräts); die App führt beide zusammen, wenn eine Abfrage diese
-Grenze überschreitet — siehe `specs/001-website-modernization/data-model.md`.
+Grenze überschreitet — siehe `specs/001-website-modernization/data-model.md`. Die Ansichten für
+Monat/Jahr/Gesamt/Dashboard/Startseite sowie das Info-Panel laden ihre `months.js`-/`years.js`-/
+`days_hist.js`-Aggregate alle über eine gemeinsame Hilfsfunktion (`fetchFromBothSources`,
+`web/js/data/data-source.js`), die jede Datei im Speicher zwischenspeichert
+(`web/js/data/fetch-cache.js`), statt sie bei jeder Navigation erneut zu laden: `hist/*` wird für
+die Lebensdauer der Seite zwischengespeichert, da es sich nie ändert, `data/*` für
+`DATA_REFRESH_INTERVAL_MS`, da das Live-Gerät die Datei nur einmal täglich beim Start neu
+schreibt. Ein vollständiges Neuladen der Seite setzt den Cache zurück.
 
 ## Dynamischer Himmel-Hintergrund
 
