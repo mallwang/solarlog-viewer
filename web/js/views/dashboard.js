@@ -89,7 +89,8 @@ export async function render(container) {
     ? parseDailyTotalsFile(daysResult.text).find((d) => d.date === todayIso())
     : undefined;
 
-  if (todayEntry) values[0].textContent = formatKwh(sumWh(todayEntry.perInverter) / 1000);
+  if (todayEntry)
+    values[0].textContent = formatKwh(sumWh(todayEntry.perInverter) / 1000, { decimals: 2 });
 
   // months.js is only written at day rollover - and isn't guaranteed to hit every one - so fold
   // in every daily total newer than the checkpoint (not just today's), mirroring month-view.js's
@@ -102,7 +103,7 @@ export async function render(container) {
     months.find((m) => m.month === monthKey) ?? { month: monthKey, perInverter: {} },
     monthDailyBreakdown,
   );
-  values[1].textContent = formatKwh(sumWh(thisMonth.perInverter) / 1000);
+  values[1].textContent = formatKwh(sumWh(thisMonth.perInverter) / 1000, { decimals: 2 });
 
   // year-view.js derives the year's total from months.js (summed across the year's months, with
   // today folded into the current month) rather than from years.js directly, so mirror that here
@@ -112,7 +113,7 @@ export async function render(container) {
     ? monthsInYear.map((m) => (m.month === monthKey ? thisMonth : m))
     : [...monthsInYear, thisMonth];
   const yearWh = monthlyBreakdown.reduce((s, m) => s + sumWh(m.perInverter), 0);
-  values[2].textContent = formatKwh(yearWh / 1000);
+  values[2].textContent = formatKwh(yearWh / 1000, { decimals: 2 });
 
   // total-view.js derives the lifetime total from years.js (with today folded into the current
   // year), so mirror that here too.
@@ -123,5 +124,5 @@ export async function render(container) {
     const perInverter = y.year === year ? addTodayYield(y, todayEntry).perInverter : y.perInverter;
     return s + sumWh(perInverter);
   }, 0);
-  values[3].textContent = formatKwh(totalWh / 1000);
+  values[3].textContent = formatKwh(totalWh / 1000, { decimals: 2 });
 }

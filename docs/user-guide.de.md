@@ -10,12 +10,13 @@ siehe stattdessen das [README](../README.de.md) und das
 ## Inhaltsverzeichnis
 
 1. [Dashboard-Navigation & Diagramme](#dashboard-navigation--diagramme)
-2. [Ereignisse-Seite](#ereignisse-seite)
-3. [Dynamischer Himmel-Hintergrund](#dynamischer-himmel-hintergrund)
-4. [Globales Desktop-Infopanel](#globales-desktop-infopanel)
-5. [Automatische Aktualisierung der Tagesansicht & Startseite](#automatische-aktualisierung-der-tagesansicht--startseite)
-6. [Vermiedenes CO2](#vermiedenes-co2)
-7. [Erklär-Tooltips](#erklär-tooltips)
+2. [Statistik-Seite](#statistik-seite)
+3. [Ereignisse-Seite](#ereignisse-seite)
+4. [Dynamischer Himmel-Hintergrund](#dynamischer-himmel-hintergrund)
+5. [Globales Desktop-Infopanel](#globales-desktop-infopanel)
+6. [Automatische Aktualisierung der Tagesansicht & Startseite](#automatische-aktualisierung-der-tagesansicht--startseite)
+7. [Vermiedenes CO2](#vermiedenes-co2)
+8. [Erklär-Tooltips](#erklär-tooltips)
 
 ## Dashboard-Navigation & Diagramme
 
@@ -43,6 +44,43 @@ sie die oberste Ebene der Hierarchie ist.
 | y-Achsen der Tagesansicht                              | Einspeisung (W), Wirkungsgrad (%) und UDC (V) verwenden unabhängig vom Tag stets denselben festen Wertebereich/dieselbe Gitterlinien-Schrittweite, damit Tage vergleichbar bleiben und die Skala beim Blättern nicht springt.                                                                              |
 | x-Achse der Tagesansicht                               | Zoomt standardmäßig auf die tatsächlichen Daten des Tages (kleine Polsterung an beiden Enden); eine Admin-Person kann fest auf den vollen Tag 00:00–24:00 umstellen über `DAY_CHART_AXES`, `DAY_CHART_X_AXIS_RANGE` und `DAY_CHART_X_AXIS_PADDING_MINUTES` in `web/js/config.js`.                          |
 | Umschalter Gesamt / Wechselrichter (Monat/Jahr/Gesamt) | "Gesamt" (Standard) zeigt einen Summenbalken pro Zeitraum; "Wechselrichter" stapelt einen Abschnitt pro String, mit Gesamtsumme plus Einzelwerten im Tooltip. Wird über Reloads gemerkt und zwischen den drei Ansichten geteilt. Drilldown per Klick funktioniert in beiden Modi.                          |
+
+## Statistik-Seite
+
+`#/statistics` ("Statistik" in der Navigation, zwischen "Gesamt" und "Ereignisse") ist eine
+zweigeteilte Seite mit Bestwerten und Langzeittrends, komplett berechnet aus der bereits
+aufgezeichneten Historie der Anlage — es werden keine zusätzlichen Daten geladen, außer denen,
+die eine Sitzung, die bereits Monat/Jahr/Gesamt geöffnet hat, ohnehin schon heruntergeladen hat.
+Eine linke Themen-Navigation listet fünf Themen, jedes mit eigenem, teil-/lesezeichenfähigem Link:
+
+- **Allgemein** — ein 8-Kachel-Raster mit Bestwerten: bester/schwächster Monat & Jahr, der
+  höchste je erfasste Tages-Spitzenwert, der Tag mit dem höchsten "Ist %", sowie der Tag mit der
+  höchsten CO2-Ersparnis bzw. dem höchsten Erlös. Jede Kachel verlinkt zur passenden
+  Tages-/Monats-/Jahresansicht. Die Kachel zur maximalen Tagesleistung trägt einen kleinen
+  Hinweis: es ist der erfasste Tages-Spitzenwert, nicht an eine bestimmte Uhrzeit gebunden.
+- **Heatmaps** — eine Jahresauswahl oberhalb dreier Kalender-Heatmaps (Energie/kWh, Erlös/€,
+  CO2/kg), eine Zelle pro Tag, Farbintensität relativ zum Minimum/Maximum dieses Jahres. Ein Tag
+  ohne erfasste Daten wird als schraffiertes Muster dargestellt, immer visuell unterscheidbar von
+  einer echten erfassten Null.
+- **Serien** — zwei Karten: die längste Serie aufeinanderfolgender Tage mit jeweils mindestens
+  20 kWh Ertrag ("Ertragsstark"), und die längste Serie mit jeweils unter 5 kWh Ertrag
+  ("Ertragsschwach"), jeweils mit einem "läuft noch"-Abzeichen, falls diese Serie noch aktiv ist.
+  Jede Karte zeigt einen Streifen der Serie eigener Tage (plus zwei Kontexttage an jedem Ende) —
+  beim Hovern eines Tages erscheint der genaue Ertrag, ein Klick springt zur Tagesansicht.
+- **Trends** — drei Diagramme: Jahresvergleich des kumulierten Ertrags (ausgerichtet nach Tag im
+  Jahr), kumulierte Lebenszeit-Ersparnis in €/CO2 seit Inbetriebnahme, sowie spezifischer Ertrag
+  pro Jahr (kWh/kWp) — letzteres trägt einen dauerhaften Hinweis, dass von konstanter
+  installierter Leistung ausgegangen wird, ohne Wetter-Normalisierung. Die Diagramme für
+  Lebenszeit-Ersparnis und spezifischen Ertrag zeigen zusätzlich zwei "wenn es so weitergeht"
+  Prognosejahre über das letzte tatsächliche Jahr hinaus, grau/gestrichelt dargestellt, um sich
+  klar von erfassten Daten abzuheben.
+- **Bestwerte vs. Tiefstwerte** — dieselben Best-/Tiefstwert-Paare aus dem Thema Allgemein (Monat,
+  Jahr, Tagesertrag) nebeneinander dargestellt, jeweils mit eigenem Link, ohne Umschalter.
+
+Heatmaps, Serien und Trends zeigen jeweils einen Platzhalter "Noch nicht genug Daten" anstelle
+eines leeren Diagramms, wenn die Anlage für dieses Thema noch nicht genug aufgezeichnete Historie
+hat; Allgemein und Bestwerte vs. Tiefstwerte werden immer angezeigt, da schon wenige Tage Historie
+einen aussagekräftigen "bisherigen Bestwert" ergeben.
 
 ## Ereignisse-Seite
 

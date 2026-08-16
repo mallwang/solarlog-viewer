@@ -1,6 +1,6 @@
 import '../../vendor/apexcharts/apexcharts.esm.js';
 import { t } from '../i18n.js';
-import { formatNumber, formatKwh, formatDate } from '../format.js';
+import { formatNumber, formatKwh, formatDate, formatDayMonth } from '../format.js';
 import { efficiencyPercent, efficiencySums } from '../data/efficiency.js';
 import {
   isDayUdcVisible,
@@ -34,6 +34,17 @@ function getChartColors() {
   if (typeof window === 'undefined') return [];
   const styles = getComputedStyle(document.documentElement);
   return CHART_COLOR_VARS.map((name) => styles.getPropertyValue(name).trim());
+}
+
+/**
+ * Resolved `--color-text-muted` — the fixed gray used for a trend chart's "if this continues"
+ * forecast segment (see buildLifetimeCumulativeOptions/buildSpecificYieldTrendOptions), kept
+ * separate from the numbered `--chart-color-*` palette since a forecast isn't a real data series.
+ * @returns {string}
+ */
+function getForecastColor() {
+  if (typeof window === 'undefined') return '';
+  return getComputedStyle(document.documentElement).getPropertyValue('--color-text-muted').trim();
 }
 
 const charts = new WeakMap();
@@ -849,6 +860,322 @@ function buildYearMonthsOptions(data, colors, { onDataPointClick, lang, breakdow
   });
 }
 
+// First day-of-year (1-366, leap-year scheme with Feb = 29 days — matches data/statistics.js's
+// own LEAP_CUMULATIVE_DAYS_BEFORE_MONTH) of each calendar month, 0-based month index. Shared by
+// the yoy-cumulative chart's x-axis month labels and its tooltip's exact-date header below.
+const YOY_MONTH_START_DAY_OF_YEAR = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+
+/** @param {number} value - A dayOfYear x-axis value (1-366). @returns {number} 0-based month index. */
+function yoyMonthIndex(value) {
+  const rounded = Math.round(value);
+  let idx = 0;
+  for (let m = 0; m < YOY_MONTH_START_DAY_OF_YEAR.length; m += 1) {
+    if (rounded >= YOY_MONTH_START_DAY_OF_YEAR[m]) idx = m;
+  }
+  return idx;
+}
+
+/**
+ * Axis-tick label for a dayOfYear value — the short month name (`t('month.short.*')`), shown only
+ * for odd months (Jan, Mar, Mai, Jul, Sep, Nov) so the twenty-year-wide chart's x-axis stays
+ * readable instead of crowding all twelve in. Apex's own numeric-axis tick placement (min 1, max
+ * 366, tickAmount 6) lands close enough to each month's start that rounding to its containing
+ * month reads correctly.
+ * @param {number} value
+ */
+function yoyAxisLabel(value) {
+  const idx = yoyMonthIndex(value);
+  if (idx % 2 !== 0) return '';
+  return t(`month.short.${String(idx + 1).padStart(2, '0')}`);
+}
+
+/**
+ * Exact-date tooltip header for a dayOfYear value, e.g. "01.01." (FR-007 UX follow-up) — a fixed
+ * neutral leap year (2000) supplies the Date so Feb 29 always formats even though the actually
+ * hovered year may not itself be a leap year; only day+month are ever read back out.
+ * @param {number} value
+ * @param {string} [lang]
+ */
+function yoyTooltipDate(value, lang) {
+  const idx = yoyMonthIndex(value);
+  const day = Math.round(value) - YOY_MONTH_START_DAY_OF_YEAR[idx] + 1;
+  return formatDayMonth(new Date(Date.UTC(2000, idx, day)), { lang });
+}
+
+/**
+ * Year-over-year cumulative yield comparison (022-statistics-page, FR-007) — one line per
+ * calendar year present in `data`, aligned by day-of-year (see data/statistics.js's
+ * computeYoyCumulative) rather than by date, so every year's curve starts at the same x origin.
+ * Informational only — no onDataPointClick (research.md R3/contracts/statistics-module.md).
+ * A plant with many years quickly turns this into an unreadable tangle, so `renderChart` starts
+ * only the most recent three years checked in the legend (see its post-render `hideSeries` pass,
+ * user request — the oldest year(s) rarely have a full year of data anyway) — every year is still
+ * present and can be toggled back on to compare it directly.
+ * @param {{ year: number, points: { dayOfYear: number, cumulativeKwh: number }[] }[]} data
+ * @param {string[]} colors
+ * @param {{ lang?: string }} [config]
+ */
+function buildYoyCumulativeOptions(data, colors, { lang } = {}) {
+  const series = data.map((yearSeries, i) => ({
+    name: String(yearSeries.year),
+    data: yearSeries.points.map((p) => ({ x: p.dayOfYear, y: p.cumulativeKwh })),
+    color: colors[i % colors.length],
+  }));
+
+  return {
+    ...baseOptions(colors),
+    // `chart.height: '100%'` from baseOptions() lets the SVG grow taller than its container once
+    // the legend wraps to multiple rows (this chart can carry twenty-odd years), spilling the
+    // legend below .trend-mount's border — pinned to the container's actual CSS pixel height (see
+    // .trend-block .trend-mount) instead, same fix as buildSpecificYieldTrendOptions below.
+    chart: { ...baseOptions(colors).chart, type: 'line', height: 300 },
+    stroke: { width: 2, curve: 'smooth' },
+    markers: { size: 0 },
+    series,
+    xaxis: {
+      type: 'numeric',
+      title: { text: t('chart.monthAxis') },
+      min: 1,
+      max: 366,
+      tickAmount: 6,
+      labels: { formatter: yoyAxisLabel },
+    },
+    yaxis: {
+      title: { text: t('chart.cumulativeYieldAxis') },
+      min: 0,
+      forceNiceScale: true,
+      labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+    },
+    tooltip: {
+      // Apex's built-in `shared: true` tooltip resolves every series' row by matching
+      // *dataPointIndex*, not x-value — fine when every series shares one x-axis, but each
+      // year's line here has its own number of points (leap years, years still in progress), so
+      // index-based matching silently showed only the one series actually under the cursor. A
+      // custom tooltip instead reads the hovered x (dayOfYear) via `seriesX` and looks up each
+      // *currently visible* year's nearest point to it directly, so every active year lines up
+      // for direct comparison regardless of how its point count differs from the others.
+      custom: ({ seriesIndex, dataPointIndex, w }) => {
+        const hoveredDayOfYear = w.globals.seriesX[seriesIndex][dataPointIndex];
+        const rows = data
+          .map((yearSeries, i) => ({ yearSeries, i }))
+          .filter(({ i }) => !w.globals.collapsedSeriesIndices.includes(i))
+          .map(({ yearSeries, i }) => {
+            const nearest = yearSeries.points.reduce((best, p) => {
+              const diff = Math.abs(p.dayOfYear - hoveredDayOfYear);
+              return !best || diff < Math.abs(best.dayOfYear - hoveredDayOfYear) ? p : best;
+            }, null);
+            return tooltipRow({
+              color: w.globals.colors[i],
+              label: String(yearSeries.year),
+              value: nearest ? formatKwh(nearest.cumulativeKwh, { decimals: 2, lang }) : '—',
+            });
+          });
+        return `<div class="apexcharts-tooltip-title">${yoyTooltipDate(hoveredDayOfYear, lang)}</div>${rows.join('')}`;
+      },
+    },
+  };
+}
+
+/**
+ * Lifetime cumulative savings (022-statistics-page, FR-007) — dual-axis line (€ feed-in revenue
+ * left, CO2 avoided right), one point per year since the plant's commissioning (see
+ * data/statistics.js's computeLifetimeCumulative). Clicking a point drills into that year's
+ * `#/year/YYYY` view (contracts/statistics-module.md).
+ *
+ * `data` may carry trailing `forecast: true` entries (see data/statistics.js's forecastYears,
+ * called by trends-topic.js) — "if this trend continues" years appended after the actual ones.
+ * Each metric then renders as two series: the actual line in its normal color, and a second gray
+ * dashed line covering the forecast years (plus the last actual year, so it connects seamlessly
+ * rather than floating disconnected) — sharing the actual line's own y-axis scale (padded to the
+ * forecast's own max) rather than an independently auto-scaled one, so the two segments read as
+ * one continuous line. Clicking a forecast point is a no-op (user request) — there is no year
+ * view for a year that hasn't happened yet.
+ * @param {{ year: number, cumulativeEuro: number, cumulativeCo2Kg: number, forecast?: true }[]} data
+ * @param {string[]} colors
+ * @param {{ onDataPointClick?: (dataPointIndex: number) => void, lang?: string }} [config]
+ */
+function buildLifetimeCumulativeOptions(data, colors, { onDataPointClick, lang } = {}) {
+  const clickEvents = onDataPointClick
+    ? {
+        events: {
+          dataPointSelection: (event, chartContext, config) => {
+            if (data[config.dataPointIndex]?.forecast) return;
+            onDataPointClick(config.dataPointIndex);
+          },
+        },
+      }
+    : {};
+
+  const forecastStartIndex = data.findIndex((d) => d.forecast);
+  const hasForecast = forecastStartIndex !== -1;
+  const splitAt = hasForecast ? forecastStartIndex : data.length;
+  // The forecast segment includes index `splitAt - 1` (the last actual point) too, so its line
+  // starts exactly where the actual line ends instead of leaving a gap.
+  const forecastSlice = (values) => values.map((v, i) => (i >= splitAt - 1 ? v : null));
+  const actualSlice = (values) => values.map((v, i) => (i < splitAt ? v : null));
+
+  const euroValues = data.map((d) => d.cumulativeEuro);
+  const co2Values = data.map((d) => d.cumulativeCo2Kg);
+  const euroMax = Math.max(0, ...euroValues);
+  const co2Max = Math.max(0, ...co2Values);
+  const forecastSuffix = t('chart.forecastSuffix');
+  const euroForecastName = `${t('chart.euroAxis')} (${forecastSuffix})`;
+  const co2ForecastName = `${t('chart.co2Axis')} (${forecastSuffix})`;
+  const forecastColor = getForecastColor();
+
+  const series = [
+    { name: t('chart.euroAxis'), data: actualSlice(euroValues) },
+    { name: t('chart.co2Axis'), data: actualSlice(co2Values) },
+    ...(hasForecast
+      ? [
+          { name: euroForecastName, data: forecastSlice(euroValues) },
+          { name: co2ForecastName, data: forecastSlice(co2Values) },
+        ]
+      : []),
+  ];
+
+  const euroFormatter = (value) =>
+    value === null || value === undefined ? '—' : `${formatNumber(value, { decimals: 2, lang })} €`;
+  const co2Formatter = (value) =>
+    value === null || value === undefined
+      ? '—'
+      : `${formatNumber(value, { decimals: 0, lang })} kg`;
+
+  return {
+    ...baseOptions(colors),
+    // `chart.height: '100%'` from baseOptions() lets the SVG grow taller than its container once
+    // the forecast doubles the legend to four entries, spilling the legend below .trend-mount's
+    // border — pinned to the container's actual CSS pixel height (see .trend-block .trend-mount)
+    // instead, same fix as buildSpecificYieldTrendOptions below.
+    chart: { ...baseOptions(colors).chart, type: 'line', height: 300, ...clickEvents },
+    ...(onDataPointClick ? { states: { hover: { filter: { type: 'darken' } } } } : {}),
+    colors: [colors[0], colors[1], ...(hasForecast ? [forecastColor, forecastColor] : [])],
+    stroke: {
+      width: 2,
+      curve: 'monotoneCubic',
+      dashArray: hasForecast ? [0, 0, 6, 6] : [0, 0],
+    },
+    markers: { size: 4, hover: { size: 6 } },
+    series,
+    xaxis: { categories: data.map((d) => String(d.year)), title: { text: t('chart.yearAxis') } },
+    yaxis: [
+      {
+        seriesName: t('chart.euroAxis'),
+        title: { text: t('chart.euroAxis') },
+        min: 0,
+        max: euroMax,
+        forceNiceScale: true,
+        labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+      },
+      {
+        seriesName: t('chart.co2Axis'),
+        opposite: true,
+        title: { text: t('chart.co2Axis') },
+        min: 0,
+        max: co2Max,
+        forceNiceScale: true,
+        labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+      },
+      ...(hasForecast
+        ? [
+            { seriesName: euroForecastName, show: false, min: 0, max: euroMax },
+            { seriesName: co2ForecastName, show: false, opposite: true, min: 0, max: co2Max },
+          ]
+        : []),
+    ],
+    tooltip: {
+      y: hasForecast
+        ? [
+            { formatter: euroFormatter },
+            { formatter: co2Formatter },
+            { formatter: euroFormatter },
+            { formatter: co2Formatter },
+          ]
+        : [{ formatter: euroFormatter }, { formatter: co2Formatter }],
+    },
+  };
+}
+
+/**
+ * Per-year specific yield (kWh/kWp) trend (022-statistics-page, FR-008) — one bar per year plus a
+ * linear-regression trend line overlaid on top (see data/statistics.js's computeSpecificYieldTrend,
+ * which fits both). Clicking a bar (or the trend line, aligned to the same year categories) drills
+ * into that year's `#/year/YYYY` view; the degradation caveat itself is static UI copy rendered by
+ * views/statistics/trends-topic.js, not part of this chart.
+ *
+ * `data` may carry trailing `forecast: true` entries (see data/statistics.js's forecastYears,
+ * called by trends-topic.js) — `specificYieldKwhPerKwp` is `null` on those (no bar; the year
+ * hasn't happened), while `trendKwhPerKwp` continues the same linear fit extrapolated forward.
+ * The trend line is then split into two series so the forecast portion renders gray/dashed: the
+ * actual-years line in its normal color, and a second line covering the forecast years (plus the
+ * last actual year, so it connects seamlessly rather than floating disconnected).
+ * @param {{ year: number, specificYieldKwhPerKwp: number | null, trendKwhPerKwp: number, forecast?: true }[]} data
+ * @param {string[]} colors
+ * @param {{ onDataPointClick?: (dataPointIndex: number) => void, lang?: string }} [config]
+ */
+function buildSpecificYieldTrendOptions(data, colors, { onDataPointClick, lang } = {}) {
+  const clickEvents = onDataPointClick
+    ? {
+        events: {
+          dataPointSelection: (event, chartContext, config) => {
+            if (data[config.dataPointIndex]?.forecast) return;
+            onDataPointClick(config.dataPointIndex);
+          },
+        },
+      }
+    : {};
+
+  const forecastStartIndex = data.findIndex((d) => d.forecast);
+  const hasForecast = forecastStartIndex !== -1;
+  const splitAt = hasForecast ? forecastStartIndex : data.length;
+  const trendValues = data.map((d) => d.trendKwhPerKwp);
+  // The forecast segment includes index `splitAt - 1` (the last actual point) too, so its line
+  // starts exactly where the actual trend line ends instead of leaving a gap.
+  const trendActual = trendValues.map((v, i) => (i < splitAt ? v : null));
+  const trendForecast = trendValues.map((v, i) => (i >= splitAt - 1 ? v : null));
+  const forecastName = `${t('chart.specificYieldTrendAxis')} (${t('chart.forecastSuffix')})`;
+
+  return {
+    ...baseOptions(colors),
+    // Mixed bar+line series (`chart.height: '100%'` from baseOptions() lets the SVG grow taller
+    // than its container once a second legend entry is added, overflowing into whatever follows
+    // in the DOM) — pinned to the container's actual CSS pixel height (see .trend-mount--combo)
+    // instead, so the rendered SVG never exceeds it.
+    chart: { ...baseOptions(colors).chart, type: 'line', height: 340, ...clickEvents },
+    plotOptions: { bar: { columnWidth: '60%' } },
+    ...(onDataPointClick ? { states: { hover: { filter: { type: 'darken' } } } } : {}),
+    colors: hasForecast ? [colors[0], colors[1], getForecastColor()] : [colors[0], colors[1]],
+    stroke: {
+      width: hasForecast ? [0, 2, 2] : [0, 2],
+      curve: 'straight',
+      dashArray: hasForecast ? [0, 6, 6] : [0, 6],
+    },
+    markers: { size: 0 },
+    series: [
+      {
+        name: t('chart.specificYieldAxis'),
+        type: 'column',
+        data: data.map((d) => d.specificYieldKwhPerKwp),
+      },
+      { name: t('chart.specificYieldTrendAxis'), type: 'line', data: trendActual },
+      ...(hasForecast ? [{ name: forecastName, type: 'line', data: trendForecast }] : []),
+    ],
+    xaxis: { categories: data.map((d) => String(d.year)), title: { text: t('chart.yearAxis') } },
+    yaxis: {
+      title: { text: t('chart.specificYieldAxis') },
+      min: 0,
+      forceNiceScale: true,
+      labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+    },
+    tooltip: {
+      y: {
+        formatter: (value) =>
+          value === null || value === undefined ? '—' : formatKwh(value, { decimals: 2, lang }),
+      },
+    },
+  };
+}
+
 // Singleton <style> element for `hideUdcRangeLegendEntry`, lazily created in `document.head` —
 // deliberately *not* a child of the chart container: ApexCharts' `updateOptions`/`toggleSeries`
 // calls (used to keep the band in sync with the line — see `legendClick` in `buildDayOptions`)
@@ -900,6 +1227,12 @@ function buildOptions(mode, data, colors, config) {
       return buildYearMonthsOptions(data, colors, config);
     case 'year':
       return buildYearOptions(data, colors, config);
+    case 'yoy-cumulative':
+      return buildYoyCumulativeOptions(data, colors, config);
+    case 'lifetime-cumulative':
+      return buildLifetimeCumulativeOptions(data, colors, config);
+    case 'specific-yield-trend':
+      return buildSpecificYieldTrendOptions(data, colors, config);
     default:
       throw new Error(`chart-factory: unsupported mode "${mode}"`);
   }
@@ -911,7 +1244,8 @@ function buildOptions(mode, data, colors, config) {
  * chart instance before mounting a fresh one — no stacked/duplicate charts.
  * @param {HTMLElement} container - A plain `<div>` (was `<canvas>` under Chart.js); ApexCharts
  *   renders an inline SVG into it.
- * @param {'day' | 'day-yield' | 'day-total' | 'month' | 'year-months' | 'year'} mode
+ * @param {'day' | 'day-yield' | 'day-total' | 'month' | 'year-months' | 'year' | 'yoy-cumulative' |
+ *   'lifetime-cumulative' | 'specific-yield-trend'} mode
  * @param {object} data - Same shape per mode as before (readings/dailyBreakdown/
  *   monthlyBreakdown/yearlyTotalsList).
  * @param {{ onDataPointClick?: (dataPointIndex: number) => void, breakdown?: 'total' |
@@ -958,6 +1292,18 @@ export function renderChart(container, mode, data, config) {
         chart.hideSeries(efficiencySeriesName);
       }
       hideUdcRangeLegendEntry(options, udcRangeSeriesName);
+    });
+  }
+  // A plant with many years of history turns the year-over-year chart into an unreadable tangle
+  // of overlapping lines (user feedback) — start with only the most recent three years checked in
+  // the legend (older years are more likely to be partial, e.g. the commissioning year); every
+  // other year stays present and can be toggled back on individually to compare it. No-op for
+  // three years or fewer, where there's nothing older to hide.
+  if (mode === 'yoy-cumulative' && data.length > 3) {
+    Promise.resolve(rendered).then(() => {
+      for (const yearSeries of data.slice(0, -3)) {
+        chart.hideSeries(String(yearSeries.year));
+      }
     });
   }
   charts.set(container, chart);

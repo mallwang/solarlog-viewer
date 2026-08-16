@@ -94,19 +94,19 @@ function monthStatsRows(monthTotal, plant, params, isCurrentMonth) {
   const co2SavedKg = yieldKwh * co2FactorForYear(params.year);
 
   return [
-    ['month.stats.yieldKwh', formatKwh(yieldKwh)],
+    ['month.stats.yieldKwh', formatKwh(yieldKwh, { decimals: 2 })],
     ['month.stats.yieldEuro', formatCurrency(feedInEuro), 'explanations.yieldEuro'],
-    ['month.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
+    ['month.stats.specificYield', `${formatKwh(specificYield, { decimals: 2 })}/kWp`],
     [
       'month.stats.maxDaily',
       statValueMarkup(
-        formatKwh(maxDaily.kwh),
+        formatKwh(maxDaily.kwh, { decimals: 2 }),
         maxDailyDay ? `(${maxDailyDay}. ${maxDailyMonthName})` : null,
       ),
     ],
     [
       isCurrentMonth ? 'month.stats.sollAuflaufend' : 'month.stats.sollTotal',
-      formatKwh(sollKwh),
+      formatKwh(sollKwh, { decimals: 2 }),
       isCurrentMonth ? 'explanations.sollAuflaufend' : 'explanations.soll',
     ],
     ['month.stats.ist', `${ist}%`, 'explanations.ist'],

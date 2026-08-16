@@ -37,6 +37,12 @@ const NAV_ITEMS = [
     },
   },
   { view: 'total', labelKey: 'nav.totalView', icon: 'presentationChartBar', params: {} },
+  {
+    view: 'statistics',
+    labelKey: 'nav.statisticsView',
+    icon: 'chartBar',
+    params: { topic: 'common' },
+  },
   { view: 'events', labelKey: 'nav.eventsView', icon: 'listBullet', params: {} },
   // External link, not a routed view: opens the language-specific user guide on GitHub in a
   // new tab. `href` is a function (not a static string) so it re-resolves the language-specific
@@ -213,6 +219,7 @@ const viewModules = {
   month: () => import('./views/month-view.js'),
   year: () => import('./views/year-view.js'),
   total: () => import('./views/total-view.js'),
+  statistics: () => import('./views/statistics/statistics-view.js'),
   events: () => import('./views/events-view.js'),
 };
 

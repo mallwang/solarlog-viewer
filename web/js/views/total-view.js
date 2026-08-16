@@ -49,14 +49,14 @@ function totalStatsRows(summary, plant) {
   const ist = istPercent(yieldKwh, sollKwh);
 
   return [
-    ['total.stats.yieldKwh', formatKwh(yieldKwh)],
+    ['total.stats.yieldKwh', formatKwh(yieldKwh, { decimals: 2 })],
     ['total.stats.yieldEuro', formatCurrency(summary.feedInTotal), 'explanations.yieldEuro'],
-    ['total.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
+    ['total.stats.specificYield', `${formatKwh(specificYield, { decimals: 2 })}/kWp`],
     [
       'total.stats.maxYear',
-      statValueMarkup(formatKwh(best.kwh), best.year ? `(${best.year})` : null),
+      statValueMarkup(formatKwh(best.kwh, { decimals: 2 }), best.year ? `(${best.year})` : null),
     ],
-    ['total.stats.sollTotal', formatKwh(sollKwh), 'explanations.soll'],
+    ['total.stats.sollTotal', formatKwh(sollKwh, { decimals: 2 }), 'explanations.soll'],
     ['total.stats.ist', `${ist}%`, 'explanations.ist'],
     ['total.stats.co2', formatCo2(summary.co2SavedKg), 'explanations.co2'],
   ];

@@ -74,3 +74,17 @@ export function formatDate(date, { lang } = {}) {
     year: 'numeric',
   }).format(date);
 }
+
+/**
+ * Formats a calendar date's day+month only, no year (DD.MM. for de, MM/DD for en) — used where the
+ * year is either implied or, as in the trends topic's year-over-year chart, deliberately varies
+ * per series and shouldn't be baked into a shared axis/tooltip label.
+ * @param {Date} date
+ * @param {{ lang?: 'de' | 'en' }} [opts]
+ * @returns {string}
+ */
+export function formatDayMonth(date, { lang } = {}) {
+  return new Intl.DateTimeFormat(resolveLocale(lang), { day: '2-digit', month: '2-digit' }).format(
+    date,
+  );
+}

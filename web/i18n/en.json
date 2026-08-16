@@ -11,7 +11,8 @@
     "opensNewTab": "opens in new tab",
     "ariaLabel": "Main navigation",
     "toggleLabel": "Toggle navigation",
-    "transparencyToggleLabel": "Toggle transparency mode"
+    "transparencyToggleLabel": "Toggle transparency mode",
+    "statisticsView": "Statistics"
   },
   "common": {
     "prev": "Previous",
@@ -167,7 +168,14 @@
     "tableToggleOn": "Hide table",
     "tableToggleOff": "Show as table",
     "tableNoData": "No data for this period",
-    "tableCaption": "Data table"
+    "tableCaption": "Data table",
+    "dayOfYearAxis": "Day of year",
+    "cumulativeYieldAxis": "Cumulative yield (kWh)",
+    "euroAxis": "Revenue (€)",
+    "co2Axis": "CO₂ saved (kg)",
+    "specificYieldAxis": "Specific yield (kWh/kWp)",
+    "specificYieldTrendAxis": "Trend",
+    "forecastSuffix": "forecast"
   },
   "events": {
     "title": "Events",
@@ -242,5 +250,80 @@
     "sollAuflaufend": "The prorated target up to today: the daily targets of every day of this period that has already passed, added up.",
     "ist": "The actual yield as a percentage of the Soll figure shown alongside it — 100% means exactly on target.",
     "co2": "The yield (kWh) multiplied by the German electricity grid mix's CO2 emission factor for that year."
+  },
+  "statistics": {
+    "navLabel": "Statistics topics",
+    "noData": "No data available.",
+    "topics": {
+      "common": "Common",
+      "heatmaps": "Heatmaps",
+      "streaks": "Streaks",
+      "trends": "Trends",
+      "bestWorst": "Best vs. Worst"
+    },
+    "common": {
+      "title": "Common",
+      "intro": "The plant’s key records at a glance — each tile links to its matching detail view.",
+      "bestMonth": "Best month",
+      "worstMonth": "Worst month",
+      "bestYear": "Best year",
+      "worstYear": "Worst year",
+      "maxDailyPower": "Max. daily power",
+      "maxIstPercent": "Max. Actual %",
+      "maxDailyCo2": "Max. CO₂ saved / day",
+      "maxDailyEuro": "Max. revenue / day",
+      "viewDay": "View day →",
+      "viewMonth": "View month →",
+      "viewYear": "View year →"
+    },
+    "commonTiles": {
+      "maxDailyPowerCaveat": "day only, no time of day recorded",
+      "notEnough": "n/a"
+    },
+    "heatmaps": {
+      "title": "Heatmaps",
+      "intro": "A calendar view per year — color intensity is relative to that year’s own minimum/maximum.",
+      "yearLabel": "Year",
+      "energy": "Energy (kWh)",
+      "money": "Revenue (€)",
+      "co2": "CO₂ saved (kg)",
+      "legendLow": "low",
+      "legendHigh": "high",
+      "legendMissing": "no data"
+    },
+    "streaks": {
+      "title": "Streaks",
+      "intro": "The longest runs of consecutive days that were unusually strong or unusually weak.",
+      "highTitle": "High-yield streak",
+      "highIntro": "The longest run of consecutive days each producing at least 20 kWh.",
+      "lowTitle": "Low-yield streak",
+      "lowIntro": "The longest run of consecutive days each producing under 5 kWh.",
+      "lengthLabel": "Days in a row",
+      "thresholdLabel": "Daily threshold",
+      "dateRange": "Date range",
+      "ongoing": "ongoing"
+    },
+    "trends": {
+      "title": "Trends",
+      "intro": "The plant’s long-term development across multiple years.",
+      "yoyTitle": "Year-over-year (cumulative yield)",
+      "lifetimeTitle": "Cumulative revenue vs. CO₂ savings",
+      "specificYieldTitle": "Specific yield per year",
+      "degradationCaveat": "Assumes constant installed capacity; no weather normalization.",
+      "notEnoughYoy": "The year-over-year comparison needs at least two years of data."
+    },
+    "bestWorst": {
+      "title": "Best vs. Worst",
+      "intro": "Best and worst values side by side, each with its own link to the detail view.",
+      "month": "Month",
+      "year": "Year",
+      "dailyYield": "Daily yield",
+      "best": "Best",
+      "worst": "Worst"
+    },
+    "emptyState": {
+      "title": "Not enough data yet",
+      "body": "This view needs more recorded history — check back later."
+    }
   }
 }

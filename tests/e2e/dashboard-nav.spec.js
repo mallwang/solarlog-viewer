@@ -6,19 +6,25 @@ const VIEWS = [
   { name: 'month', path: '/#/month/2008/07', label: 'Monatserträge' },
   { name: 'year', path: '/#/year/2019', label: 'Jahreserträge' },
   { name: 'total', path: '/#/total', label: 'Gesamterträge' },
+  { name: 'statistics', path: '/#/statistics', label: 'Statistik' },
   { name: 'events', path: '/#/events', label: 'Ereignisse' },
 ];
 
-test.describe('Navigation lists all six views and marks the active one (FR-002, FR-003)', () => {
+// The nav also carries a trailing external "Benutzerhandbuch" (user guide) link, rendered as a
+// plain `<li><a>` alongside the routed views above (see main.js's NAV_ITEMS) — one more than
+// VIEWS.length, but never `aria-current` (it's not a routed view).
+const NAV_LINK_COUNT = VIEWS.length + 1;
+
+test.describe('Navigation lists all routed views and marks the active one (FR-002, FR-003)', () => {
   for (const { name, path } of VIEWS) {
-    test(`${name} view: nav lists all six routes with exactly one aria-current="page"`, async ({
+    test(`${name} view: nav lists every route with exactly one aria-current="page"`, async ({
       page,
     }) => {
       await page.goto(path);
       await page.waitForLoadState('networkidle');
 
       const links = page.locator('#app-nav-list li a');
-      await expect(links).toHaveCount(VIEWS.length);
+      await expect(links).toHaveCount(NAV_LINK_COUNT);
       for (const { label } of VIEWS) {
         await expect(page.locator('#app-nav-list')).toContainText(label);
       }
