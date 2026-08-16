@@ -924,7 +924,11 @@ function buildYoyCumulativeOptions(data, colors, { lang } = {}) {
 
   return {
     ...baseOptions(colors),
-    chart: { ...baseOptions(colors).chart, type: 'line' },
+    // `chart.height: '100%'` from baseOptions() lets the SVG grow taller than its container once
+    // the legend wraps to multiple rows (this chart can carry twenty-odd years), spilling the
+    // legend below .trend-mount's border — pinned to the container's actual CSS pixel height (see
+    // .trend-block .trend-mount) instead, same fix as buildSpecificYieldTrendOptions below.
+    chart: { ...baseOptions(colors).chart, type: 'line', height: 300 },
     stroke: { width: 2, curve: 'smooth' },
     markers: { size: 0 },
     series,
@@ -1039,7 +1043,11 @@ function buildLifetimeCumulativeOptions(data, colors, { onDataPointClick, lang }
 
   return {
     ...baseOptions(colors),
-    chart: { ...baseOptions(colors).chart, type: 'line', ...clickEvents },
+    // `chart.height: '100%'` from baseOptions() lets the SVG grow taller than its container once
+    // the forecast doubles the legend to four entries, spilling the legend below .trend-mount's
+    // border — pinned to the container's actual CSS pixel height (see .trend-block .trend-mount)
+    // instead, same fix as buildSpecificYieldTrendOptions below.
+    chart: { ...baseOptions(colors).chart, type: 'line', height: 300, ...clickEvents },
     ...(onDataPointClick ? { states: { hover: { filter: { type: 'darken' } } } } : {}),
     colors: [colors[0], colors[1], ...(hasForecast ? [forecastColor, forecastColor] : [])],
     stroke: {
