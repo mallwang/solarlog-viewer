@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/mallwang/solarlog-viewer/compare/v1.0.0...v1.1.0) (2026-08-16)
+
+### Features
+
+- **statistics:** add Statistics page with streaks, trends, and heatmaps ([#56](https://github.com/mallwang/solarlog-viewer/issues/56)) ([aaff34b](https://github.com/mallwang/solarlog-viewer/commit/aaff34bcbc889e546d38338fd97c24be82f40ce4))
+
 ## 1.0.0 (2026-08-16)
 
 ### Features

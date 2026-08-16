@@ -1,6 +1,6 @@
 {
   "name": "solarlog-viewer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Static viewer for SolarLog data exports",
   "license": "MIT",
   "private": true,
