@@ -67,8 +67,9 @@ test.describe('Statistics page (022-statistics-page)', () => {
     await page.goto('/index.html#/statistics/streaks');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('.streak-number')).toBeVisible();
-    await expect(page.locator('.streak-detail')).toContainText('–');
+    await expect(page.locator('.streak-number')).toHaveCount(2);
+    await expect(page.locator('.streak-number').first()).toBeVisible();
+    await expect(page.locator('.streak-detail').first()).toContainText('–');
     expect(errors).toEqual([]);
   });
 

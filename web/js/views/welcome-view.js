@@ -142,10 +142,10 @@ async function renderStats(mount, plant, { keepOnFailure = false } = {}) {
     }
 
     mount.innerHTML = statsPanelMarkup('welcome.stats.title', [
-      ['widget.todayYield', formatKwh(summary.todayKwh)],
-      ['widget.monthYield', formatKwh(summary.monthKwh)],
-      ['widget.yearYield', formatKwh(summary.yearKwh)],
-      ['widget.totalYield', formatKwh(summary.totalKwh)],
+      ['widget.todayYield', formatKwh(summary.todayKwh, { decimals: 2 })],
+      ['widget.monthYield', formatKwh(summary.monthKwh, { decimals: 2 })],
+      ['widget.yearYield', formatKwh(summary.yearKwh, { decimals: 2 })],
+      ['widget.totalYield', formatKwh(summary.totalKwh, { decimals: 2 })],
       ['total.stats.co2', formatCo2(summary.co2SavedKg), 'explanations.co2'],
       ['total.stats.yieldEuro', formatCurrency(summary.feedInTotal)],
     ]);

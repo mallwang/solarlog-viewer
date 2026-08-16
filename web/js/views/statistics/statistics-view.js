@@ -90,8 +90,13 @@ function loadStatisticsData() {
  * @returns {string}
  */
 export function statTileMarkup(tile, { worst = false, fallbackLabelKey } = {}) {
+  // "best" mirrors the accent treatment given to best-worst-topic.js's .pair-side.best — every
+  // tile here is a record (either the best of a best/worst pair, or a plain "max ever" stat like
+  // maxDailyPower), so none of them are a plain/neutral value; only the explicit "worst" side
+  // should skip the accent.
+  const sideClass = worst ? 'worst' : 'best';
   if (!tile) {
-    return `<div class="stat-tile${worst ? ' worst' : ''}">
+    return `<div class="stat-tile ${sideClass}">
       <span class="tile-label">${fallbackLabelKey ? t(fallbackLabelKey) : ''}</span>
       <span class="tile-value">${t('statistics.commonTiles.notEnough')}</span>
     </div>`;
@@ -103,7 +108,7 @@ export function statTileMarkup(tile, { worst = false, fallbackLabelKey } = {}) {
     ? `<a class="tile-link" href="${formatRoute(tile.route)}">${t(viewLabelKey)}</a>`
     : '';
   const caveat = tile.caveat ? `<span class="power-caveat">${t(tile.caveat)}</span>` : '';
-  return `<div class="stat-tile${worst ? ' worst' : ''}">
+  return `<div class="stat-tile ${sideClass}">
     <span class="tile-label">${t(tile.label)}</span>
     <span class="tile-value">${tile.value}</span>
     <span class="tile-meta">${tile.period}</span>

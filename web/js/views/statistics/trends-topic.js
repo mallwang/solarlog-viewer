@@ -13,6 +13,7 @@ import {
   computeYoyCumulative,
   computeLifetimeCumulative,
   computeSpecificYieldTrend,
+  forecastYears,
   hasEnoughHistory,
   hasEnoughHistoryForYoy,
 } from '../../data/statistics.js';
@@ -46,8 +47,8 @@ export function render(container, { plant, fullDailyHistory, fullYearlyHistory }
     </div>
     <div class="trend-block">
       <h3>${t('statistics.trends.specificYieldTitle')}</h3>
-      <div class="trend-mount" data-chart="specific-yield"></div>
       <p class="trend-caveat">${t('statistics.trends.degradationCaveat')}</p>
+      <div class="trend-mount trend-mount--combo" data-chart="specific-yield"></div>
     </div>
   </section>`;
 
@@ -62,28 +63,50 @@ export function render(container, { plant, fullDailyHistory, fullYearlyHistory }
     );
   }
 
+  // Both trend charts below append two "if this continues" forecast years (user request) via
+  // forecastYears — rendered gray/dashed by chart-factory.js. `withLifetimeForecast`/
+  // `withSpecificYieldForecast` (actual years + forecast years) is what both the chart and its
+  // onDataPointClick index lookup are built from, since ApexCharts' dataPointIndex spans the
+  // combined series.
+  const lifetimeYears = computeLifetimeCumulative(fullYearlyHistory, plant);
+  const withLifetimeForecast = [
+    ...lifetimeYears,
+    ...forecastYears(lifetimeYears, ['cumulativeEuro', 'cumulativeCo2Kg']),
+  ];
   renderChart(
     container.querySelector('[data-chart="lifetime"]'),
     'lifetime-cumulative',
-    computeLifetimeCumulative(fullYearlyHistory, plant),
+    withLifetimeForecast,
     {
       lang,
       onDataPointClick: (index) => {
-        const years = computeLifetimeCumulative(fullYearlyHistory, plant);
-        window.location.hash = formatRoute({ view: 'year', params: { year: years[index].year } });
+        window.location.hash = formatRoute({
+          view: 'year',
+          params: { year: withLifetimeForecast[index].year },
+        });
       },
     },
   );
 
+  const specificYieldYears = computeSpecificYieldTrend(fullYearlyHistory, plant);
+  const withSpecificYieldForecast = [
+    ...specificYieldYears,
+    ...forecastYears(specificYieldYears, ['trendKwhPerKwp']).map((f) => ({
+      ...f,
+      specificYieldKwhPerKwp: null,
+    })),
+  ];
   renderChart(
     container.querySelector('[data-chart="specific-yield"]'),
     'specific-yield-trend',
-    computeSpecificYieldTrend(fullYearlyHistory, plant),
+    withSpecificYieldForecast,
     {
       lang,
       onDataPointClick: (index) => {
-        const years = computeSpecificYieldTrend(fullYearlyHistory, plant);
-        window.location.hash = formatRoute({ view: 'year', params: { year: years[index].year } });
+        window.location.hash = formatRoute({
+          view: 'year',
+          params: { year: withSpecificYieldForecast[index].year },
+        });
       },
     },
   );

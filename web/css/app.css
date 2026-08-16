@@ -2270,6 +2270,10 @@ html[data-transparency='on'] body[data-sky='night'] {
 .stats-content {
   flex: 1 1 auto;
   min-width: 0;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-sizing: border-box;
 }
 
 .stats-content h2 {
@@ -2281,25 +2285,42 @@ html[data-transparency='on'] body[data-sky='night'] {
   margin: 0 0 var(--space-md);
   color: var(--color-text-muted);
   font-size: 0.875rem;
-  max-width: 60ch;
 }
 
 /* ---- Common / Best vs. Worst: stat tile grid ---- */
 
+/* minmax(0, 1fr) rather than plain 1fr: a bare 1fr track's implicit min-width is the max-content
+   size of its (nowrap) contents, which forces every column to the width of its widest label and
+   overflows the page at narrow viewports instead of letting the grid — and .stat-tile below —
+   actually shrink. */
 .tile-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-md);
 }
 
 .stat-tile {
+  min-width: 0;
   background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-md);
   display: flex;
   flex-direction: column;
   gap: 2px;
   box-sizing: border-box;
+}
+
+/* "Best"/record tiles get the same accent border/tint treatment as .pair-side.best in the Best
+   vs. Worst topic — otherwise they had no visual treatment at all and blended into the panel's
+   own background. */
+.stat-tile.best {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-bg-elevated));
+}
+
+.stat-tile.best .tile-value {
+  color: var(--color-accent);
 }
 
 /* "Worst" tiles get a subtle diagonal-stripe background instead of a red/danger color — this is
@@ -2365,7 +2386,15 @@ html[data-transparency='on'] body[data-sky='night'] {
   justify-content: space-between;
   margin-bottom: var(--space-md);
   gap: var(--space-sm);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+.heatmap-controls label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .year-select {
@@ -2380,6 +2409,10 @@ html[data-transparency='on'] body[data-sky='night'] {
 
 .heatmap-block {
   background: var(--color-bg-elevated);
+  /* Same border treatment as .stat-tile/.pair-side — without it the block's background matched
+     the surrounding .stats-content panel exactly, so the three stacked heatmaps had no visible
+     edge between them or against the panel. */
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-md);
   margin-bottom: var(--space-md);
@@ -2391,19 +2424,138 @@ html[data-transparency='on'] body[data-sky='night'] {
   font-size: 0.95rem;
 }
 
+/* Outer row: one sub-grid per calendar month (see .heatmap-month), scrolling horizontally as a
+   whole. Day-of-year cells have no fixed alignment to a 7-row grid, so month boundaries are drawn
+   between separate sub-grids rather than as a line inside one continuous grid. */
 .heatmap-grid {
-  display: grid;
-  grid-template-rows: repeat(7, 11px);
-  grid-auto-flow: column;
-  gap: 3px;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  /* overflow-x: auto forces overflow-y to auto too (per spec, "visible" can't pair with a
+     non-visible axis), and the grid's own box otherwise hugs the cells exactly — so the
+     :hover/.is-selected outline on the top row and the first/last column got clipped by the
+     scroll container. Padding gives the outline room; the negative margin cancels it back out
+     so the block's overall spacing is unchanged. */
+  padding: 3px;
+  margin: -3px -3px 1px;
+  /* Splitting the grid into per-month sub-grids wastes a little column space on months whose
+     day count doesn't divide evenly into 7 rows, so the row can still overflow narrow panels
+     even at the trimmed cell/gap size below. Rather than hide the scrollbar outright (that left
+     31.12. scrolled out of view with no way to reach it), give it a slim, unobtrusive style so
+     overflow stays visible and discoverable without looking like a full native scrollbar. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.heatmap-grid::-webkit-scrollbar {
+  height: 5px;
+}
+
+.heatmap-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.heatmap-grid::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+/* Each month is an `fr`-based grid (--cols/flex-grow/max-width set inline per month in
+   heatmaps-topic.js, since only JS knows each month's day count). flex-grow proportional to
+   --cols makes every month's share of the row exactly match its column count, so the computed
+   cell width comes out the same in every month; aspect-ratio then derives the row height from
+   that same width so cells stay square without any fixed pixel size. The net effect: the full
+   12-month row always exactly fills the available width — shrinking, growing, or (below
+   min-width) scrolling together — instead of a fixed cell size leaving space unused or
+   overflowing. */
+.heatmap-month {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  grid-auto-flow: column;
+  gap: 2px;
+  aspect-ratio: var(--cols) / 7;
+  flex-shrink: 1;
+  flex-basis: 0;
+  min-width: calc(var(--cols) * 5px);
+}
+
+/* The dividing line between months, drawn inside the existing 5px flex gap (not adding extra
+   width) so it doesn't double up or bracket the first/last month. */
+.heatmap-month + .heatmap-month {
+  border-left: 1px solid var(--color-border);
+  margin-left: -3px;
+  padding-left: 2px;
 }
 
 .heatmap-cell {
-  width: 11px;
-  height: 11px;
   border-radius: 2px;
+  background: color-mix(
+    in srgb,
+    var(--heat-color, var(--color-accent)) calc(var(--v, 0) * 100%),
+    var(--color-bg)
+  );
+  cursor: pointer;
+}
+
+/* Missing-data days get a hatch pattern instead of a solid color at any opacity, so "no data" is
+   never confused with a real recorded zero (FR-005). Stripes use --color-text-muted rather than
+   --color-border so the pattern stays legible against the light panel background. */
+.heatmap-cell[data-missing='true'] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-bg),
+    var(--color-bg) 2px,
+    var(--color-text-muted) 2px,
+    var(--color-text-muted) 3px
+  );
+}
+
+/* Hover previews which day the pointer is over; click pins the same outline on a chosen cell (see
+   the click handler in heatmaps-topic.js) so it stays marked while reading its tooltip value. */
+.heatmap-cell:hover,
+.heatmap-cell.is-selected {
+  outline: 2px solid var(--color-text);
+  outline-offset: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+.heatmap-cell.is-selected {
+  outline-color: var(--color-primary-dark);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.heatmap-legend .legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Swatches share the cell's color-mix formula so "niedrig"/"hoch" actually preview the scale
+   instead of rendering with no background at all — the earlier rule only ever applied to
+   .heatmap-cell, leaving the legend swatches transparent. The border keeps the near-white
+   "niedrig" chip (and the missing-data chip) visible against the panel background. */
+.heatmap-legend .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
   background: color-mix(
     in srgb,
     var(--heat-color, var(--color-accent)) calc(var(--v, 0) * 100%),
@@ -2411,49 +2563,48 @@ html[data-transparency='on'] body[data-sky='night'] {
   );
 }
 
-/* Missing-data days get a hatch pattern instead of a solid color at any opacity, so "no data" is
-   never confused with a real recorded zero (FR-005). */
-.heatmap-cell[data-missing='true'] {
-  background: repeating-linear-gradient(
-    45deg,
-    var(--color-bg),
-    var(--color-bg) 2px,
-    var(--color-border) 2px,
-    var(--color-border) 3px
-  );
-}
-
-.heatmap-legend {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-top: var(--space-sm);
-  font-size: 0.7rem;
-  color: var(--color-text-muted);
-  flex-wrap: wrap;
-}
-
-.heatmap-legend .swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  display: inline-block;
-}
-
 .heatmap-legend .swatch.missing {
   background: repeating-linear-gradient(
     45deg,
     var(--color-bg),
     var(--color-bg) 2px,
-    var(--color-border) 2px,
-    var(--color-border) 3px
+    var(--color-text-muted) 2px,
+    var(--color-text-muted) 3px
   );
 }
 
 /* ---- Streaks ---- */
 
+/* Each streak-block carries its own --streak-color so the card, strip and legend swatch below it
+   all pick up the same accent without repeating the color in three places: green for the
+   high-yield streak (a run of strong days is a good thing), red for the low-yield streak (a run
+   of weak days is worth noticing) — see streaks-topic.js's modifierClass. */
+.streak-block.streak-card--high {
+  --streak-color: var(--color-accent);
+}
+
+.streak-block.streak-card--low {
+  --streak-color: var(--color-danger);
+}
+
+.streak-block {
+  margin-bottom: var(--space-lg);
+}
+
+.streak-block > h4 {
+  margin: 0 0 2px;
+  font-size: 1.05rem;
+}
+
+.streak-block > .topic-intro {
+  font-size: 0.75rem;
+}
+
 .streak-card {
   background: var(--color-bg-elevated);
+  /* Same border treatment as .stat-tile/.pair-side/.heatmap-block — otherwise the card's
+     background matched the surrounding .stats-content panel exactly, with no visible edge. */
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
   display: flex;
@@ -2466,13 +2617,13 @@ html[data-transparency='on'] body[data-sky='night'] {
 .streak-number {
   font-size: 2.5rem;
   font-weight: 800;
-  color: var(--color-accent);
+  color: var(--streak-color, var(--color-accent));
   line-height: 1;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
 
-.streak-detail h3 {
+.streak-detail h4 {
   margin: 0 0 2px;
   font-size: 1rem;
 }
@@ -2489,15 +2640,61 @@ html[data-transparency='on'] body[data-sky='night'] {
   margin-top: var(--space-sm);
 }
 
+/* Cells are <a> elements linking to the day's detail view, so undo anchor chrome (underline,
+   link color) that would otherwise fight the plain color-block look. */
 .streak-strip .day {
+  display: block;
   flex: 1;
   height: 18px;
   border-radius: 2px;
   background: var(--color-border);
+  text-decoration: none;
 }
 
 .streak-strip .day.in-streak {
-  background: var(--color-accent);
+  background: var(--streak-color, var(--color-accent));
+}
+
+/* Same hover treatment as .heatmap-cell: an outline (not a background swap) so it works over both
+   the plain "context" days and the highlighted in-streak days. */
+.streak-strip .day:hover {
+  outline: 2px solid var(--color-text);
+  outline-offset: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Explains the strip's two cell colors (FR-006 clarity fix: the strip used to be an unlabelled
+   row of gray/colored squares) — mirrors .heatmap-legend's swatch pattern below. */
+.streak-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+
+.streak-legend .legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.streak-legend .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-border);
+}
+
+.streak-legend .swatch.in-streak {
+  background: var(--streak-color, var(--color-accent));
+  border-color: var(--streak-color, var(--color-accent));
 }
 
 .ongoing-badge {
@@ -2517,6 +2714,10 @@ html[data-transparency='on'] body[data-sky='night'] {
 
 .trend-block {
   background: var(--color-bg-elevated);
+  /* Same border treatment as .stat-tile/.pair-side/.heatmap-block/.streak-card — otherwise the
+     block's background matched the surrounding .stats-content panel exactly, with no visible
+     edge between the three stacked charts or against the panel. */
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-md);
   margin-bottom: var(--space-md);
@@ -2529,11 +2730,23 @@ html[data-transparency='on'] body[data-sky='night'] {
 }
 
 .trend-block .trend-mount {
-  height: 260px;
+  /* Tall enough for a legend that wraps to two rows (the yoy chart's twenty-odd years) without
+     the x-axis title spilling past the container's bottom edge. */
+  height: 300px;
+}
+
+.trend-block .trend-mount--combo {
+  /* Matches the explicit chart.height (340) buildSpecificYieldTrendOptions passes ApexCharts for
+     this combo chart — see that config's own comment for why it's pinned in pixels rather than
+     inheriting the plain '100%' the other trend charts use. */
+  height: 340px;
 }
 
 .trend-block .trend-caveat {
-  margin: var(--space-xs) 0 0;
+  /* Now rendered below the diagram title and above its chart mount (user request) — margin-bottom
+     rather than the old margin-top separates it from the chart that follows instead of the h3
+     above it. */
+  margin: 0 0 var(--space-sm);
   font-size: 0.75rem;
   color: var(--color-text-muted);
   font-style: italic;
@@ -2561,16 +2774,34 @@ html[data-transparency='on'] body[data-sky='night'] {
 }
 
 .pair-side {
+  /* Column layout (tag / value / date, all left-aligned) rather than a row with
+     justify-content: space-between — a right-aligned value block drifted left or right depending
+     on how many digits the number had, so the kWh values and dates never lined up between the
+     best and worst side, or between rows (user report). Stacking them left-aligned keeps every
+     side's value/date starting at the same x position regardless of digit count. */
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
   background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-sm) var(--space-md);
   text-decoration: none;
   color: var(--color-text);
   box-sizing: border-box;
+}
+
+/* "Best" side: an accent border/tint so it doesn't blend into the panel's own background (it
+   otherwise had no visual treatment at all, unlike the worst side's stripe). Border rather than a
+   loud fill keeps it readable, matching the app's existing accent usage. */
+.pair-side.best {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-bg-elevated));
+}
+
+.pair-side.best .pair-value {
+  color: var(--color-accent);
 }
 
 .pair-side.worst {
@@ -2592,6 +2823,11 @@ html[data-transparency='on'] body[data-sky='night'] {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+.pair-side .pair-period {
+  font-size: 0.8rem;
   color: var(--color-text-muted);
 }
 
@@ -2636,7 +2872,7 @@ html[data-transparency='on'] body[data-sky='night'] {
   }
 
   .tile-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .streak-card {

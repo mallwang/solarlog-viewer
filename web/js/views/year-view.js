@@ -71,16 +71,19 @@ function yearStatsRows(monthlyBreakdown, plant, year, isCurrentYear) {
   const co2SavedKg = yieldKwh * co2FactorForYear(year);
 
   return [
-    ['year.stats.yieldKwh', formatKwh(yieldKwh)],
+    ['year.stats.yieldKwh', formatKwh(yieldKwh, { decimals: 2 })],
     ['year.stats.yieldEuro', formatCurrency(feedInEuro), 'explanations.yieldEuro'],
-    ['year.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
+    ['year.stats.specificYield', `${formatKwh(specificYield, { decimals: 2 })}/kWp`],
     [
       'year.stats.maxMonth',
-      statValueMarkup(formatKwh(maxMonth.kwh), maxMonthName ? `(${maxMonthName})` : null),
+      statValueMarkup(
+        formatKwh(maxMonth.kwh, { decimals: 2 }),
+        maxMonthName ? `(${maxMonthName})` : null,
+      ),
     ],
     [
       isCurrentYear ? 'year.stats.sollAuflaufend' : 'year.stats.sollTotal',
-      formatKwh(sollKwh),
+      formatKwh(sollKwh, { decimals: 2 }),
       isCurrentYear ? 'explanations.sollAuflaufend' : 'explanations.soll',
     ],
     ['year.stats.ist', `${ist}%`, 'explanations.ist'],

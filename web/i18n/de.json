@@ -173,7 +173,9 @@
     "cumulativeYieldAxis": "Kumulierter Ertrag (kWh)",
     "euroAxis": "Erlös (€)",
     "co2Axis": "CO₂-Ersparnis (kg)",
-    "specificYieldAxis": "Spezifischer Ertrag (kWh/kWp)"
+    "specificYieldAxis": "Spezifischer Ertrag (kWh/kWp)",
+    "specificYieldTrendAxis": "Trend",
+    "forecastSuffix": "Prognose"
   },
   "events": {
     "title": "Ereignisse",
@@ -291,7 +293,11 @@
     },
     "streaks": {
       "title": "Serien",
-      "intro": "Die längste Serie aufeinanderfolgender Tage mit nennenswertem Ertrag.",
+      "intro": "Die längsten Serien aufeinanderfolgender Tage mit auffällig hohem oder niedrigem Ertrag.",
+      "highTitle": "Hochertrag-Serie",
+      "highIntro": "Die längste Serie aufeinanderfolgender Tage mit jeweils mindestens 20 kWh Ertrag.",
+      "lowTitle": "Niedrigertrag-Serie",
+      "lowIntro": "Die längste Serie aufeinanderfolgender Tage mit jeweils unter 5 kWh Ertrag.",
       "lengthLabel": "Tage in Folge",
       "thresholdLabel": "Schwellenwert pro Tag",
       "dateRange": "Zeitraum",
@@ -301,7 +307,7 @@
       "title": "Trends",
       "intro": "Langfristige Entwicklung der Anlage über mehrere Jahre.",
       "yoyTitle": "Jahresvergleich (kumulierter Ertrag)",
-      "lifetimeTitle": "Kumulierte Ersparnis (Lebenszeit)",
+      "lifetimeTitle": "Kumulierter Erlös vs. CO₂-Ersparnis",
       "specificYieldTitle": "Spezifischer Ertrag pro Jahr",
       "degradationCaveat": "Geht von konstanter installierter Leistung aus; keine Wetter-Normalisierung.",
       "notEnoughYoy": "Für den Jahresvergleich werden mindestens zwei Jahre mit Daten benötigt."

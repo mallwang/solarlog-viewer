@@ -13,7 +13,9 @@ import { formatKwh, formatCurrency, formatCo2, formatNumber } from '../format.js
 import { dailySollKwh, istPercent, specificYieldKwhPerKwp, daysInYear } from './yield-stats.js';
 import { co2FactorForYear } from './co2-factors.js';
 
-function sumDailyKwh(perInverter) {
+// Exported (not just used internally) so view layers - e.g. streaks-topic.js's day-strip tooltips
+// - can show a day's actual yield without duplicating the perInverter-summing logic.
+export function sumDailyKwh(perInverter) {
   return Object.values(perInverter).reduce((sum, inv) => sum + (inv?.yieldWh ?? 0), 0) / 1000;
 }
 
@@ -69,7 +71,7 @@ export function bestWorstMonth(fullMonthlyHistory) {
     const [year, month] = m.month.split('-').map((n) => Number.parseInt(n, 10));
     return {
       label: labelKey,
-      value: formatKwh(score(m)),
+      value: formatKwh(score(m), { decimals: 2 }),
       period: m.month,
       route: { view: 'month', params: { year, month } },
       caveat: null,
@@ -95,7 +97,7 @@ export function bestWorstYear(fullYearlyHistory) {
     if (!y) return null;
     return {
       label: labelKey,
-      value: formatKwh(score(y)),
+      value: formatKwh(score(y), { decimals: 2 }),
       period: String(y.year),
       route: { view: 'year', params: { year: y.year } },
       caveat: null,
@@ -245,11 +247,11 @@ export function buildCalendarHeatmap(fullDailyHistory, year, metric, plant) {
   return { metric, year, cells };
 }
 
-// See research.md R5: fixed constant, ~10% of the plant's average historical daily yield in the
-// Mar-Sep productive season, computed once from the merged full daily history's own median at
-// implementation time (2026-08-16 dataset) rather than derived at runtime — a fixed constant per
-// spec.md's Assumptions, not recomputed per plant/session.
-export const STREAK_THRESHOLD_KWH = 1.5;
+// Two round-number thresholds (superseding the single derived research.md R5 constant) that frame
+// the streaks topic as a pair: a "high-yield" streak of strong sunny days and a "low-yield" streak
+// of consecutive underperforming days (overcast/winter runs), per user request.
+export const STREAK_HIGH_THRESHOLD_KWH = 20;
+export const STREAK_LOW_THRESHOLD_KWH = 5;
 
 function isoNextDay(dateIso) {
   const [y, m, d] = dateIso.split('-').map(Number);
@@ -258,16 +260,17 @@ function isoNextDay(dateIso) {
 }
 
 /**
- * Longest run of consecutive recorded days each yielding ≥ STREAK_THRESHOLD_KWH (data-model.md
+ * Longest run of consecutive recorded days each satisfying `qualifies(dailyKwh)` (data-model.md
  * "Streak"). A missing date breaks the run (consecutive *recorded* days, not calendar days with
  * gaps tolerated). Ties are broken by most-recent run, so an ongoing run tying the historical
  * record is still reported as ongoing (spec.md Edge Cases).
  * @param {{ date: string, perInverter: object }[]} fullDailyHistory
+ * @param {(dailyKwh: number) => boolean} qualifies
  * @returns {{ lengthDays: number, startDate: string, endDate: string, isOngoing: boolean } | null}
  */
-export function computeLongestStreak(fullDailyHistory) {
+function computeLongestRun(fullDailyHistory, qualifies) {
   const qualifying = [...fullDailyHistory]
-    .filter((d) => hasData(d.perInverter) && sumDailyKwh(d.perInverter) >= STREAK_THRESHOLD_KWH)
+    .filter((d) => hasData(d.perInverter) && qualifies(sumDailyKwh(d.perInverter)))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   if (qualifying.length === 0) return null;
@@ -306,6 +309,24 @@ export function computeLongestStreak(fullDailyHistory) {
     endDate: bestRun.end,
     isOngoing: bestRun.end === mostRecentDate,
   };
+}
+
+/**
+ * Longest run of consecutive recorded days each yielding ≥ STREAK_HIGH_THRESHOLD_KWH.
+ * @param {{ date: string, perInverter: object }[]} fullDailyHistory
+ * @returns {{ lengthDays: number, startDate: string, endDate: string, isOngoing: boolean } | null}
+ */
+export function computeLongestHighStreak(fullDailyHistory) {
+  return computeLongestRun(fullDailyHistory, (kwh) => kwh >= STREAK_HIGH_THRESHOLD_KWH);
+}
+
+/**
+ * Longest run of consecutive recorded days each yielding < STREAK_LOW_THRESHOLD_KWH.
+ * @param {{ date: string, perInverter: object }[]} fullDailyHistory
+ * @returns {{ lengthDays: number, startDate: string, endDate: string, isOngoing: boolean } | null}
+ */
+export function computeLongestLowStreak(fullDailyHistory) {
+  return computeLongestRun(fullDailyHistory, (kwh) => kwh < STREAK_LOW_THRESHOLD_KWH);
 }
 
 function daysBetween(fromIso, toIso) {
@@ -382,15 +403,82 @@ export function computeLifetimeCumulative(fullYearlyHistory, plant) {
 }
 
 /**
+ * Ordinary-least-squares `{ slope, intercept }` of `values` against their index (0, 1, 2, …).
+ * Shared by `linearRegressionFit` (the "how is this trending" line drawn across the actual
+ * years) and `forecastYears` (extrapolating that same line beyond them). A single point has no
+ * slope to fit, so it trends flat at its own value rather than dividing by zero.
+ * @param {number[]} values
+ * @returns {{ slope: number, intercept: number }}
+ */
+function linearRegressionParams(values) {
+  const n = values.length;
+  if (n <= 1) return { slope: 0, intercept: values[0] ?? 0 };
+  const sumX = values.reduce((s, _, i) => s + i, 0);
+  const sumY = values.reduce((s, v) => s + v, 0);
+  const sumXY = values.reduce((s, v, i) => s + i * v, 0);
+  const sumX2 = values.reduce((s, _, i) => s + i * i, 0);
+  const denominator = n * sumX2 - sumX * sumX;
+  const slope = denominator === 0 ? 0 : (n * sumXY - sumX * sumY) / denominator;
+  const intercept = (sumY - slope * sumX) / n;
+  return { slope, intercept };
+}
+
+/**
+ * Ordinary-least-squares fit of `values` against their index (0, 1, 2, …) — the "how is this
+ * trending" line shown alongside computeSpecificYieldTrend's bars.
+ * @param {number[]} values
+ * @returns {number[]} One fitted value per input index, same length as `values`.
+ */
+function linearRegressionFit(values) {
+  const { slope, intercept } = linearRegressionParams(values);
+  return values.map((_, i) => slope * i + intercept);
+}
+
+// How many years beyond the last actual one `forecastYears` projects (user request: "two years
+// into the future" on the lifetime-cumulative and specific-yield trend charts).
+const FORECAST_YEARS_COUNT = 2;
+
+/**
+ * Extends a chronological `{ year, ...metrics }[]` series (as returned by
+ * computeLifetimeCumulative/computeSpecificYieldTrend) with `count` additional future years, each
+ * `metricKeys` field continuing that metric's own linear-regression trend across the actual
+ * years — "if this trend continues" points for a chart to render distinctly (see chart-factory.js's
+ * gray/dashed forecast series), kept out of the actual-data computers above so their own output
+ * stays real-data-only. Flatlines at the last actual value when there's only one point to fit (no
+ * slope to extrapolate). Empty input has no year to count forward from, so it forecasts nothing.
+ * @param {Array<{ year: number } & Record<string, number>>} actual
+ * @param {string[]} metricKeys - Which numeric fields on each entry to extrapolate.
+ * @param {number} [count]
+ * @returns {Array<{ year: number, forecast: true } & Record<string, number>>}
+ */
+export function forecastYears(actual, metricKeys, count = FORECAST_YEARS_COUNT) {
+  if (actual.length === 0) return [];
+  const lastYear = actual.at(-1).year;
+  const params = Object.fromEntries(
+    metricKeys.map((key) => [key, linearRegressionParams(actual.map((a) => a[key]))]),
+  );
+  return Array.from({ length: count }, (_, offset) => {
+    const index = actual.length + offset;
+    const entry = { year: lastYear + offset + 1, forecast: true };
+    for (const key of metricKeys) {
+      const { slope, intercept } = params[key];
+      entry[key] = slope * index + intercept;
+    }
+    return entry;
+  });
+}
+
+/**
  * Per-year specific yield (kWh/kWp), unchanged formula from yield-stats.js's
  * specificYieldKwhPerKwp (data-model.md "Trend series" — FR-008's degradation caveat is static UI
- * copy, not a computed field here).
+ * copy, not a computed field here). Each point also carries `trendKwhPerKwp`, its linear-regression
+ * fit across all years (user request), for the chart to draw as an overlaid trend line.
  * @param {{ year: number, perInverter: object }[]} fullYearlyHistory
  * @param {{ capacityKwp: number }} plant
- * @returns {{ year: number, specificYieldKwhPerKwp: number }[]}
+ * @returns {{ year: number, specificYieldKwhPerKwp: number, trendKwhPerKwp: number }[]}
  */
 export function computeSpecificYieldTrend(fullYearlyHistory, plant) {
-  return [...fullYearlyHistory]
+  const years = [...fullYearlyHistory]
     .filter((y) => hasData(y.perInverter))
     .sort((a, b) => a.year - b.year)
     .map((y) => ({
@@ -400,6 +488,9 @@ export function computeSpecificYieldTrend(fullYearlyHistory, plant) {
         plant?.capacityKwp ?? 0,
       ),
     }));
+
+  const trend = linearRegressionFit(years.map((y) => y.specificYieldKwhPerKwp));
+  return years.map((y, i) => ({ ...y, trendKwhPerKwp: trend[i] }));
 }
 
 /**
@@ -423,7 +514,7 @@ export function bestWorstPairs(fullDailyHistory, fullMonthlyHistory, fullYearlyH
     const { year, month, day } = dateParts(d.date);
     return {
       label: labelKey,
-      value: formatKwh(score(d)),
+      value: formatKwh(score(d), { decimals: 2 }),
       period: d.date,
       route: { view: 'day', params: { year, month, day } },
       caveat: null,

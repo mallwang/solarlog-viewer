@@ -15,7 +15,7 @@ const METRICS = [
     key: 'energyKwh',
     labelKey: 'statistics.heatmaps.energy',
     heatColorVar: '--color-primary',
-    format: (v) => formatKwh(v),
+    format: (v) => formatKwh(v, { decimals: 2 }),
   },
   {
     key: 'moneyEuro',
@@ -46,19 +46,51 @@ function cellTitle(cell, metric) {
   return `${dateLabel}: ${metric.format(cell.value)}`;
 }
 
+function cellMarkup(cell, metric) {
+  const missing = cell.value === null;
+  const style = missing
+    ? ''
+    : `style="--v:${cell.relativeIntensity};--heat-color:var(${metric.heatColorVar})"`;
+  return `<div class="heatmap-cell" data-missing="${missing}" ${style} title="${cellTitle(cell, metric)}"></div>`;
+}
+
+// Groups cells (day-of-year order) by calendar month so each month renders as its own 7-row
+// sub-grid, with a thin divider between them (see .heatmap-month + .heatmap-month in app.css) —
+// the day-of-year sequence has no fixed alignment to a 7-row grid, so month boundaries otherwise
+// fall in the middle of a column rather than at a clean edge.
+function groupCellsByMonth(cells) {
+  const months = [];
+  let current = null;
+  for (const cell of cells) {
+    const month = cell.date.slice(0, 7);
+    if (month !== current) {
+      current = month;
+      months.push([]);
+    }
+    months.at(-1).push(cell);
+  }
+  return months;
+}
+
+// Cap how large cells are allowed to grow (see the fr-based sizing in app.css) so a very wide
+// panel gets a bigger, more legible heatmap rather than one that keeps stretching indefinitely.
+const MAX_CELL_PX = 16;
+
 function heatmapBlockMarkup(heatmap, metric) {
-  const cells = heatmap.cells
-    .map((cell) => {
-      const missing = cell.value === null;
-      const style = missing
-        ? ''
-        : `style="--v:${cell.relativeIntensity};--heat-color:var(${metric.heatColorVar})"`;
-      return `<div class="heatmap-cell" data-missing="${missing}" ${style} title="${cellTitle(cell, metric)}"></div>`;
+  const months = groupCellsByMonth(heatmap.cells)
+    .map((monthCells) => {
+      const cols = Math.ceil(monthCells.length / 7);
+      const cells = monthCells.map((cell) => cellMarkup(cell, metric)).join('');
+      // --cols drives the month's own grid-template-columns; flex-grow (proportional to --cols)
+      // and max-width (capped per cell) are set here too since both depend on the same per-month
+      // value that only JS knows — see .heatmap-month in app.css for how they're consumed.
+      const style = `--cols:${cols};flex-grow:${cols};max-width:calc(${cols} * ${MAX_CELL_PX}px + ${cols - 1} * 2px)`;
+      return `<div class="heatmap-month" style="${style}">${cells}</div>`;
     })
     .join('');
   return `<div class="heatmap-block">
     <h3>${t(metric.labelKey)}</h3>
-    <div class="heatmap-grid">${cells}</div>
+    <div class="heatmap-grid">${months}</div>
   </div>`;
 }
 
@@ -99,9 +131,9 @@ export function render(container, { plant, fullDailyHistory, fullYearlyHistory }
         </select>
       </label>
       <div class="heatmap-legend">
-        <span class="swatch" style="--v:0.2;--heat-color:var(--color-primary)"></span>${t('statistics.heatmaps.legendLow')}
-        <span class="swatch" style="--v:1;--heat-color:var(--color-primary)"></span>${t('statistics.heatmaps.legendHigh')}
-        <span class="swatch missing"></span>${t('statistics.heatmaps.legendMissing')}
+        <span class="legend-item"><span class="swatch" style="--v:0.2;--heat-color:var(--color-primary)"></span>${t('statistics.heatmaps.legendLow')}</span>
+        <span class="legend-item"><span class="swatch" style="--v:1;--heat-color:var(--color-primary)"></span>${t('statistics.heatmaps.legendHigh')}</span>
+        <span class="legend-item"><span class="swatch missing"></span>${t('statistics.heatmaps.legendMissing')}</span>
       </div>
     </div>
     <div class="heatmap-blocks"></div>
@@ -112,5 +144,18 @@ export function render(container, { plant, fullDailyHistory, fullYearlyHistory }
   container.querySelector('.year-select').addEventListener('change', (event) => {
     selectedYear = Number.parseInt(event.target.value, 10);
     draw();
+  });
+
+  // Click a cell to pin a highlight on it (in addition to the :hover outline), so the exact day
+  // stays marked while reading the tooltip/value — helpful since cells are small and touch
+  // devices have no hover at all. Clicking the same cell again clears the selection.
+  container.querySelector('.heatmap-blocks').addEventListener('click', (event) => {
+    const cell = event.target.closest('.heatmap-cell');
+    if (!cell) return;
+    const wasSelected = cell.classList.contains('is-selected');
+    container
+      .querySelectorAll('.heatmap-cell.is-selected')
+      .forEach((el) => el.classList.remove('is-selected'));
+    if (!wasSelected) cell.classList.add('is-selected');
   });
 }

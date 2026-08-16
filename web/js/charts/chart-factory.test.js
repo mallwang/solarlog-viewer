@@ -69,10 +69,10 @@ test('lifetime-cumulative mode produces a dual-axis line option object with year
   assert.equal(clickedIndex, 1);
 });
 
-test('specific-yield-trend mode produces a valid bar option object with year-click drill-down', () => {
+test('specific-yield-trend mode produces a bar+trend-line combo option object with year-click drill-down', () => {
   const data = [
-    { year: 2020, specificYieldKwhPerKwp: 900 },
-    { year: 2021, specificYieldKwhPerKwp: 880 },
+    { year: 2020, specificYieldKwhPerKwp: 900, trendKwhPerKwp: 890 },
+    { year: 2021, specificYieldKwhPerKwp: 880, trendKwhPerKwp: 890 },
   ];
   let clickedIndex = null;
   renderChart(fakeContainer(), 'specific-yield-trend', data, {
@@ -81,8 +81,54 @@ test('specific-yield-trend mode produces a valid bar option object with year-cli
       clickedIndex = i;
     },
   });
-  assert.equal(lastOptions.chart.type, 'bar');
+  assert.equal(lastOptions.series.length, 2);
+  assert.equal(lastOptions.series[0].type, 'column');
   assert.deepEqual(lastOptions.series[0].data, [900, 880]);
+  assert.equal(lastOptions.series[1].type, 'line');
+  assert.deepEqual(lastOptions.series[1].data, [890, 890]);
   lastOptions.chart.events.dataPointSelection(null, null, { dataPointIndex: 0 });
   assert.equal(clickedIndex, 0);
+});
+
+test('lifetime-cumulative mode splits forecast years into gray/dashed series and ignores clicks on them', () => {
+  const data = [
+    { year: 2020, cumulativeEuro: 100, cumulativeCo2Kg: 50 },
+    { year: 2021, cumulativeEuro: 250, cumulativeCo2Kg: 120 },
+    { year: 2022, cumulativeEuro: 400, cumulativeCo2Kg: 190, forecast: true },
+  ];
+  let clicked = false;
+  renderChart(fakeContainer(), 'lifetime-cumulative', data, {
+    lang: 'de',
+    onDataPointClick: () => {
+      clicked = true;
+    },
+  });
+  assert.equal(lastOptions.series.length, 4);
+  // Actual series stop before the forecast year; the forecast series only starts there (plus the
+  // last actual point, so it connects) rather than spanning from the beginning.
+  assert.deepEqual(lastOptions.series[0].data, [100, 250, null]);
+  assert.deepEqual(lastOptions.series[2].data, [null, 250, 400]);
+  lastOptions.chart.events.dataPointSelection(null, null, { dataPointIndex: 2 });
+  assert.equal(clicked, false);
+});
+
+test('specific-yield-trend mode splits forecast years into a gray/dashed trend series and ignores clicks on them', () => {
+  const data = [
+    { year: 2020, specificYieldKwhPerKwp: 900, trendKwhPerKwp: 890 },
+    { year: 2021, specificYieldKwhPerKwp: 880, trendKwhPerKwp: 890 },
+    { year: 2022, specificYieldKwhPerKwp: null, trendKwhPerKwp: 890, forecast: true },
+  ];
+  let clicked = false;
+  renderChart(fakeContainer(), 'specific-yield-trend', data, {
+    lang: 'de',
+    onDataPointClick: () => {
+      clicked = true;
+    },
+  });
+  assert.equal(lastOptions.series.length, 3);
+  assert.deepEqual(lastOptions.series[0].data, [900, 880, null]);
+  assert.deepEqual(lastOptions.series[1].data, [890, 890, null]);
+  assert.deepEqual(lastOptions.series[2].data, [null, 890, 890]);
+  lastOptions.chart.events.dataPointSelection(null, null, { dataPointIndex: 2 });
+  assert.equal(clicked, false);
 });

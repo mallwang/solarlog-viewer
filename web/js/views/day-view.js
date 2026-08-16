@@ -66,14 +66,14 @@ function dayStatsRows(trace, plant, params) {
   const co2SavedKg = yieldKwh * co2FactorForYear(params.year);
 
   return [
-    ['day.stats.yieldKwh', formatKwh(yieldKwh)],
+    ['day.stats.yieldKwh', formatKwh(yieldKwh, { decimals: 2 })],
     ['day.stats.yieldEuro', formatCurrency(feedInEuro), 'explanations.yieldEuro'],
-    ['day.stats.specificYield', `${formatKwh(specificYield)}/kWp`],
+    ['day.stats.specificYield', `${formatKwh(specificYield, { decimals: 2 })}/kWp`],
     [
       'day.stats.maxDaily',
       statValueMarkup(`${maxPower.w} W`, maxPowerTime ? `(${maxPowerTime} Uhr)` : null),
     ],
-    ['day.stats.soll', formatKwh(sollKwh), 'explanations.soll'],
+    ['day.stats.soll', formatKwh(sollKwh, { decimals: 2 }), 'explanations.soll'],
     ['day.stats.ist', `${ist}%`, 'explanations.ist'],
     ['day.stats.co2', formatCo2(co2SavedKg), 'explanations.co2'],
   ];

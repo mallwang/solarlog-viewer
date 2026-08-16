@@ -173,7 +173,9 @@
     "cumulativeYieldAxis": "Cumulative yield (kWh)",
     "euroAxis": "Revenue (€)",
     "co2Axis": "CO₂ saved (kg)",
-    "specificYieldAxis": "Specific yield (kWh/kWp)"
+    "specificYieldAxis": "Specific yield (kWh/kWp)",
+    "specificYieldTrendAxis": "Trend",
+    "forecastSuffix": "forecast"
   },
   "events": {
     "title": "Events",
@@ -291,7 +293,11 @@
     },
     "streaks": {
       "title": "Streaks",
-      "intro": "The longest run of consecutive days with meaningful yield.",
+      "intro": "The longest runs of consecutive days that were unusually strong or unusually weak.",
+      "highTitle": "High-yield streak",
+      "highIntro": "The longest run of consecutive days each producing at least 20 kWh.",
+      "lowTitle": "Low-yield streak",
+      "lowIntro": "The longest run of consecutive days each producing under 5 kWh.",
       "lengthLabel": "Days in a row",
       "thresholdLabel": "Daily threshold",
       "dateRange": "Date range",
@@ -301,7 +307,7 @@
       "title": "Trends",
       "intro": "The plant’s long-term development across multiple years.",
       "yoyTitle": "Year-over-year (cumulative yield)",
-      "lifetimeTitle": "Cumulative lifetime savings",
+      "lifetimeTitle": "Cumulative revenue vs. CO₂ savings",
       "specificYieldTitle": "Specific yield per year",
       "degradationCaveat": "Assumes constant installed capacity; no weather normalization.",
       "notEnoughYoy": "The year-over-year comparison needs at least two years of data."

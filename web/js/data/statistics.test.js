@@ -8,14 +8,17 @@ import {
   maxDailyCo2,
   maxDailyEuro,
   buildCalendarHeatmap,
-  computeLongestStreak,
+  computeLongestHighStreak,
+  computeLongestLowStreak,
   computeYoyCumulative,
   computeLifetimeCumulative,
   computeSpecificYieldTrend,
+  forecastYears,
   bestWorstPairs,
   hasEnoughHistory,
   hasEnoughHistoryForYoy,
-  STREAK_THRESHOLD_KWH,
+  STREAK_HIGH_THRESHOLD_KWH,
+  STREAK_LOW_THRESHOLD_KWH,
 } from './statistics.js';
 
 const PLANT = {
@@ -111,8 +114,8 @@ test('buildCalendarHeatmap gives relativeIntensity 0 when yearMax === yearMin (s
   assert.equal(heatmap.cells.length, 365);
 });
 
-test('computeLongestStreak finds the longest consecutive qualifying run and a gap breaks it', () => {
-  const threshold = STREAK_THRESHOLD_KWH;
+test('computeLongestHighStreak finds the longest consecutive qualifying run and a gap breaks it', () => {
+  const threshold = STREAK_HIGH_THRESHOLD_KWH;
   const days = [
     day('2024-06-01', threshold * 1_000_000),
     day('2024-06-02', threshold * 1_000_000),
@@ -120,30 +123,48 @@ test('computeLongestStreak finds the longest consecutive qualifying run and a ga
     day('2024-06-05', threshold * 1_000_000),
     day('2024-06-06', threshold * 1_000_000),
   ];
-  const streak = computeLongestStreak(days);
+  const streak = computeLongestHighStreak(days);
   assert.equal(streak.lengthDays, 3);
   assert.equal(streak.startDate, '2024-06-04');
   assert.equal(streak.endDate, '2024-06-06');
 });
 
-test('computeLongestStreak marks an ongoing streak (endDate = last date in the data) as isOngoing', () => {
-  const threshold = STREAK_THRESHOLD_KWH;
+test('computeLongestHighStreak marks an ongoing streak (endDate = last date in the data) as isOngoing', () => {
+  const threshold = STREAK_HIGH_THRESHOLD_KWH;
   const days = [day('2024-06-01', threshold * 1_000_000), day('2024-06-02', threshold * 1_000_000)];
-  const streak = computeLongestStreak(days);
+  const streak = computeLongestHighStreak(days);
   assert.equal(streak.isOngoing, true);
 });
 
-test('computeLongestStreak marks a tie with the historical record as isOngoing too', () => {
-  const threshold = STREAK_THRESHOLD_KWH;
+test('computeLongestHighStreak marks a tie with the historical record as isOngoing too', () => {
+  const threshold = STREAK_HIGH_THRESHOLD_KWH;
   const days = [
     day('2024-01-01', threshold * 1_000_000),
     day('2024-01-02', threshold * 1_000_000),
     day('2024-06-01', threshold * 1_000_000),
     day('2024-06-02', threshold * 1_000_000),
   ];
-  const streak = computeLongestStreak(days);
+  const streak = computeLongestHighStreak(days);
   assert.equal(streak.isOngoing, true);
   assert.equal(streak.startDate, '2024-06-01');
+});
+
+test('computeLongestLowStreak finds the longest consecutive run of underperforming days', () => {
+  // day()'s yieldWh is in Wh; sumDailyKwh divides by 1000, so pass kWh * 1000 for a chosen kWh value.
+  const belowWh = (STREAK_LOW_THRESHOLD_KWH - 1) * 1000;
+  const aboveWh = (STREAK_LOW_THRESHOLD_KWH + 5) * 1000; // does not qualify for the low streak
+  const days = [
+    day('2024-12-01', belowWh),
+    day('2024-12-02', belowWh),
+    day('2024-12-03', belowWh),
+    day('2024-12-04', aboveWh),
+    day('2024-12-05', belowWh),
+    day('2024-12-06', belowWh),
+  ];
+  const streak = computeLongestLowStreak(days);
+  assert.equal(streak.lengthDays, 3);
+  assert.equal(streak.startDate, '2024-12-01');
+  assert.equal(streak.endDate, '2024-12-03');
 });
 
 test('computeYoyCumulative aligns Feb 29 without shifting later day-of-year values in non-leap years', () => {
@@ -175,6 +196,51 @@ test('computeSpecificYieldTrend uses specificYieldKwhPerKwp unchanged', () => {
   const years = [year(2020, 6200000)];
   const series = computeSpecificYieldTrend(years, PLANT);
   assert.equal(series[0].specificYieldKwhPerKwp, 1000);
+});
+
+test('computeSpecificYieldTrend adds a trendKwhPerKwp linear-regression fit', () => {
+  const years = [year(2020, 6200000), year(2021, 6200000 * 2), year(2022, 6200000 * 3)];
+  const series = computeSpecificYieldTrend(years, PLANT);
+  assert.deepEqual(
+    series.map((s) => s.specificYieldKwhPerKwp),
+    [1000, 2000, 3000],
+  );
+  // A perfectly linear input fits itself exactly.
+  assert.deepEqual(
+    series.map((s) => s.trendKwhPerKwp),
+    [1000, 2000, 3000],
+  );
+});
+
+test('computeSpecificYieldTrend trends flat for a single year (no slope to fit)', () => {
+  const series = computeSpecificYieldTrend([year(2020, 6200000)], PLANT);
+  assert.equal(series[0].trendKwhPerKwp, series[0].specificYieldKwhPerKwp);
+});
+
+test("forecastYears extrapolates each metric key's own linear trend beyond the last actual year", () => {
+  const actual = [
+    { year: 2020, cumulativeEuro: 100, cumulativeCo2Kg: 50 },
+    { year: 2021, cumulativeEuro: 250, cumulativeCo2Kg: 120 },
+    { year: 2022, cumulativeEuro: 400, cumulativeCo2Kg: 190 },
+  ];
+  const forecast = forecastYears(actual, ['cumulativeEuro', 'cumulativeCo2Kg']);
+  assert.deepEqual(
+    forecast.map((f) => f.year),
+    [2023, 2024],
+  );
+  assert.ok(forecast.every((f) => f.forecast === true));
+  assert.deepEqual(
+    forecast.map((f) => f.cumulativeEuro),
+    [550, 700],
+  );
+  assert.deepEqual(
+    forecast.map((f) => f.cumulativeCo2Kg),
+    [260, 330],
+  );
+});
+
+test('forecastYears returns nothing for an empty actual series', () => {
+  assert.deepEqual(forecastYears([], ['cumulativeEuro']), []);
 });
 
 test('bestWorstPairs composes bestWorstMonth/bestWorstYear plus a daily-yield pair', () => {
@@ -212,6 +278,7 @@ test('empty inputs never throw for the always-runnable functions', () => {
   assert.deepEqual(computeYoyCumulative([]), []);
   assert.deepEqual(computeLifetimeCumulative([], PLANT), []);
   assert.deepEqual(computeSpecificYieldTrend([], PLANT), []);
-  assert.equal(computeLongestStreak([]), null);
+  assert.equal(computeLongestHighStreak([]), null);
+  assert.equal(computeLongestLowStreak([]), null);
   assert.deepEqual(buildCalendarHeatmap([], 2024, 'energyKwh', PLANT).cells.length, 366);
 });

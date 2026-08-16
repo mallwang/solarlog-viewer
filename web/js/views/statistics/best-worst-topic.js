@@ -9,16 +9,18 @@ import { formatRoute } from '../../router.js';
 import { bestWorstPairs } from '../../data/statistics.js';
 
 function pairSideMarkup(tile, { worst }) {
+  const sideClass = worst ? 'worst' : 'best';
   if (!tile) {
-    return `<span class="pair-side${worst ? ' worst' : ''}">
+    return `<span class="pair-side ${sideClass}">
       <span class="pair-tag">${t(worst ? 'statistics.bestWorst.worst' : 'statistics.bestWorst.best')}</span>
       <span class="pair-value">${t('statistics.commonTiles.notEnough')}</span>
     </span>`;
   }
   const href = tile.route ? formatRoute(tile.route) : '#';
-  return `<a class="pair-side${worst ? ' worst' : ''}" href="${href}">
+  return `<a class="pair-side ${sideClass}" href="${href}">
     <span class="pair-tag">${t(tile.label)}</span>
-    <span class="pair-value">${tile.value}<br /><small>${tile.period}</small></span>
+    <span class="pair-value">${tile.value}</span>
+    <small class="pair-period">${tile.period}</small>
   </a>`;
 }
 

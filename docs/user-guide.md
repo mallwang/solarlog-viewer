@@ -55,12 +55,17 @@ topic nav lists five topics, each its own bookmarkable/shareable link:
 - **Heatmaps** — a year selector above three calendar heatmaps (energy/kWh, money/€, CO2/kg), one
   cell per day, color intensity scaled to that year's own minimum/maximum. A day with no recorded
   data renders as a diagonal hatch pattern, always visually distinct from a real recorded zero.
-- **Serien (Streaks)** — the longest run of consecutive days each producing at least a meaningful
-  daily yield, with an "läuft noch" (ongoing) badge when that run is still active.
+- **Serien (Streaks)** — two cards: the longest run of consecutive days each yielding at least
+  20 kWh ("high-yield"), and the longest run each yielding under 5 kWh ("low-yield"), each with an
+  "läuft noch" (ongoing) badge when that run is still active. Every card shows a strip of the
+  streak's own days (plus two days of context on each side) — hover a day for its exact yield,
+  click it to jump to that day's detail view.
 - **Trends** — three charts: year-over-year cumulative yield (aligned by day of year), cumulative
   lifetime €/CO2 savings since commissioning, and per-year specific yield (kWh/kWp) — the last one
   carries a permanent caveat noting it assumes constant installed capacity with no weather
-  normalization.
+  normalization. The lifetime and specific-yield charts each extend two extra "if this continues"
+  forecast years past the last actual one, shown gray/dashed to stay visually distinct from
+  recorded data.
 - **Bestwerte vs. Tiefstwerte (Best vs. Worst)** — the same best/worst pairs from the Common topic
   (month, year, daily yield) shown side by side, each with its own link, no toggle needed.
 
