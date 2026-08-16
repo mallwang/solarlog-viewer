@@ -95,6 +95,14 @@ async function fetchDayTrace(params, isToday) {
       );
   if (!result.ok) return null;
   const trace = parseMinFile(result.text, ddmmyyFromParams(params));
+  if (isToday) {
+    // The SolarLog device only rolls min_day.js over to the new day on its next sync, so right
+    // after midnight it can still be full of yesterday's finished readings for a while. Each
+    // reading carries its own date (parsed from the file, not from `params`), so drop anything
+    // that isn't actually dated today rather than let the new day's page show yesterday's stale
+    // chart/table until the device catches up.
+    trace.readings = trace.readings.filter((r) => r.timestamp.startsWith(isoFromParams(params)));
+  }
   return trace.readings.length === 0 ? null : trace;
 }
 
@@ -196,6 +204,14 @@ export async function render(container, { route, plant }) {
   if (!isToday) return () => {};
 
   const intervalId = setInterval(async () => {
+    if (todayIso() !== isoFromParams(params)) {
+      // Midnight passed while this page was left open on "today" — follow the calendar so a
+      // tab left open overnight ends up showing the new day instead of freezing on the one that
+      // just ended. dispatch() (main.js) clears this interval as part of handling the route
+      // change triggered by the hash update.
+      window.location.hash = formatRoute({ view: 'day', params: todayParams() });
+      return;
+    }
     const freshTrace = await fetchDayTrace(params, isToday);
     if (!freshTrace) return; // Transient fetch failure — keep showing the last good reading.
     currentTrace = freshTrace;
