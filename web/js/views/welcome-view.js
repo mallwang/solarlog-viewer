@@ -45,6 +45,11 @@ async function fetchTodayTrace() {
   const result = await fetchText(`${DATA_DIR}/min_day.js`);
   if (!result.ok) return null;
   const trace = parseMinFile(result.text, todayDdMmYy());
+  // The SolarLog device only rolls min_day.js over to the new day on its next sync, so right
+  // after midnight it can still be full of yesterday's finished readings for a while — drop
+  // anything not actually dated today rather than show yesterday's stale chart (see day-view.js's
+  // fetchDayTrace, which applies the same filter).
+  trace.readings = trace.readings.filter((r) => r.timestamp.startsWith(todayIso()));
   return trace.readings.length === 0 ? null : trace;
 }
 
