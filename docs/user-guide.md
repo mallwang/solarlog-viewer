@@ -139,5 +139,3 @@ or Tab to it to see a short tooltip explaining exactly how that figure is calcul
 is the actual yield as a percentage of the Soll figure shown alongside it). On touch-only devices
 (phones/tablets) the icon isn't shown at all — there's nothing useful a tap could do with it, so
 it's left out entirely rather than shown inert.
-</content>
-</invoke>

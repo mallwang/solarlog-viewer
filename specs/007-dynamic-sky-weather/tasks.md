@@ -370,6 +370,5 @@ Task: "Add Playwright e2e scenarios to tests/e2e/sky.spec.js for User Story 1"
   is also available as an optional post-task-generation hook)
 - Stop at any checkpoint to validate a story independently before moving to the next
 - Avoid: vague tasks, same-file conflicts, cross-story dependencies that break independent
-testability (the one intentional exception being the shared `sky-controller.js` file,
-documented above)
-</content>
+  testability (the one intentional exception being the shared `sky-controller.js` file,
+  documented above)

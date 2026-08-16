@@ -319,4 +319,3 @@ Task: "Add explanationKey to renderStats() in web/js/views/welcome-view.js"
 - Verify contract tests (T004) fail before implementing T005.
 - Commit after each task or logical group.
 - Stop at any checkpoint to validate a story independently before continuing.
-</content>

@@ -153,5 +153,3 @@ Wert berechnet wird (z. B. ist „Ist“ der tatsächliche Ertrag als Prozentsat
 Soll-Werts). Auf reinen Touch-Geräten (Smartphone/Tablet) wird das Symbol gar nicht angezeigt —
 ein Tippen darauf hätte keinen sinnvollen Effekt, daher wird es komplett weggelassen statt inaktiv
 angezeigt.
-</content>
-</invoke>

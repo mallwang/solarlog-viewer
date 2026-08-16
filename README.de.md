@@ -144,8 +144,21 @@ in kg/kWh umrechnen (durch 1000 teilen) und als einzelnen neuen Eintrag `jahr: f
 `CO2_FACTOR_KG_PER_KWH_BY_YEAR` hinzufügen — es muss keine andere Datei geändert werden; jede
 Ansicht übernimmt den neuen Wert beim nächsten Laden.
 
+## Releases
+
+Releases folgen [Conventional Commits](https://www.conventionalcommits.org/) und
+[Semantic Versioning](https://semver.org/). `npm run release` (auf Basis von
+[release-it](https://github.com/release-it/release-it) mit
+`@release-it/conventional-changelog`) erhöht die Version in `package.json`, erzeugt
+`CHANGELOG.md` neu aus den Commits seit dem letzten Tag und legt ein `vX.Y.Z`-Git-Tag
+an — es wird nicht auf npm veröffentlicht, kein Docker-Image gepusht, und es wird
+weder gebaut noch deployt. Für Maintainer führt das begleitete `release`-Skill in
+Claude Code (`/release`) durch eine Dry-Run-Vorschau, eine Bestätigungsabfrage, das
+eigentliche Release und formatierte GitHub-Release-Notes zum manuellen Einfügen.
+Siehe `.claude/skills/release/SKILL.md` für den vollständigen Ablauf. Nach dem
+Release `npm run build` und das `sync-ftp`-Skill ausführen, um tatsächlich zu
+deployen.
+
 ## Lizenz
 
 MIT — siehe [LICENSE.md](LICENSE.md).
-</content>
-</invoke>
