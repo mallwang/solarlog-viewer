@@ -1,0 +1,1196 @@
+<title>Statistik-Seite Mockup</title>
+<style>
+  :root {
+    color-scheme: light;
+
+    /* Copied verbatim from web/css/tokens.css */
+    --color-bg: #ffffff;
+    --color-bg-app: #e3f2fd;
+    --color-bg-elevated: #f4f6f8;
+    --color-text: #1a1d21;
+    --color-text-muted: #5b6470;
+    --color-border: #d8dee4;
+    --color-primary: #ff9800;
+    --color-primary-dark: #e65100;
+    --color-accent: #2e7d32;
+    --color-danger: #c62828;
+
+    --chart-color-1: #ff9800;
+    --chart-color-2: #2e7d32;
+    --chart-color-3: #1976d2;
+    --chart-color-4: #c62828;
+    --chart-color-5: #6a1b9a;
+    --chart-color-6: #00838f;
+
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+
+    --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.75rem;
+
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Review-tool-only tokens */
+    --review-bg: #f6f5f2;
+    --review-ink: #33312c;
+    --review-muted: #7a7669;
+    --review-line: #ddd9d0;
+    --review-accent: #b45f2c;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--review-bg);
+    color: var(--review-ink);
+    font-family: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, p {
+    text-wrap: balance;
+  }
+
+  /* ============ Review-tool chrome (reusable as-is) ============ */
+
+  .review-header {
+    padding: var(--space-lg) var(--space-xl) var(--space-md);
+    border-bottom: 1px solid var(--review-line);
+  }
+
+  .review-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--review-accent);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs);
+  }
+
+  .review-header h1 {
+    margin: 0 0 var(--space-xs);
+    font-size: 1.375rem;
+    font-weight: 700;
+  }
+
+  .review-header p {
+    margin: 0;
+    color: var(--review-muted);
+    font-size: 0.9rem;
+    max-width: 62ch;
+  }
+
+  .review-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    align-items: center;
+    padding: var(--space-md) var(--space-xl);
+    background: #fff;
+    border-bottom: 1px solid var(--review-line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .control-group span.label {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--review-muted);
+    font-weight: 600;
+  }
+
+  .segmented {
+    display: inline-flex;
+    border: 1px solid var(--review-line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: #fff;
+    color: var(--review-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    border-right: 1px solid var(--review-line);
+  }
+
+  .segmented button:last-child {
+    border-right: none;
+  }
+
+  .segmented button:hover {
+    background: #f1efe9;
+  }
+
+  .segmented button:focus-visible {
+    outline: 2px solid var(--review-accent);
+    outline-offset: -2px;
+  }
+
+  .segmented button[aria-pressed='true'] {
+    background: var(--review-accent);
+    color: #fff;
+  }
+
+  .review-stage {
+    padding: var(--space-xl);
+    display: flex;
+    justify-content: center;
+  }
+
+  .stage-frame {
+    width: 100%;
+    max-width: 1180px;
+    background: #d9d4c8;
+    border-radius: 14px;
+    padding: var(--space-lg);
+    transition: max-width 0.2s ease;
+  }
+
+  .stage-frame[data-viewport='mobile'] {
+    max-width: 400px;
+  }
+
+  .stage-frame-label {
+    font-size: 0.75rem;
+    color: var(--review-muted);
+    text-align: center;
+    margin: 0 0 var(--space-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .canvas {
+    background: var(--color-bg-app);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .review-footer {
+    padding: 0 var(--space-xl) var(--space-xl);
+    max-width: 1180px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--review-muted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .review-footer code {
+    background: #fff;
+    border: 1px solid var(--review-line);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    font-size: 0.8em;
+  }
+
+  /* ============ generic state-visibility mechanism ============ */
+
+  [data-state] [data-show] {
+    display: none;
+  }
+
+  [data-state='insufficient-history'] [data-show='insufficient-history'] {
+    display: block;
+  }
+
+  [data-state='populated'] [data-show='populated'] {
+    display: block;
+  }
+
+  /* Topic-panel visibility, wired the same way but keyed off data-topic on .stats-content. */
+  .stats-panel-topic {
+    display: none;
+  }
+
+  .stats-content[data-topic='common'] .stats-panel-topic[data-topic='common'],
+  .stats-content[data-topic='heatmaps'] .stats-panel-topic[data-topic='heatmaps'],
+  .stats-content[data-topic='streaks'] .stats-panel-topic[data-topic='streaks'],
+  .stats-content[data-topic='trends'] .stats-panel-topic[data-topic='trends'],
+  .stats-content[data-topic='bestworst'] .stats-panel-topic[data-topic='bestworst'] {
+    display: block;
+  }
+
+  /* ============ 022-statistics-page: layout-specific styles ============ */
+
+  /* ---- mocked app header (rebuilt from current web/index.html + tokens.css) ---- */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-family);
+  }
+
+  .app-header__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  .app-header__logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    flex-shrink: 0;
+  }
+
+  .app-header__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .app-nav {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .app-nav span[data-active] {
+    color: var(--color-primary-dark);
+    font-weight: 600;
+  }
+
+  .stage-frame[data-viewport='mobile'] .app-nav {
+    display: none;
+  }
+
+  .app-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .header-yield {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+  }
+
+  .header-yield strong {
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- Statistics page split-view layout ---- */
+
+  .stats-page {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+  }
+
+  .stage-frame[data-viewport='mobile'] .stats-page {
+    flex-direction: column;
+    padding: var(--space-md);
+    gap: var(--space-md);
+  }
+
+  .stats-nav {
+    flex: 0 0 20%;
+    min-width: 168px;
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: sticky;
+    top: var(--space-md);
+  }
+
+  .stage-frame[data-viewport='mobile'] .stats-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .stats-nav button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--color-text);
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .stats-nav button .topic-count {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stats-nav button:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .stats-nav button[aria-current='true'] {
+    background: var(--color-bg);
+    color: var(--color-primary-dark);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--color-primary);
+  }
+
+  .stats-nav .icon-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--color-text-muted);
+  }
+
+  .stats-nav button[aria-current='true'] .icon-dot {
+    background: var(--color-primary);
+  }
+
+  .stats-content {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .stats-panel-topic h2 {
+    margin: 0 0 var(--space-xs);
+    font-size: var(--font-size-lg);
+  }
+
+  .topic-intro {
+    margin: 0 0 var(--space-md);
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    max-width: 60ch;
+  }
+
+  /* ---- Common: stat tile grid ---- */
+
+  .tile-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+  }
+
+  .stage-frame[data-viewport='mobile'] .tile-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tile-grid.pair-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-tile {
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-tile.worst {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--color-bg-elevated),
+      var(--color-bg-elevated) 10px,
+      #eceef0 10px,
+      #eceef0 20px
+    );
+  }
+
+  .stat-tile .tile-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+
+  .stat-tile .tile-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-tile.worst .tile-value {
+    color: var(--color-text-muted);
+  }
+
+  .stat-tile .tile-meta {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .stat-tile .tile-link {
+    margin-top: var(--space-xs);
+    font-size: 0.8rem;
+    color: var(--color-primary-dark);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .stat-tile .tile-link:hover {
+    text-decoration: underline;
+  }
+
+  .power-caveat {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  /* ---- Heatmaps ---- */
+
+  .heatmap-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+  }
+
+  .year-select {
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .heatmap-block {
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .heatmap-block h3 {
+    margin: 0 0 var(--space-sm);
+    font-size: 0.95rem;
+  }
+
+  .heatmap-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 11px);
+    grid-auto-flow: column;
+    gap: 3px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .heatmap-cell {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--heat-color, var(--color-accent)) calc(var(--v, 0) * 100%), var(--color-bg));
+  }
+
+  .heatmap-cell[data-missing='true'] {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--color-bg),
+      var(--color-bg) 2px,
+      var(--color-border) 2px,
+      var(--color-border) 3px
+    );
+  }
+
+  .heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+  }
+
+  .heatmap-legend .swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  .heatmap-legend .swatch.missing {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--color-bg),
+      var(--color-bg) 2px,
+      var(--color-border) 2px,
+      var(--color-border) 3px
+    );
+  }
+
+  /* ---- Streaks ---- */
+
+  .streak-card {
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+
+  .stage-frame[data-viewport='mobile'] .streak-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .streak-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .streak-detail h3 {
+    margin: 0 0 2px;
+    font-size: 1rem;
+  }
+
+  .streak-detail p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .streak-strip {
+    display: flex;
+    gap: 2px;
+    margin-top: var(--space-sm);
+  }
+
+  .streak-strip .day {
+    flex: 1;
+    height: 18px;
+    border-radius: 2px;
+    background: var(--color-border);
+  }
+
+  .streak-strip .day.in-streak {
+    background: var(--color-accent);
+  }
+
+  .ongoing-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-primary-dark);
+    background: #fff3e0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: var(--space-sm);
+  }
+
+  /* ---- Trends ---- */
+
+  .trend-block {
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .trend-block h3 {
+    margin: 0 0 2px;
+    font-size: 0.95rem;
+  }
+
+  .trend-block .trend-caveat {
+    margin: var(--space-xs) 0 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .trend-block svg {
+    width: 100%;
+    height: 140px;
+    display: block;
+  }
+
+  .trend-legend {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
+  }
+
+  .trend-legend .swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 4px;
+    vertical-align: -1px;
+  }
+
+  /* ---- Best vs Worst ---- */
+
+  .pair-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .stage-frame[data-viewport='mobile'] .pair-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: var(--space-sm) 0;
+  }
+
+  .pair-row:last-child {
+    border-bottom: none;
+  }
+
+  .pair-row .pair-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+
+  .pair-side {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  .pair-side.worst {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--color-bg-elevated),
+      var(--color-bg-elevated) 10px,
+      #eceef0 10px,
+      #eceef0 20px
+    );
+  }
+
+  .pair-side .pair-value {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pair-side .pair-tag {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+  }
+
+  /* ---- Empty / insufficient-history state ---- */
+
+  .empty-state {
+    background: var(--color-bg-elevated);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+
+  .empty-state .empty-icon {
+    font-size: 1.75rem;
+    display: block;
+    margin-bottom: var(--space-sm);
+  }
+
+  .empty-state h3 {
+    margin: 0 0 var(--space-xs);
+    color: var(--color-text);
+    font-size: 1rem;
+  }
+
+  .empty-state p {
+    margin: 0;
+    font-size: 0.85rem;
+    max-width: 46ch;
+    margin-inline: auto;
+  }
+</style>
+
+<header class="review-header">
+  <p class="review-eyebrow">Non-functional review mockup</p>
+  <h1>Statistik-Seite — layout review (022-statistics-page)</h1>
+  <p>
+    Static, non-interactive mockup of the new Statistics page's split-view layout (left-nav
+    topics + right content) covering all five topics from the spec: Common, Heatmaps, Streaks,
+    Trends, Best vs. Worst. No real data or chart library — placeholder values and inline SVG
+    sparklines only.
+  </p>
+</header>
+
+<div class="review-controls">
+  <div class="control-group">
+    <span class="label">Viewport</span>
+    <div class="segmented" id="viewport-toggle">
+      <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+      <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="label">History</span>
+    <div class="segmented" id="state-toggle">
+      <button type="button" data-state="populated" aria-pressed="true">Full history</button>
+      <button type="button" data-state="insufficient-history" aria-pressed="false">
+        New install (&lt; 1 year)
+      </button>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="label">Topic</span>
+    <div class="segmented" id="topic-toggle">
+      <button type="button" data-topic="common" aria-pressed="true">Common</button>
+      <button type="button" data-topic="heatmaps" aria-pressed="false">Heatmaps</button>
+      <button type="button" data-topic="streaks" aria-pressed="false">Streaks</button>
+      <button type="button" data-topic="trends" aria-pressed="false">Trends</button>
+      <button type="button" data-topic="bestworst" aria-pressed="false">Best/Worst</button>
+    </div>
+  </div>
+</div>
+
+<div class="review-stage">
+  <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+    <p class="stage-frame-label" id="stage-frame-label">Desktop — split layout</p>
+    <div class="canvas" data-state="populated" id="canvas">
+      <!-- Mocked app header, rebuilt from current web/index.html + tokens.css. -->
+      <div class="app-header">
+        <a class="app-header__brand" href="#">
+          <span class="app-header__logo" aria-hidden="true"></span>
+          <h2 class="app-header__title">PV Allwang</h2>
+        </a>
+        <nav class="app-nav">
+          <span>Start</span><span>Tag</span><span>Monat</span><span>Jahr</span><span>Gesamt</span
+          ><span data-active>Statistik</span><span>Ereignisse</span>
+        </nav>
+        <div class="app-header__actions">
+          <div class="header-yield">
+            <span>Heute</span>
+            <strong>14,2 kWh</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- The Statistics page itself: left-nav (~20%) of topics, right side content. -->
+      <div class="stats-page">
+        <nav class="stats-nav" id="stats-nav" aria-label="Statistik-Themen">
+          <button type="button" data-topic="common" aria-current="true">
+            <span class="icon-dot" aria-hidden="true"></span>Allgemein
+          </button>
+          <button type="button" data-topic="heatmaps" aria-current="false">
+            <span class="icon-dot" aria-hidden="true"></span>Heatmaps
+          </button>
+          <button type="button" data-topic="streaks" aria-current="false">
+            <span class="icon-dot" aria-hidden="true"></span>Serien
+          </button>
+          <button type="button" data-topic="trends" aria-current="false">
+            <span class="icon-dot" aria-hidden="true"></span>Trends
+          </button>
+          <button type="button" data-topic="bestworst" aria-current="false">
+            <span class="icon-dot" aria-hidden="true"></span>Bestwerte vs. Tiefstwerte
+          </button>
+        </nav>
+
+        <div class="stats-content" id="stats-content" data-topic="common">
+          <!-- ===== Common ===== -->
+          <section class="stats-panel-topic" data-topic="common">
+            <h2>Allgemein</h2>
+            <p class="topic-intro">
+              Die wichtigsten Bestwerte der Anlage auf einen Blick — jede Kachel verlinkt zur
+              passenden Detailansicht.
+            </p>
+            <div class="tile-grid">
+              <div class="stat-tile">
+                <span class="tile-label">Bester Monat</span>
+                <span class="tile-value">612 kWh</span>
+                <span class="tile-meta">Juli 2024</span>
+                <a class="tile-link" href="#">Zur Monatsansicht →</a>
+              </div>
+              <div class="stat-tile worst">
+                <span class="tile-label">Schwächster Monat</span>
+                <span class="tile-value">38 kWh</span>
+                <span class="tile-meta">Dezember 2023</span>
+                <a class="tile-link" href="#">Zur Monatsansicht →</a>
+              </div>
+              <div class="stat-tile">
+                <span class="tile-label">Bestes Jahr</span>
+                <span class="tile-value">5.842 kWh</span>
+                <span class="tile-meta">2024</span>
+                <a class="tile-link" href="#">Zur Jahresansicht →</a>
+              </div>
+              <div class="stat-tile worst">
+                <span class="tile-label">Schwächstes Jahr</span>
+                <span class="tile-value">4.110 kWh</span>
+                <span class="tile-meta">2007</span>
+                <a class="tile-link" href="#">Zur Jahresansicht →</a>
+              </div>
+              <div class="stat-tile">
+                <span class="tile-label">Max. Tagesleistung</span>
+                <span class="tile-value">8,42 kW</span>
+                <span class="tile-meta">14. Juli 2024</span>
+                <span class="power-caveat">nur Tag, keine Uhrzeit erfasst</span>
+                <a class="tile-link" href="#">Zur Tagesansicht →</a>
+              </div>
+              <div class="stat-tile">
+                <span class="tile-label">Max. Ist %</span>
+                <span class="tile-value">118 %</span>
+                <span class="tile-meta">3. Mai 2025</span>
+                <a class="tile-link" href="#">Zur Tagesansicht →</a>
+              </div>
+              <div class="stat-tile">
+                <span class="tile-label">Max. CO₂-Ersparnis / Tag</span>
+                <span class="tile-value">14,1 kg</span>
+                <span class="tile-meta">14. Juli 2024</span>
+                <a class="tile-link" href="#">Zur Tagesansicht →</a>
+              </div>
+              <div class="stat-tile">
+                <span class="tile-label">Max. Erlös / Tag</span>
+                <span class="tile-value">4,86 €</span>
+                <span class="tile-meta">14. Juli 2024</span>
+                <a class="tile-link" href="#">Zur Tagesansicht →</a>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== Heatmaps ===== -->
+          <section class="stats-panel-topic" data-topic="heatmaps">
+            <h2>Heatmaps</h2>
+            <p class="topic-intro">
+              Kalender-Heatmaps pro Jahr für Ertrag, Erlös und CO₂-Ersparnis — Farbskala relativ
+              zum Minimum/Maximum des gewählten Jahres.
+            </p>
+            <div class="heatmap-controls">
+              <select class="year-select" aria-label="Jahr wählen">
+                <option>2025</option>
+                <option selected>2024</option>
+                <option>2023</option>
+              </select>
+            </div>
+
+            <div data-show="populated">
+              <div class="heatmap-block">
+                <h3>Ertrag (kWh / Tag)</h3>
+                <div class="heatmap-grid" id="heatmap-energy" style="--heat-color: var(--color-primary)"></div>
+                <div class="heatmap-legend">
+                  <span class="swatch" style="background: var(--color-bg-elevated); border: 1px solid var(--color-border)"></span> wenig
+                  <span class="swatch" style="background: var(--color-primary)"></span> viel
+                  <span class="swatch missing"></span> keine Daten
+                </div>
+              </div>
+              <div class="heatmap-block">
+                <h3>Erlös (€ / Tag)</h3>
+                <div class="heatmap-grid" id="heatmap-money" style="--heat-color: var(--color-accent)"></div>
+              </div>
+              <div class="heatmap-block">
+                <h3>CO₂-Ersparnis (kg / Tag)</h3>
+                <div class="heatmap-grid" id="heatmap-co2" style="--heat-color: var(--chart-color-3)"></div>
+              </div>
+            </div>
+
+            <div data-show="insufficient-history" class="empty-state">
+              <span class="empty-icon" aria-hidden="true">◫</span>
+              <h3>Noch nicht genug Daten</h3>
+              <p>
+                Für 2024 liegt noch kein vollständiges Jahr vor. Sobald ein ganzes Kalenderjahr
+                erfasst ist, erscheint die Heatmap hier.
+              </p>
+            </div>
+          </section>
+
+          <!-- ===== Streaks ===== -->
+          <section class="stats-panel-topic" data-topic="streaks">
+            <h2>Serien</h2>
+            <p class="topic-intro">
+              Die längste Serie aufeinanderfolgender Tage über dem Schwellenwert.
+            </p>
+
+            <div data-show="populated">
+              <div class="streak-card">
+                <div class="streak-number">46</div>
+                <div class="streak-detail">
+                  <h3>Tage in Folge über 5 kWh<span class="ongoing-badge">● läuft noch</span></h3>
+                  <p>12. Mai 2025 – heute</p>
+                  <div class="streak-strip" id="streak-strip"></div>
+                </div>
+              </div>
+            </div>
+
+            <div data-show="insufficient-history" class="empty-state">
+              <span class="empty-icon" aria-hidden="true">◫</span>
+              <h3>Noch nicht genug Daten</h3>
+              <p>Es sind noch nicht genügend Tage erfasst, um eine aussagekräftige Serie zu bilden.</p>
+            </div>
+          </section>
+
+          <!-- ===== Trends ===== -->
+          <section class="stats-panel-topic" data-topic="trends">
+            <h2>Trends</h2>
+            <p class="topic-intro">
+              Langfristige Entwicklungen: Jahresvergleich, kumulierte Ersparnis und
+              spezifischer Ertrag über die Zeit.
+            </p>
+
+            <div data-show="populated">
+              <div class="trend-block">
+                <h3>Jahresvergleich (kumulierter Ertrag)</h3>
+                <svg viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true">
+                  <polyline points="0,130 40,120 80,95 120,70 160,55 200,40 240,28 300,18" fill="none" stroke="var(--chart-color-1)" stroke-width="2.5" />
+                  <polyline points="0,132 40,126 80,108 120,90 160,78 200,68 240,60 300,52" fill="none" stroke="var(--chart-color-3)" stroke-width="2.5" />
+                  <polyline points="0,135 40,131 80,120 120,108 160,100 200,94 240,90 300,86" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-dasharray="4 3" />
+                </svg>
+                <div class="trend-legend">
+                  <span><span class="swatch" style="background: var(--chart-color-1)"></span>2025</span>
+                  <span><span class="swatch" style="background: var(--chart-color-3)"></span>2024</span>
+                  <span><span class="swatch" style="background: var(--color-text-muted)"></span>Ø Vorjahre</span>
+                </div>
+              </div>
+
+              <div class="trend-block">
+                <h3>Kumulierte Ersparnis seit Inbetriebnahme</h3>
+                <svg viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true">
+                  <polyline points="0,138 50,120 100,98 150,80 200,58 250,35 300,10" fill="none" stroke="var(--color-accent)" stroke-width="2.5" />
+                  <polyline points="0,139 50,133 100,124 150,112 200,97 250,80 300,60" fill="none" stroke="var(--chart-color-3)" stroke-width="2.5" />
+                </svg>
+                <div class="trend-legend">
+                  <span><span class="swatch" style="background: var(--color-accent)"></span>€ gesamt</span>
+                  <span><span class="swatch" style="background: var(--chart-color-3)"></span>kg CO₂ gesamt</span>
+                </div>
+              </div>
+
+              <div class="trend-block">
+                <h3>Spezifischer Ertrag pro Jahr (kWh/kWp)</h3>
+                <svg viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true">
+                  <rect x="4" y="30" width="20" height="100" fill="var(--chart-color-5)" />
+                  <rect x="34" y="35" width="20" height="95" fill="var(--chart-color-5)" />
+                  <rect x="64" y="28" width="20" height="102" fill="var(--chart-color-5)" />
+                  <rect x="94" y="42" width="20" height="88" fill="var(--chart-color-5)" />
+                  <rect x="124" y="38" width="20" height="92" fill="var(--chart-color-5)" />
+                  <rect x="154" y="48" width="20" height="82" fill="var(--chart-color-5)" />
+                  <rect x="184" y="52" width="20" height="78" fill="var(--chart-color-5)" />
+                  <rect x="214" y="46" width="20" height="84" fill="var(--chart-color-5)" />
+                  <rect x="244" y="55" width="20" height="75" fill="var(--chart-color-5)" />
+                  <rect x="274" y="58" width="20" height="72" fill="var(--chart-color-5)" />
+                </svg>
+                <p class="trend-caveat">
+                  Geht von konstanter installierter Leistung aus; keine Wetter-Normalisierung.
+                </p>
+              </div>
+            </div>
+
+            <div data-show="insufficient-history" class="empty-state">
+              <span class="empty-icon" aria-hidden="true">◫</span>
+              <h3>Noch nicht genug Verlaufsdaten</h3>
+              <p>
+                Jahresvergleich und Trends benötigen mehrere volle Jahre Historie. Diese Ansicht
+                füllt sich mit der Zeit.
+              </p>
+            </div>
+          </section>
+
+          <!-- ===== Best vs. Worst ===== -->
+          <section class="stats-panel-topic" data-topic="bestworst">
+            <h2>Bestwerte vs. Tiefstwerte</h2>
+            <p class="topic-intro">
+              Jeder Bestwert direkt neben seinem Gegenstück zum einfachen Vergleich.
+            </p>
+            <div>
+              <div class="pair-row">
+                <span class="pair-label">Monat</span>
+                <a class="pair-side" href="#"
+                  ><span><span class="pair-tag">Beste</span><br /><span class="pair-value">612 kWh</span> · Jul 2024</span></a
+                >
+                <a class="pair-side worst" href="#"
+                  ><span><span class="pair-tag">Schwächste</span><br /><span class="pair-value">38 kWh</span> · Dez 2023</span></a
+                >
+              </div>
+              <div class="pair-row">
+                <span class="pair-label">Jahr</span>
+                <a class="pair-side" href="#"
+                  ><span><span class="pair-tag">Bestes</span><br /><span class="pair-value">5.842 kWh</span> · 2024</span></a
+                >
+                <a class="pair-side worst" href="#"
+                  ><span><span class="pair-tag">Schwächstes</span><br /><span class="pair-value">4.110 kWh</span> · 2007</span></a
+                >
+              </div>
+              <div class="pair-row">
+                <span class="pair-label">Tagesertrag</span>
+                <a class="pair-side" href="#"
+                  ><span><span class="pair-tag">Bester</span><br /><span class="pair-value">24,8 kWh</span> · 14. Jul 2024</span></a
+                >
+                <a class="pair-side worst" href="#"
+                  ><span><span class="pair-tag">Schwächster</span><br /><span class="pair-value">0,2 kWh</span> · 21. Dez 2023</span></a
+                >
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="review-footer">
+  <p>
+    <strong>Fixed constraints:</strong> left-nav topic list is ~20% width on desktop
+    (<code>flex: 0 0 20%</code>), collapses to a horizontal button row above the content on
+    mobile per spec FR-001/FR-014. All five topics are independently linkable routes in the real
+    app (mocked here via plain buttons, not real hash routes). Heatmap color scale is relative to
+    each year's own min/max (FR-015); "worst" stats are always visible, no toggle (FR-016).
+  </p>
+  <p>
+    <strong>Out of scope for this mockup:</strong> real chart rendering (ApexCharts heatmap type
+    and line/bar charts are represented as inline SVG/CSS-grid placeholders only), i18n/English
+    copy (German shown to match the app's default), exact stat-tile responsive reflow below the
+    2-column mobile grid shown here, and the "not enough data yet" wording's final copy.
+  </p>
+</footer>
+
+<script>
+  // Reusable wiring: connects a .segmented button group to a target element's data-* attribute.
+  const canvas = document.getElementById('canvas');
+  const stageFrame = document.getElementById('stage-frame');
+  const stageLabel = document.getElementById('stage-frame-label');
+  const statsContent = document.getElementById('stats-content');
+  const statsNav = document.getElementById('stats-nav');
+
+  function wire(groupId, attr, target, onChange) {
+    const group = document.getElementById(groupId);
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-' + attr + ']');
+      if (!btn) return;
+      const value = btn.getAttribute('data-' + attr);
+      target.setAttribute('data-' + attr, value);
+      [...group.querySelectorAll('button')].forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)),
+      );
+      if (onChange) onChange(value);
+    });
+  }
+
+  wire('viewport-toggle', 'viewport', stageFrame, (value) => {
+    stageLabel.textContent =
+      value === 'mobile' ? 'Mobile — stacked layout' : 'Desktop — split layout';
+  });
+  wire('state-toggle', 'state', canvas);
+
+  // Topic switching: drives both the review-controls segmented group and the in-canvas left nav,
+  // keeping them in sync either way (clicking the mocked stats-nav itself also switches topics).
+  function setTopic(topic) {
+    statsContent.setAttribute('data-topic', topic);
+    [...document.querySelectorAll('#topic-toggle button')].forEach((b) =>
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-topic') === topic)),
+    );
+    [...statsNav.querySelectorAll('button')].forEach((b) =>
+      b.setAttribute('aria-current', String(b.getAttribute('data-topic') === topic)),
+    );
+  }
+
+  document.getElementById('topic-toggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-topic]');
+    if (btn) setTopic(btn.getAttribute('data-topic'));
+  });
+
+  statsNav.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-topic]');
+    if (btn) setTopic(btn.getAttribute('data-topic'));
+  });
+
+  // Procedurally fill the three heatmap grids with plausible seasonal-shaped fake data (52 weeks
+  // x 7 days), plus a stretch of "missing" cells near the start of the year to demonstrate the
+  // distinct no-data treatment (FR-005/Edge Cases).
+  function buildHeatmap(id, seed) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const days = 371; // 53 weeks x 7, a little overflow is fine visually
+    for (let i = 0; i < days; i++) {
+      const dayOfYear = i;
+      // Seasonal bell curve peaking mid-year, plus mild pseudo-random noise per heatmap.
+      const season = Math.max(0, Math.sin((dayOfYear / 365) * Math.PI));
+      const noise = Math.abs(Math.sin(dayOfYear * seed)) * 0.3;
+      const v = Math.min(1, season * 0.8 + noise);
+      const cell = document.createElement('div');
+      cell.className = 'heatmap-cell';
+      if (dayOfYear < 18) {
+        cell.setAttribute('data-missing', 'true');
+      } else {
+        cell.style.setProperty('--v', v.toFixed(2));
+      }
+      el.appendChild(cell);
+    }
+  }
+  buildHeatmap('heatmap-energy', 0.17);
+  buildHeatmap('heatmap-money', 0.23);
+  buildHeatmap('heatmap-co2', 0.29);
+
+  // Streak strip: a 60-day mini timeline with a 46-day highlighted run at the end (matches the
+  // "läuft noch" / ongoing badge above).
+  const strip = document.getElementById('streak-strip');
+  if (strip) {
+    const total = 60;
+    const streakLen = 46;
+    for (let i = 0; i < total; i++) {
+      const day = document.createElement('div');
+      day.className = 'day' + (i >= total - streakLen ? ' in-streak' : '');
+      strip.appendChild(day);
+    }
+  }
+</script>

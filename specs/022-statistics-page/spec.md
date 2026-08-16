@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](design.md) — approved UI layout mockup and requirement traceability.
+
 **Input**: User description: "New 'Statistics' page for the SolarLog viewer: split-view layout with a left-nav of topics and stats/diagrams on the right for the selected topic. Topics: a 'Common' page surfacing best/worst overall month & year, max daily power, max Ist %, max daily CO2 saving, max daily € earned (each linking to its source view); full-year calendar heatmaps for generated energy, earned money, and CO2 saving per day; streaks (longest consecutive-day run above a threshold); trends (year-over-year cumulative comparison, cumulative lifetime € and CO2 savings, and a specific-yield degradation trend); and a best-vs-worst paired comparison view. All stats must be derived from existing per-day/month/year aggregate files already fetched today — never by iterating per-day minute files across a multi-day range."
 
 ## User Scenarios & Testing _(mandatory)_
