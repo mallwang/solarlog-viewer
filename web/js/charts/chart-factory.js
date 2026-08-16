@@ -849,6 +849,142 @@ function buildYearMonthsOptions(data, colors, { onDataPointClick, lang, breakdow
   });
 }
 
+/**
+ * Year-over-year cumulative yield comparison (022-statistics-page, FR-007) — one line per
+ * calendar year present in `data`, aligned by day-of-year (see data/statistics.js's
+ * computeYoyCumulative) rather than by date, so every year's curve starts at the same x origin.
+ * Informational only — no onDataPointClick (research.md R3/contracts/statistics-module.md).
+ * @param {{ year: number, points: { dayOfYear: number, cumulativeKwh: number }[] }[]} data
+ * @param {string[]} colors
+ * @param {{ lang?: string }} [config]
+ */
+function buildYoyCumulativeOptions(data, colors, { lang } = {}) {
+  const series = data.map((yearSeries, i) => ({
+    name: String(yearSeries.year),
+    data: yearSeries.points.map((p) => ({ x: p.dayOfYear, y: p.cumulativeKwh })),
+    color: colors[i % colors.length],
+  }));
+
+  return {
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'line' },
+    stroke: { width: 2, curve: 'smooth' },
+    markers: { size: 0 },
+    series,
+    xaxis: {
+      type: 'numeric',
+      title: { text: t('chart.dayOfYearAxis') },
+      min: 1,
+      max: 366,
+      labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+    },
+    yaxis: {
+      title: { text: t('chart.cumulativeYieldAxis') },
+      min: 0,
+      forceNiceScale: true,
+      labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+    },
+    tooltip: { y: { formatter: (value) => formatKwh(value, { decimals: 1, lang }) } },
+  };
+}
+
+/**
+ * Lifetime cumulative savings (022-statistics-page, FR-007) — dual-axis line (€ feed-in revenue
+ * left, CO2 avoided right), one point per year since the plant's commissioning (see
+ * data/statistics.js's computeLifetimeCumulative). Clicking a point drills into that year's
+ * `#/year/YYYY` view (contracts/statistics-module.md).
+ * @param {{ year: number, cumulativeEuro: number, cumulativeCo2Kg: number }[]} data
+ * @param {string[]} colors
+ * @param {{ onDataPointClick?: (dataPointIndex: number) => void, lang?: string }} [config]
+ */
+function buildLifetimeCumulativeOptions(data, colors, { onDataPointClick, lang } = {}) {
+  const clickEvents = onDataPointClick
+    ? {
+        events: {
+          dataPointSelection: (event, chartContext, config) => {
+            onDataPointClick(config.dataPointIndex);
+          },
+        },
+      }
+    : {};
+  const series = [
+    { name: t('chart.euroAxis'), data: data.map((d) => d.cumulativeEuro) },
+    { name: t('chart.co2Axis'), data: data.map((d) => d.cumulativeCo2Kg) },
+  ];
+
+  return {
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'line', ...clickEvents },
+    ...(onDataPointClick ? { states: { hover: { filter: { type: 'darken' } } } } : {}),
+    stroke: { width: 2, curve: 'monotoneCubic' },
+    markers: { size: 4, hover: { size: 6 } },
+    series,
+    xaxis: { categories: data.map((d) => String(d.year)), title: { text: t('chart.yearAxis') } },
+    yaxis: [
+      {
+        seriesName: t('chart.euroAxis'),
+        title: { text: t('chart.euroAxis') },
+        min: 0,
+        forceNiceScale: true,
+        labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+      },
+      {
+        seriesName: t('chart.co2Axis'),
+        opposite: true,
+        title: { text: t('chart.co2Axis') },
+        min: 0,
+        forceNiceScale: true,
+        labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+      },
+    ],
+    tooltip: {
+      y: [
+        { formatter: (value) => `${formatNumber(value, { decimals: 2, lang })} €` },
+        { formatter: (value) => `${formatNumber(value, { decimals: 0, lang })} kg` },
+      ],
+    },
+  };
+}
+
+/**
+ * Per-year specific yield (kWh/kWp) trend (022-statistics-page, FR-008) — one bar per year (see
+ * data/statistics.js's computeSpecificYieldTrend). Clicking a bar drills into that year's
+ * `#/year/YYYY` view; the degradation caveat itself is static UI copy rendered by
+ * views/statistics/trends-topic.js, not part of this chart.
+ * @param {{ year: number, specificYieldKwhPerKwp: number }[]} data
+ * @param {string[]} colors
+ * @param {{ onDataPointClick?: (dataPointIndex: number) => void, lang?: string }} [config]
+ */
+function buildSpecificYieldTrendOptions(data, colors, { onDataPointClick, lang } = {}) {
+  const clickEvents = onDataPointClick
+    ? {
+        events: {
+          dataPointSelection: (event, chartContext, config) => {
+            onDataPointClick(config.dataPointIndex);
+          },
+        },
+      }
+    : {};
+
+  return {
+    ...baseOptions(colors),
+    chart: { ...baseOptions(colors).chart, type: 'bar', ...clickEvents },
+    plotOptions: { bar: { columnWidth: '60%' } },
+    ...(onDataPointClick ? { states: { hover: { filter: { type: 'darken' } } } } : {}),
+    series: [
+      { name: t('chart.specificYieldAxis'), data: data.map((d) => d.specificYieldKwhPerKwp) },
+    ],
+    xaxis: { categories: data.map((d) => String(d.year)), title: { text: t('chart.yearAxis') } },
+    yaxis: {
+      title: { text: t('chart.specificYieldAxis') },
+      min: 0,
+      forceNiceScale: true,
+      labels: { formatter: (value) => formatNumber(value, { decimals: 0, lang }) },
+    },
+    tooltip: { y: { formatter: (value) => formatKwh(value, { decimals: 1, lang }) } },
+  };
+}
+
 // Singleton <style> element for `hideUdcRangeLegendEntry`, lazily created in `document.head` —
 // deliberately *not* a child of the chart container: ApexCharts' `updateOptions`/`toggleSeries`
 // calls (used to keep the band in sync with the line — see `legendClick` in `buildDayOptions`)
@@ -900,6 +1036,12 @@ function buildOptions(mode, data, colors, config) {
       return buildYearMonthsOptions(data, colors, config);
     case 'year':
       return buildYearOptions(data, colors, config);
+    case 'yoy-cumulative':
+      return buildYoyCumulativeOptions(data, colors, config);
+    case 'lifetime-cumulative':
+      return buildLifetimeCumulativeOptions(data, colors, config);
+    case 'specific-yield-trend':
+      return buildSpecificYieldTrendOptions(data, colors, config);
     default:
       throw new Error(`chart-factory: unsupported mode "${mode}"`);
   }
@@ -911,7 +1053,8 @@ function buildOptions(mode, data, colors, config) {
  * chart instance before mounting a fresh one — no stacked/duplicate charts.
  * @param {HTMLElement} container - A plain `<div>` (was `<canvas>` under Chart.js); ApexCharts
  *   renders an inline SVG into it.
- * @param {'day' | 'day-yield' | 'day-total' | 'month' | 'year-months' | 'year'} mode
+ * @param {'day' | 'day-yield' | 'day-total' | 'month' | 'year-months' | 'year' | 'yoy-cumulative' |
+ *   'lifetime-cumulative' | 'specific-yield-trend'} mode
  * @param {object} data - Same shape per mode as before (readings/dailyBreakdown/
  *   monthlyBreakdown/yearlyTotalsList).
  * @param {{ onDataPointClick?: (dataPointIndex: number) => void, breakdown?: 'total' |

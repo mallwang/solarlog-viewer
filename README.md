@@ -24,6 +24,9 @@ hosting device.
   2560px monitors
 - A dynamic sky background that reflects the plant's real current weather and time of day
 - A persistent desktop info panel showing live production, weather, and forecast
+- A "Statistik" page of records and long-term trends (best/worst month & year, calendar heatmaps,
+  production streaks, year-over-year/lifetime/degradation trend charts), computed entirely from
+  already-fetched aggregate data
 - An "Ereignisse" (events) page listing every inverter status/fault event, filterable and sortable
 - Explanatory tooltips on stats-panel figures explaining exactly how each is calculated
 - German/English UI language, remembered across reloads

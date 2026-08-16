@@ -9,12 +9,13 @@ locally or work with the validation/aggregation scripts instead? See the
 ## Table of contents
 
 1. [Dashboard navigation & charts](#dashboard-navigation--charts)
-2. [Ereignisse (events) page](#ereignisse-events-page)
-3. [Dynamic sky background](#dynamic-sky-background)
-4. [Global desktop info panel](#global-desktop-info-panel)
-5. [Day view & welcome page auto-refresh](#day-view--welcome-page-auto-refresh)
-6. [CO2 avoidance figures](#co2-avoidance-figures)
-7. [Explanatory tooltips](#explanatory-tooltips)
+2. [Statistics page](#statistics-page)
+3. [Ereignisse (events) page](#ereignisse-events-page)
+4. [Dynamic sky background](#dynamic-sky-background)
+5. [Global desktop info panel](#global-desktop-info-panel)
+6. [Day view & welcome page auto-refresh](#day-view--welcome-page-auto-refresh)
+7. [CO2 avoidance figures](#co2-avoidance-figures)
+8. [Explanatory tooltips](#explanatory-tooltips)
 
 ## Dashboard navigation & charts
 
@@ -39,6 +40,34 @@ that day's month view. The total view has no such link since it's the top of the
 | Day chart y-axes                                  | Feed-in (W), Wirkungsgrad (%), and UDC (V) always use the same fixed range/gridline spacing regardless of the day, so days stay visually comparable and the scale doesn't jump while paging.                                                                                                 |
 | Day chart x-axis                                  | Zooms to the day's actual data by default (small padding on each side); a site administrator can switch it to always show the full 00:00–24:00 day via `DAY_CHART_AXES`, `DAY_CHART_X_AXIS_RANGE`, and `DAY_CHART_X_AXIS_PADDING_MINUTES` in `web/js/config.js`.                             |
 | Gesamt / Wechselrichter toggle (month/year/total) | "Gesamt" (default) shows one combined bar per period; "Wechselrichter" stacks one segment per inverter string, with the tooltip showing the combined total plus each string's value. Remembered across reloads and shared between the three views. Drill-down-by-click works in either mode. |
+
+## Statistics page
+
+`#/statistics` ("Statistik" in the nav, between "Gesamt" and "Ereignisse") is a split-view page
+of records and long-term trends computed entirely from the plant's already-recorded history — no
+extra data is fetched beyond what a session opening month/year/total already downloads. A left
+topic nav lists five topics, each its own bookmarkable/shareable link:
+
+- **Allgemein (Common)** — an 8-tile grid of records: best/worst month & year, the single highest
+  daily peak power, the single highest "Ist %" day, and the single highest CO2-saving/revenue
+  day. Every tile links to its source day/month/year view. The max-daily-power tile carries a
+  small caveat: it's the day's recorded peak, not tied to a specific time of day.
+- **Heatmaps** — a year selector above three calendar heatmaps (energy/kWh, money/€, CO2/kg), one
+  cell per day, color intensity scaled to that year's own minimum/maximum. A day with no recorded
+  data renders as a diagonal hatch pattern, always visually distinct from a real recorded zero.
+- **Serien (Streaks)** — the longest run of consecutive days each producing at least a meaningful
+  daily yield, with an "läuft noch" (ongoing) badge when that run is still active.
+- **Trends** — three charts: year-over-year cumulative yield (aligned by day of year), cumulative
+  lifetime €/CO2 savings since commissioning, and per-year specific yield (kWh/kWp) — the last one
+  carries a permanent caveat noting it assumes constant installed capacity with no weather
+  normalization.
+- **Bestwerte vs. Tiefstwerte (Best vs. Worst)** — the same best/worst pairs from the Common topic
+  (month, year, daily yield) shown side by side, each with its own link, no toggle needed.
+
+Heatmaps, Serien, and Trends each show a "not enough data yet" placeholder instead of an empty
+chart when the plant doesn't yet have enough recorded history for that topic to be meaningful;
+Allgemein and Bestwerte vs. Tiefstwerte always render, since even a few days of history produces a
+meaningful "best so far".
 
 ## Ereignisse (events) page
 

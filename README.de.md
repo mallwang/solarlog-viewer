@@ -26,6 +26,9 @@ Hosting-Gerät übertragen wird.
 - Ein dynamischer Himmel-Hintergrund, der das reale aktuelle Wetter und die Tageszeit der Anlage
   widerspiegelt
 - Ein dauerhaftes Desktop-Infopanel mit aktueller Leistung, Wetter und Prognose
+- Eine "Statistik"-Seite mit Bestwerten und Langzeittrends (bester/schwächster Monat & Jahr,
+  Kalender-Heatmaps, Ertragsserien, Jahresvergleichs-/Lebenszeit-/Degradationstrends), komplett
+  berechnet aus bereits geladenen Aggregatdaten
 - Eine "Ereignisse"-Seite mit jedem Wechselrichter-Status-/Fehlerereignis, filter- und sortierbar
 - Erklär-Tooltips an Statistikwerten, die genau erläutern, wie jeder Wert berechnet wird
 - Deutsch/Englisch als UI-Sprache, bleibt über Neuladen hinweg erhalten

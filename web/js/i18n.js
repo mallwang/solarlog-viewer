@@ -6,8 +6,15 @@ const DEFAULT_LANG = 'de';
 let currentLang = DEFAULT_LANG;
 let strings = {};
 
-/** @returns {'de' | 'en'} Persisted selection (localStorage) or 'de' default (FR-018, FR-017). */
+/**
+ * @returns {'de' | 'en'} Persisted selection (localStorage) or 'de' default (FR-018, FR-017).
+ *   Guarded for `node:test` environments with no `window` (022-statistics-page's
+ *   statistics.js pulls in format.js, which resolves the active language via this function even
+ *   though it never touches the DOM itself) — always resolves to DEFAULT_LANG there, same as a
+ *   browser session with no persisted preference yet.
+ */
 export function getLanguage() {
+  if (typeof window === 'undefined') return DEFAULT_LANG;
   return window.localStorage.getItem(STORAGE_KEY) || DEFAULT_LANG;
 }
 

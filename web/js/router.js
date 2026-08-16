@@ -19,6 +19,56 @@ function isValidDate(year, month, day) {
   );
 }
 
+const STATISTICS_TOPICS = new Set(['common', 'heatmaps', 'streaks', 'trends', 'best-worst']);
+
+/** @param {string | undefined} rawTopic @returns {string} A valid topic, defaulting to 'common' (per contracts/statistics-module.md's Router contract). */
+function parseStatisticsTopic(rawTopic) {
+  return STATISTICS_TOPICS.has(rawTopic) ? rawTopic : 'common';
+}
+
+/** @param {string[]} rest - segments after 'year'. @returns {{ view: string, params: object } | null} */
+function parseYearRoute(rest) {
+  if (rest.length !== 1) return null;
+  const year = Number.parseInt(rest[0], 10);
+  if (!Number.isInteger(year) || !/^\d{4}$/.test(rest[0])) return null;
+  return { view: 'year', params: { year } };
+}
+
+/** @param {string[]} rest - segments after 'month'. @returns {{ view: string, params: object } | null} */
+function parseMonthRoute(rest) {
+  if (rest.length !== 2) return null;
+  const year = Number.parseInt(rest[0], 10);
+  const month = Number.parseInt(rest[1], 10);
+  if (!/^\d{4}$/.test(rest[0]) || !/^\d{2}$/.test(rest[1]) || month < 1 || month > 12) return null;
+  return { view: 'month', params: { year, month } };
+}
+
+/** @param {string[]} rest - segments after 'day'. @returns {{ view: string, params: object } | null} */
+function parseDayRoute(rest) {
+  if (rest.length !== 3) return null;
+  const year = Number.parseInt(rest[0], 10);
+  const month = Number.parseInt(rest[1], 10);
+  const day = Number.parseInt(rest[2], 10);
+  const shapeOk = /^\d{4}$/.test(rest[0]) && /^\d{2}$/.test(rest[1]) && /^\d{2}$/.test(rest[2]);
+  if (
+    !shapeOk ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31 ||
+    !isValidDate(year, month, day)
+  ) {
+    return null;
+  }
+  return { view: 'day', params: { year, month, day } };
+}
+
+const SIMPLE_ROUTE_PARSERS = {
+  year: parseYearRoute,
+  month: parseMonthRoute,
+  day: parseDayRoute,
+};
+
 /**
  * Parses the current location.hash into a Route.
  * @param {string} hash
@@ -33,45 +83,12 @@ export function parseRoute(hash) {
   const [kind, ...rest] = segments;
 
   if (kind === 'total' && rest.length === 0) return { view: 'total', params: {} };
-
   if (kind === 'events' && rest.length === 0) return { view: 'events', params: {} };
-
-  if (kind === 'year' && rest.length === 1) {
-    const year = Number.parseInt(rest[0], 10);
-    if (Number.isInteger(year) && /^\d{4}$/.test(rest[0]))
-      return { view: 'year', params: { year } };
-    return defaultRoute();
+  if (kind === 'statistics') {
+    return { view: 'statistics', params: { topic: parseStatisticsTopic(rest[0]) } };
   }
 
-  if (kind === 'month' && rest.length === 2) {
-    const year = Number.parseInt(rest[0], 10);
-    const month = Number.parseInt(rest[1], 10);
-    if (/^\d{4}$/.test(rest[0]) && /^\d{2}$/.test(rest[1]) && month >= 1 && month <= 12) {
-      return { view: 'month', params: { year, month } };
-    }
-    return defaultRoute();
-  }
-
-  if (kind === 'day' && rest.length === 3) {
-    const year = Number.parseInt(rest[0], 10);
-    const month = Number.parseInt(rest[1], 10);
-    const day = Number.parseInt(rest[2], 10);
-    if (
-      /^\d{4}$/.test(rest[0]) &&
-      /^\d{2}$/.test(rest[1]) &&
-      /^\d{2}$/.test(rest[2]) &&
-      month >= 1 &&
-      month <= 12 &&
-      day >= 1 &&
-      day <= 31 &&
-      isValidDate(year, month, day)
-    ) {
-      return { view: 'day', params: { year, month, day } };
-    }
-    return defaultRoute();
-  }
-
-  return defaultRoute();
+  return SIMPLE_ROUTE_PARSERS[kind]?.(rest) ?? defaultRoute();
 }
 
 /**
@@ -92,6 +109,8 @@ export function formatRoute(route) {
       return '#/total';
     case 'events':
       return '#/events';
+    case 'statistics':
+      return `#/statistics/${params.topic ?? 'common'}`;
     case 'welcome':
     default:
       return '#/';

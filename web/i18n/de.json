@@ -11,7 +11,8 @@
     "opensNewTab": "öffnet in neuem Tab",
     "ariaLabel": "Hauptnavigation",
     "toggleLabel": "Navigation ein-/ausblenden",
-    "transparencyToggleLabel": "Transparenzmodus umschalten"
+    "transparencyToggleLabel": "Transparenzmodus umschalten",
+    "statisticsView": "Statistik"
   },
   "common": {
     "prev": "Vorheriger",
@@ -167,7 +168,12 @@
     "tableToggleOn": "Tabelle ausblenden",
     "tableToggleOff": "Als Tabelle anzeigen",
     "tableNoData": "Keine Daten für diesen Zeitraum",
-    "tableCaption": "Datentabelle"
+    "tableCaption": "Datentabelle",
+    "dayOfYearAxis": "Tag im Jahr",
+    "cumulativeYieldAxis": "Kumulierter Ertrag (kWh)",
+    "euroAxis": "Erlös (€)",
+    "co2Axis": "CO₂-Ersparnis (kg)",
+    "specificYieldAxis": "Spezifischer Ertrag (kWh/kWp)"
   },
   "events": {
     "title": "Ereignisse",
@@ -242,5 +248,76 @@
     "sollAuflaufend": "Das anteilige Ziel bis heute: die Tagesziele aller bereits vergangenen Tage dieses Zeitraums aufsummiert.",
     "ist": "Der tatsächliche Ertrag als Prozentsatz des danebenstehenden Soll-Werts — 100 % heißt genau im Plan.",
     "co2": "Der Ertrag (kWh) multipliziert mit dem CO2-Emissionsfaktor des deutschen Strommix im jeweiligen Jahr."
+  },
+  "statistics": {
+    "navLabel": "Statistik-Themen",
+    "noData": "Keine Daten verfügbar.",
+    "topics": {
+      "common": "Allgemein",
+      "heatmaps": "Heatmaps",
+      "streaks": "Serien",
+      "trends": "Trends",
+      "bestWorst": "Bestwerte vs. Tiefstwerte"
+    },
+    "common": {
+      "title": "Allgemein",
+      "intro": "Die wichtigsten Bestwerte der Anlage auf einen Blick — jede Kachel verlinkt zur passenden Detailansicht.",
+      "bestMonth": "Bester Monat",
+      "worstMonth": "Schwächster Monat",
+      "bestYear": "Bestes Jahr",
+      "worstYear": "Schwächstes Jahr",
+      "maxDailyPower": "Max. Tagesleistung",
+      "maxIstPercent": "Max. Ist %",
+      "maxDailyCo2": "Max. CO₂-Ersparnis / Tag",
+      "maxDailyEuro": "Max. Erlös / Tag",
+      "viewDay": "Zur Tagesansicht →",
+      "viewMonth": "Zur Monatsansicht →",
+      "viewYear": "Zur Jahresansicht →"
+    },
+    "commonTiles": {
+      "maxDailyPowerCaveat": "nur Tag, keine Uhrzeit erfasst",
+      "notEnough": "n/a"
+    },
+    "heatmaps": {
+      "title": "Heatmaps",
+      "intro": "Kalenderansicht pro Jahr — Farbintensität relativ zum Minimum/Maximum dieses Jahres.",
+      "yearLabel": "Jahr",
+      "energy": "Energie (kWh)",
+      "money": "Erlös (€)",
+      "co2": "CO₂-Ersparnis (kg)",
+      "legendLow": "niedrig",
+      "legendHigh": "hoch",
+      "legendMissing": "keine Daten"
+    },
+    "streaks": {
+      "title": "Serien",
+      "intro": "Die längste Serie aufeinanderfolgender Tage mit nennenswertem Ertrag.",
+      "lengthLabel": "Tage in Folge",
+      "thresholdLabel": "Schwellenwert pro Tag",
+      "dateRange": "Zeitraum",
+      "ongoing": "läuft noch"
+    },
+    "trends": {
+      "title": "Trends",
+      "intro": "Langfristige Entwicklung der Anlage über mehrere Jahre.",
+      "yoyTitle": "Jahresvergleich (kumulierter Ertrag)",
+      "lifetimeTitle": "Kumulierte Ersparnis (Lebenszeit)",
+      "specificYieldTitle": "Spezifischer Ertrag pro Jahr",
+      "degradationCaveat": "Geht von konstanter installierter Leistung aus; keine Wetter-Normalisierung.",
+      "notEnoughYoy": "Für den Jahresvergleich werden mindestens zwei Jahre mit Daten benötigt."
+    },
+    "bestWorst": {
+      "title": "Bestwerte vs. Tiefstwerte",
+      "intro": "Bestwerte und Tiefstwerte im direkten Vergleich, jeweils mit eigenem Link zur Detailansicht.",
+      "month": "Monat",
+      "year": "Jahr",
+      "dailyYield": "Tagesertrag",
+      "best": "Bestwert",
+      "worst": "Tiefstwert"
+    },
+    "emptyState": {
+      "title": "Noch nicht genug Daten",
+      "body": "Für diese Ansicht wird mehr aufgezeichnete Historie benötigt — schau später noch einmal vorbei."
+    }
   }
 }

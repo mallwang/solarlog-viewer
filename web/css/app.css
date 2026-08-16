@@ -2216,3 +2216,438 @@ html[data-transparency='on'] body[data-sky='night'] {
   cursor: pointer;
   font-size: var(--font-size-sm);
 }
+
+/* ============================================================
+   Statistics page (022-statistics-page) — split-view layout:
+   a left topic nav plus a right content area rendering the
+   active topic's stats/charts. Classes mirror the approved
+   mockup (specs/022-statistics-page/mockup.html) as closely as
+   possible so the shipped page matches what was reviewed.
+   ============================================================ */
+
+.stats-page {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-lg);
+}
+
+.stats-nav {
+  flex: 0 0 20%;
+  min-width: 168px;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: calc(var(--chrome-height, 60px) + var(--space-md));
+  box-sizing: border-box;
+}
+
+.stats-nav a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.9rem;
+  color: var(--color-text);
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+}
+
+.stats-nav a:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.stats-nav a[aria-current='page'] {
+  background: var(--color-bg);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.stats-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.stats-content h2 {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-lg);
+}
+
+.topic-intro {
+  margin: 0 0 var(--space-md);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  max-width: 60ch;
+}
+
+/* ---- Common / Best vs. Worst: stat tile grid ---- */
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+.stat-tile {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-sizing: border-box;
+}
+
+/* "Worst" tiles get a subtle diagonal-stripe background instead of a red/danger color — this is
+   comparative data, not an error state, so the app's semantic danger color stays reserved for
+   actual errors (see design.md's Common topic section). */
+.stat-tile.worst {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--color-bg-elevated),
+    var(--color-bg-elevated) 10px,
+    #eceef0 10px,
+    #eceef0 20px
+  );
+}
+
+.stat-tile .tile-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.stat-tile .tile-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-tile.worst .tile-value {
+  color: var(--color-text-muted);
+}
+
+.stat-tile .tile-meta {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.stat-tile .tile-link {
+  margin-top: var(--space-xs);
+  font-size: 0.8rem;
+  color: var(--color-primary-dark);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.stat-tile .tile-link:hover {
+  text-decoration: underline;
+}
+
+.stat-tile .power-caveat {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ---- Heatmaps ---- */
+
+.heatmap-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.year-select {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.heatmap-block {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  box-sizing: border-box;
+}
+
+.heatmap-block h3 {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.95rem;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-rows: repeat(7, 11px);
+  grid-auto-flow: column;
+  gap: 3px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.heatmap-cell {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: color-mix(
+    in srgb,
+    var(--heat-color, var(--color-accent)) calc(var(--v, 0) * 100%),
+    var(--color-bg)
+  );
+}
+
+/* Missing-data days get a hatch pattern instead of a solid color at any opacity, so "no data" is
+   never confused with a real recorded zero (FR-005). */
+.heatmap-cell[data-missing='true'] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-bg),
+    var(--color-bg) 2px,
+    var(--color-border) 2px,
+    var(--color-border) 3px
+  );
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+
+.heatmap-legend .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.heatmap-legend .swatch.missing {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-bg),
+    var(--color-bg) 2px,
+    var(--color-border) 2px,
+    var(--color-border) 3px
+  );
+}
+
+/* ---- Streaks ---- */
+
+.streak-card {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-md);
+  box-sizing: border-box;
+}
+
+.streak-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-accent);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.streak-detail h3 {
+  margin: 0 0 2px;
+  font-size: 1rem;
+}
+
+.streak-detail p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.streak-strip {
+  display: flex;
+  gap: 2px;
+  margin-top: var(--space-sm);
+}
+
+.streak-strip .day {
+  flex: 1;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--color-border);
+}
+
+.streak-strip .day.in-streak {
+  background: var(--color-accent);
+}
+
+.ongoing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  background: #fff3e0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: var(--space-sm);
+}
+
+/* ---- Trends ---- */
+
+.trend-block {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  box-sizing: border-box;
+}
+
+.trend-block h3 {
+  margin: 0 0 2px;
+  font-size: 0.95rem;
+}
+
+.trend-block .trend-mount {
+  height: 260px;
+}
+
+.trend-block .trend-caveat {
+  margin: var(--space-xs) 0 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ---- Best vs. Worst ---- */
+
+.pair-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 1fr;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pair-row:last-child {
+  border-bottom: none;
+}
+
+.pair-row .pair-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.pair-side {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  text-decoration: none;
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+.pair-side.worst {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--color-bg-elevated),
+    var(--color-bg-elevated) 10px,
+    #eceef0 10px,
+    #eceef0 20px
+  );
+}
+
+.pair-side .pair-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pair-side .pair-tag {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+/* ---- Insufficient-history empty state (Heatmaps/Streaks/Trends only, FR-012/SC-005) ---- */
+
+.stats-empty-state {
+  background: var(--color-bg-elevated);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--color-text-muted);
+  box-sizing: border-box;
+}
+
+.stats-empty-state h3 {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.stats-empty-state p {
+  margin: 0;
+  font-size: 0.85rem;
+  max-width: 46ch;
+  margin-inline: auto;
+}
+
+/* ---- Responsive: stacked nav, 2-column tile grid below md (768px) ---- */
+
+@media (max-width: 768px) {
+  .stats-page {
+    flex-direction: column;
+  }
+
+  .stats-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tile-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .streak-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .pair-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: var(--space-sm) 0;
+  }
+}

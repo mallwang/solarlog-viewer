@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-16
 
-**Status**: Draft
+**Status**: Implemented
 
 **Design**: [design.md](design.md) — approved UI layout mockup and requirement traceability.
 

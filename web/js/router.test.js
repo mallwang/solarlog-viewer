@@ -47,6 +47,31 @@ test('falls back to the welcome page for an out-of-range hash', () => {
   assert.deepEqual(parseRoute('#/day/2019/02/30'), welcomeRoute);
 });
 
+test('parses the statistics route with a valid topic', () => {
+  assert.deepEqual(parseRoute('#/statistics/heatmaps'), {
+    view: 'statistics',
+    params: { topic: 'heatmaps' },
+  });
+});
+
+test('parses the statistics route with a missing topic segment as "common"', () => {
+  assert.deepEqual(parseRoute('#/statistics'), { view: 'statistics', params: { topic: 'common' } });
+});
+
+test('parses the statistics route with an invalid topic segment as "common"', () => {
+  assert.deepEqual(parseRoute('#/statistics/bogus'), {
+    view: 'statistics',
+    params: { topic: 'common' },
+  });
+});
+
+test('formatRoute round-trips the statistics route', () => {
+  assert.equal(
+    formatRoute({ view: 'statistics', params: { topic: 'trends' } }),
+    '#/statistics/trends',
+  );
+});
+
 test('formatRoute round-trips each view', () => {
   assert.equal(
     formatRoute({ view: 'day', params: { year: 2019, month: 7, day: 15 } }),
