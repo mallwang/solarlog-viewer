@@ -301,4 +301,3 @@ merge conflicts.
 - Commit after each task or logical group (`speckit.git.commit`, offered automatically after this
   phase per `.specify/extensions.yml`).
 - Stop at any checkpoint to validate a story independently before starting the next.
-</content>

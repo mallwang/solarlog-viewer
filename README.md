@@ -137,8 +137,20 @@ figure to kg/kWh (divide by 1000) and add it as a single new `year: factor` key 
 `CO2_FACTOR_KG_PER_KWH_BY_YEAR` — no other file needs to change; every view picks it up on next
 load.
 
+## Releases
+
+Releases follow [Conventional Commits](https://www.conventionalcommits.org/) and
+[Semantic Versioning](https://semver.org/). `npm run release` (backed by
+[release-it](https://github.com/release-it/release-it) with
+`@release-it/conventional-changelog`) bumps `package.json`'s version, regenerates
+`CHANGELOG.md` from the commits since the last tag, and creates a `vX.Y.Z` git tag —
+it does not publish to npm or push a Docker image, and it does not build or deploy the
+site. For maintainers, the guided `release` skill in Claude Code (`/release`) walks
+through a dry-run preview, a confirmation gate, the release itself, and formatted
+GitHub Release notes to paste in manually. See `.claude/skills/release/SKILL.md` for
+the full workflow. After releasing, run `npm run build` and the `sync-ftp` skill to
+actually deploy.
+
 ## License
 
 MIT — see [LICENSE.md](LICENSE.md).
-</content>
-</invoke>

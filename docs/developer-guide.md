@@ -113,5 +113,3 @@ gap-detect → validate-plausibility → fill-days-hist → fill-months → fill
 ```
 
 Run in order: detect what is missing, validate what is present, then fill from the bottom up.
-</content>
-</invoke>
