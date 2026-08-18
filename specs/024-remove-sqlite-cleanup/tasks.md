@@ -23,7 +23,7 @@ Single project at repository root: `scripts/`, `web/`, `.specify/memory/`, `spec
 
 **Purpose**: No project initialization is needed — this is a deletion/documentation cleanup on an already-configured repo.
 
-- [ ] T001 Confirm current state matches research.md's inspection findings by running `grep -rin "sqlite" package.json CLAUDE.md README.md README.de.md .gitignore scripts/ .specify/memory/constitution.md` and `find . -iname "*.sqlite*" -o -iname "*.db" | grep -v node_modules`, from repo root; note which of `.gitignore`/`README.md`/`README.de.md` actually need edits (research.md found none as of 2026-08-18, but confirm it's still true)
+- [x] T001 Confirm current state matches research.md's inspection findings by running `grep -rin "sqlite" package.json CLAUDE.md README.md README.de.md .gitignore scripts/ .specify/memory/constitution.md` and `find . -iname "*.sqlite*" -o -iname "*.db" | grep -v node_modules`, from repo root; note which of `.gitignore`/`README.md`/`README.de.md` actually need edits (research.md found none as of 2026-08-18, but confirm it's still true)
 
 **Checkpoint**: Setup complete — exact scope of Phase 3+ edits confirmed
 
@@ -35,8 +35,8 @@ Single project at repository root: `scripts/`, `web/`, `.specify/memory/`, `spec
 
 **⚠️ CRITICAL**: No user story deletion work should be considered complete until this phase is also complete — both must land together so the constitution never contradicts the working tree.
 
-- [ ] T002 Run `/speckit-constitution` to amend `.specify/memory/constitution.md`: retract the SQLite narrow-exception clauses in Principle I ("Narrow exception — local SQLite cache", line ~80), Principle III (SQLite database for developer tooling mention, lines ~47-51), Technical Standards → Backend section (line ~228, "A local SQLite cache populated by an offline sync script..."), and Modernization Scope (line ~157, 169: "Optional: a local SQLite cache..." in-scope bullet and the "may store derived aggregates" out-of-scope carve-out); bump version MINOR (material contraction of existing guidance, not removal of a whole principle) per research.md's Decision: Constitution amendment is in-scope
-- [ ] T003 Verify `grep -in "sqlite" .specify/memory/constitution.md` returns no output after T002
+- [x] T002 Run `/speckit-constitution` to amend `.specify/memory/constitution.md`: retract the SQLite narrow-exception clauses in Principle I ("Narrow exception — local SQLite cache", line ~80), Principle III (SQLite database for developer tooling mention, lines ~47-51), Technical Standards → Backend section (line ~228, "A local SQLite cache populated by an offline sync script..."), and Modernization Scope (line ~157, 169: "Optional: a local SQLite cache..." in-scope bullet and the "may store derived aggregates" out-of-scope carve-out); bump version MINOR (material contraction of existing guidance, not removal of a whole principle) per research.md's Decision: Constitution amendment is in-scope
+- [x] T003 Verify `grep -in "sqlite" .specify/memory/constitution.md` returns no output after T002
 
 **Checkpoint**: Constitution no longer documents SQLite as a permitted exception — code/doc deletion in Phase 3+ can now proceed without contradicting governance text
 
@@ -50,12 +50,12 @@ Single project at repository root: `scripts/`, `web/`, `.specify/memory/`, `spec
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Verify no other script or module depends on `scripts/sync-sqlite.js` by running `grep -rl "sync-sqlite" scripts/ web/` from repo root and confirming only `scripts/sync-sqlite.js` and `scripts/sync-sqlite.test.js` themselves match (FR-008 / research.md's Decision: No dependents to update)
-- [ ] T005 [P] [US1] Delete `scripts/sync-sqlite.js`
-- [ ] T006 [P] [US1] Delete `scripts/sync-sqlite.test.js`
-- [ ] T007 [US1] Remove the `"sync:sqlite": "node scripts/sync-sqlite.js"` line from the `scripts` block in `package.json`
-- [ ] T008 [US1] Remove the "sqlite sync" mention from the Filesystem-reading-scripts sentence in the Local Development Server section of `CLAUDE.md`, leaving "backfill, `gap:detect`" and the rest of the sentence intact
-- [ ] T009 [US1] Verify `grep -in "sqlite" package.json CLAUDE.md` (and `README.md`, `README.de.md` if T001 found references there) returns no output, and `npm run 2>&1 | grep -i sqlite` returns no output
+- [x] T004 [US1] Verify no other script or module depends on `scripts/sync-sqlite.js` by running `grep -rl "sync-sqlite" scripts/ web/` from repo root and confirming only `scripts/sync-sqlite.js` and `scripts/sync-sqlite.test.js` themselves match (FR-008 / research.md's Decision: No dependents to update)
+- [x] T005 [P] [US1] Delete `scripts/sync-sqlite.js`
+- [x] T006 [P] [US1] Delete `scripts/sync-sqlite.test.js`
+- [x] T007 [US1] Remove the `"sync:sqlite": "node scripts/sync-sqlite.js"` line from the `scripts` block in `package.json`
+- [x] T008 [US1] Remove the "sqlite sync" mention from the Filesystem-reading-scripts sentence in the Local Development Server section of `CLAUDE.md`, leaving "backfill, `gap:detect`" and the rest of the sentence intact
+- [x] T009 [US1] Verify `grep -in "sqlite" package.json CLAUDE.md` (and `README.md`, `README.de.md` if T001 found references there) returns no output, and `npm run 2>&1 | grep -i sqlite` returns no output
 
 **Checkpoint**: User Story 1 fully satisfied — no active script, npm command, or doc points to SQLite. Independently verifiable via the Independent Test above.
 
@@ -69,9 +69,9 @@ Single project at repository root: `scripts/`, `web/`, `.specify/memory/`, `spec
 
 ### Implementation for User Story 2
 
-- [ ] T010 [P] [US2] Delete the generated artifact `data/solarlog.sqlite3` from the working tree
-- [ ] T011 [US2] Remove any SQLite-specific entries from `.gitignore` if T001 found any (research.md found none as of 2026-08-18 — skip the edit, keep this task as a re-verification, if none are found)
-- [ ] T012 [US2] Verify `find . -iname "*.sqlite*" -o -iname "*.db" | grep -v node_modules` returns no output
+- [x] T010 [P] [US2] Delete the generated artifact `data/solarlog.sqlite3` from the working tree
+- [x] T011 [US2] Remove any SQLite-specific entries from `.gitignore` if T001 found any (research.md found none as of 2026-08-18 — skip the edit, keep this task as a re-verification, if none are found)
+- [x] T012 [US2] Verify `find . -iname "*.sqlite*" -o -iname "*.db" | grep -v node_modules` returns no output
 
 **Checkpoint**: User Story 2 fully satisfied — zero SQLite files anywhere in the working tree. Independently verifiable via the Independent Test above, and combinable with US1's checkpoint.
 
@@ -85,7 +85,7 @@ Single project at repository root: `scripts/`, `web/`, `.specify/memory/`, `spec
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Edit the `**Status**:` line of `specs/004-sqlite-meter-sync/spec.md` (currently "Done") to read "Abandoned — superseded by 024-remove-sqlite-cleanup, see that spec for rationale."; leave the rest of the file (plan.md, research.md, data-model.md, contracts/, tasks.md, quickstart.md, checklists/ in that folder) untouched as historical record
+- [x] T013 [US3] Edit the `**Status**:` line of `specs/004-sqlite-meter-sync/spec.md` (currently "Done") to read "Abandoned — superseded by 024-remove-sqlite-cleanup, see that spec for rationale."; leave the rest of the file (plan.md, research.md, data-model.md, contracts/, tasks.md, quickstart.md, checklists/ in that folder) untouched as historical record
 
 **Checkpoint**: User Story 3 fully satisfied — retired spec's status is unambiguous within 10 seconds of opening the file (SC-004). Independently verifiable via the Independent Test above.
 
@@ -95,10 +95,10 @@ Single project at repository root: `scripts/`, `web/`, `.specify/memory/`, `spec
 
 **Purpose**: Final repo-wide validation that the cleanup is complete and nothing else broke.
 
-- [ ] T014 Run `npm run lint` and `npm run format:check` and confirm both exit 0
-- [ ] T015 Run `npm run test:scripts` and confirm it exits 0 (`sync-sqlite.test.js` simply absent from the glob, not failing within it)
-- [ ] T016 Run the full quickstart.md validation end-to-end (`specs/024-remove-sqlite-cleanup/quickstart.md` sections 1-5) and confirm every "Expected: no output" / exit-0 check holds
-- [ ] T017 Update `**Status**` in `specs/024-remove-sqlite-cleanup/spec.md` from `Draft` to `Implemented` (only once every task above is checked off `[X]`)
+- [x] T014 Run `npm run lint` and `npm run format:check` and confirm both exit 0
+- [x] T015 Run `npm run test:scripts` and confirm it exits 0 (`sync-sqlite.test.js` simply absent from the glob, not failing within it)
+- [x] T016 Run the full quickstart.md validation end-to-end (`specs/024-remove-sqlite-cleanup/quickstart.md` sections 1-5) and confirm every "Expected: no output" / exit-0 check holds
+- [x] T017 Update `**Status**` in `specs/024-remove-sqlite-cleanup/spec.md` from `Draft` to `Implemented` (only once every task above is checked off `[X]`)
 
 ---
 

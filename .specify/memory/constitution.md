@@ -1,20 +1,32 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.1.0 → 2.2.0
+Version change: 2.2.0 → 2.3.0
 Modified sections:
-  - Technical Standards → Frontend — added a second approved, narrowly-scoped
-    exception permitting an offline production-build JS bundler (esbuild),
-    scoped strictly to producing the deployable dist/ artifact; day-to-day
-    development (npm start) continues to serve web/ unbundled via native ES
-    modules; explicitly does not extend to introducing a JS UI framework.
-Rationale for MINOR bump: this is a material expansion of existing Frontend
-guidance (an explicit, scoped exception to the "no bundler" default,
-alongside the existing Tailwind CSS exception), not a removal or
-fundamental redefinition of a principle — no principle heading changed
-meaning. Driven by feature 019-cache-busting-build, which requires
-bundling web/js/main.js's import graph into one hashed file so browsers
-stop serving stale cached JS/CSS after a deploy.
+  - Principle I (Static-File Data Model is Sacred) — removed the "Narrow
+    exception — local offline sync cache" paragraph that permitted an
+    offline sync script to copy .js data into a local disk-based database
+    cache.
+  - Principle III (No Backend Introduction) — removed the "Narrow exception
+    — local database cache" paragraph.
+  - Technical Standards → Backend — removed the sentence permitting a local
+    database cache populated by an offline sync script; section now states
+    plainly there is no application server and all viewer logic runs
+    client-side.
+  - Modernization Scope → in-scope list — removed the "Optional: a local
+    database cache of decoded .js data..." bullet.
+  - Modernization Scope → out-of-scope list — removed the database-cache
+    derived-aggregates carve-out from the "Reprocessing or re-aggregating
+    historical minute data" bullet, restoring it to a plain statement.
+Rationale for MINOR bump: this is a material contraction of existing
+guidance (retracting a previously-permitted, narrowly-scoped exception),
+not removal of a whole principle or a redefinition of a principle's core
+meaning — no principle heading changed. Driven by feature 024 (see
+specs/024-*/spec.md), which deletes the offline sync script, its test,
+the corresponding npm script, and any generated database artifact, so
+the constitution no longer documents a data-storage path that no longer
+exists in the codebase (see that feature's spec/plan for exact file
+paths).
 Added sections: none
 Removed sections: none
 Templates checked:
@@ -41,16 +53,6 @@ The new frontend MUST be able to consume these files exactly as they are
 produced today. No server-side preprocessing or transformation pipelines that
 alter, replace, or sit in front of the `.js` files may be introduced.
 
-**Narrow exception — local offline sync cache**: An offline, standalone sync
-script (per Technical Standards, one of the project's `scripts/*.js` helpers)
-MAY read the `.js` data files and copy their decoded contents into a local
-SQLite database for developer tooling and future consumption. This exception
-is scoped strictly to read-then-copy: the sync script MUST NOT modify, delete,
-or replace any source `.js` file, and it MUST be safely re-runnable
-(idempotent) so it never becomes a required step in the SolarLog device's push
-pipeline. The `.js` files remain the source of truth; the SQLite database is a
-derived, disposable cache that can always be rebuilt from them.
-
 ### II. Zero Historical Data Loss
 
 The plant has been logging since 2006-03-15. As of 2026-07-29 there are 7,148+
@@ -76,16 +78,6 @@ directly. This principle does not require every capability the viewer offers
 today to remain client-side forever, but any change to that must go through
 the amendment procedure below — it MUST NOT be assumed via a feature spec
 alone.
-
-**Narrow exception — local SQLite cache**: A local SQLite database MAY exist
-on the machine running the sync script described in Principle I, for
-developer/CLI tooling and future consumption (e.g., faster ad-hoc querying,
-a future opt-in server-side integration). This is not an application server:
-the database has no long-running process, listens on no port, and is not a
-dependency of the static site's deployment or of the browser-based viewer's
-current functionality. Introducing an actual application server, a required
-runtime service, or making the static site depend on this database to render
-remains prohibited absent a further constitution amendment.
 
 ### IV. Responsive-First Layout
 
@@ -154,9 +146,6 @@ The following ARE in scope:
   async loading.
 - Optional: add a live "current production" widget using `min_cur.js`.
 - Optional: retain multi-language support (DE/EN at minimum).
-- Optional: a local SQLite cache of decoded `.js` data, populated by an
-  offline, idempotent sync script, for developer/CLI tooling and future
-  consumption (see Principle I and Principle III exceptions).
 
 The following are explicitly OUT of scope unless amended:
 
@@ -166,9 +155,7 @@ The following are explicitly OUT of scope unless amended:
 - Replacing or modifying the SolarLog logging hardware.
 - Real-time WebSocket or server-push updates (polling `min_cur.js` is acceptable).
 - Reprocessing or re-aggregating historical minute data for display in the
-  browser viewer (display only); a local SQLite cache may store derived
-  aggregates for its own querying purposes without affecting the viewer's
-  direct-file-read display path.
+  browser viewer (display only).
 
 ## Technical Standards
 
@@ -225,9 +212,7 @@ This exception is scoped narrowly:
 ### Backend
 
 Per Principle III, there is no application server. All browser-viewer logic
-runs client-side. A local SQLite cache populated by an offline sync script
-(Principle I, Principle III exceptions) is permitted for developer/CLI
-tooling and is not a backend in the sense this principle prohibits.
+runs client-side.
 
 ### Package Manager
 
@@ -330,4 +315,4 @@ Versioning policy:
 All feature specifications and implementation plans MUST include a Constitution
 Check section confirming which principles apply and how they are satisfied.
 
-**Version**: 2.2.0 | **Ratified**: 2026-07-29 | **Last Amended**: 2026-08-15
+**Version**: 2.3.0 | **Ratified**: 2026-07-29 | **Last Amended**: 2026-08-18

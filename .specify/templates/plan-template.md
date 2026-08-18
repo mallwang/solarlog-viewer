@@ -31,8 +31,7 @@ Note any feature-specific addition here explicitly.
 **Storage**: Browser `localStorage` for user preferences (see `web/js/settings.js` for the
 existing key pattern); the SolarLog device's static `.js` data files under `web/data/` /
 `web/hist/` are the source of truth for plant data and MUST NOT be modified (constitution
-Principle I). A local SQLite cache (`data/solarlog.sqlite3`, populated by `scripts/sync-sqlite.js`)
-exists for developer/CLI tooling only — not a runtime dependency of the browser viewer.
+Principle I).
 
 **Testing**: `node --test` (via `npm run test:scripts`) for pure logic in `scripts/*.js` and
 `web/js/**/*.test.js`; Playwright (`npx playwright test --reporter=line`) as the primary quality

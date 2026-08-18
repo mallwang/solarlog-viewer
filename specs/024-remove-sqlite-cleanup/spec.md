@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-18
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Hi, I would like to remove all the sqlite database resources we earlier thought of in another spec. This idea is not valid anymore and a hollistic cleanup is needed. The only way the data is kept is as JavaScript files, e.g. the min*.js files. This is a hard dependency based on the SolarLog data handling."
 
