@@ -42,15 +42,14 @@ description and normal code review; it never replaces reading the diff.
    the working tree — preserved as `archive/legacy-site.tar.gz` — so a diff
    shouldn't touch it at all; if one does (e.g. re-archiving after an
    edit), that's `extends` at most, never `adds`.
-5. **Data files under `web/data/`, `web/hist/`, and `data/solarlog.sqlite3`
-   are data, not code, and are never `adds`.** No primitive's `code:` root
-   covers them — they're the hardware-pushed/backfilled archive itself, not
-   application logic. Classify a diff touching them against whichever
-   primitive's _logic_ produced the change: `extends` against
-   `offline-data-tools` when a backfill/sync/migration script wrote them,
-   or `composes` for a routine hardware-pushed update passing through
-   unchanged. See the `pushed-data-is-source-of-truth` and
-   `sqlite-is-a-derived-mirror` invariants in `docs/primitives.yaml`.
+5. **Data files under `web/data/` and `web/hist/` are data, not code, and
+   are never `adds`.** No primitive's `code:` root covers them — they're the
+   hardware-pushed/backfilled archive itself, not application logic.
+   Classify a diff touching them against whichever primitive's _logic_
+   produced the change: `extends` against `offline-data-tools` when a
+   backfill/migration script wrote them, or `composes` for a routine
+   hardware-pushed update passing through unchanged. See the
+   `pushed-data-is-source-of-truth` invariant in `docs/primitives.yaml`.
 
 ## Risk classification
 
@@ -65,7 +64,7 @@ overall classification (`adds` > `extends` > `composes`):
 
 If the diff touches an `invariants:` entry from `docs/primitives.yaml`, call
 it out explicitly in the block's Invariants section regardless of overall
-risk — invariant breaks (e.g. writing to `data/solarlog.sqlite3` as if it
+risk — invariant breaks (e.g. treating a derived/backfilled file as if it
 were the source of truth) are worth flagging even in an otherwise low-risk
 PR.
 

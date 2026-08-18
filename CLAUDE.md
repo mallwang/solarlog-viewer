@@ -2,14 +2,14 @@
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/023-weather-panel-icons/plan.md
+at specs/024-remove-sqlite-cleanup/plan.md
 <!-- SPECKIT END -->
 
 ## Local Development Server
 
 Always use `npm start` to serve the site — it uses `browser-sync` with hot-reload on HTML/CSS/JS changes (SolarLog data files excluded). Copy the URL from the terminal into your browser; WSL2 cannot auto-open a browser. **Do not use the VS Code built-in preview** — it returns 404s for the frameset.
 
-`bs-config.cjs` proxies `/data/*` and `/hist/*` requests to the live device (`https://wolfsbach.synology.me`) instead of serving from disk — `web/data/` and `web/hist/` no longer exist in this repo's working tree at all. See the "Dev server" section in `README.md` for details. Filesystem-reading scripts (backfill, `gap:detect`, sqlite sync) are **not** covered by this proxy and need those directories manually, temporarily repopulated before they'll do anything — `scripts/ftp-sync.js`/`sync-ftp` no longer fetch `data`/`hist` either (out of scope, app assets only now); see the "Validation & Aggregation Scripts" warning in `README.md`.
+`bs-config.cjs` proxies `/data/*` and `/hist/*` requests to the live device (`https://wolfsbach.synology.me`) instead of serving from disk — `web/data/` and `web/hist/` no longer exist in this repo's working tree at all. See the "Dev server" section in `README.md` for details. Filesystem-reading scripts (backfill, `gap:detect`) are **not** covered by this proxy and need those directories manually, temporarily repopulated before they'll do anything — `scripts/ftp-sync.js`/`sync-ftp` no longer fetch `data`/`hist` either (out of scope, app assets only now); see the "Validation & Aggregation Scripts" warning in `README.md`.
 
 ## Debugging with Playwright
 

@@ -144,9 +144,8 @@ primitives:
     name: Data backfill & validation scripts
     summary:
       Node ESM CLI scripts that repair, backfill, migrate, and validate the
-      historical min/day/month/year archive, and sync it into a local
-      SQLite mirror. Run manually/out-of-band; never executed by the browser
-      app.
+      historical min/day/month/year archive. Run manually/out-of-band; never
+      executed by the browser app.
     code:
       - scripts/
     docs:
@@ -200,12 +199,6 @@ invariants:
       invent readings.
     docs:
       - docs/dataflow.md
-
-  - id: sqlite-is-a-derived-mirror
-    summary:
-      data/solarlog.sqlite3 is a read-optimized, one-directional mirror of
-      the min*.js archive (scripts/sync-sqlite.js); it is never written back
-      to the js files and never treated as the primary store.
 
   - id: dist-is-a-build-artifact
     summary:
