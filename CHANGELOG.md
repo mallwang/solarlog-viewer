@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.0](https://github.com/mallwang/solarlog-viewer/compare/v1.1.0...v1.2.0) (2026-08-18)
+
+### Features
+
+- **info-panel:** add weather icons, nighttime "clear" state, and tomorrow's forecast ([#59](https://github.com/mallwang/solarlog-viewer/issues/59)) ([06f7438](https://github.com/mallwang/solarlog-viewer/commit/06f7438c8fd975b03bc3d731a89ed7c6bf48e467))
+- **statistics:** exclude backfilled days from records and streaks ([#57](https://github.com/mallwang/solarlog-viewer/issues/57)) ([d76d7d3](https://github.com/mallwang/solarlog-viewer/commit/d76d7d3f8490a9851653f9095cbffeeab09ca2ac))
+
+### Bug Fixes
+
+- **statistics:** distinguish real vs. estimated backfilled-day totals in record picks ([#58](https://github.com/mallwang/solarlog-viewer/issues/58)) ([0d383bb](https://github.com/mallwang/solarlog-viewer/commit/0d383bbc0d9145d6c8d92c0dc8a72f4d58a9c759))
+
 ## [1.1.0](https://github.com/mallwang/solarlog-viewer/compare/v1.0.0...v1.1.0) (2026-08-16)
 
 ### Features
