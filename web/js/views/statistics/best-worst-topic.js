@@ -6,7 +6,7 @@
 
 import { t } from '../../i18n.js';
 import { formatRoute } from '../../router.js';
-import { bestWorstPairs, excludeBackfilledDays } from '../../data/statistics.js';
+import { bestWorstPairs, excludeUnreliableDailyYield } from '../../data/statistics.js';
 
 function pairSideMarkup(tile, { worst }) {
   const sideClass = worst ? 'worst' : 'best';
@@ -35,10 +35,13 @@ export function render(
   container,
   { plant, fullDailyHistory, fullMonthlyHistory, fullYearlyHistory },
 ) {
-  // Backfilled days (see backfilled-data.js) are excluded from the daily best/worst pick only -
-  // month/year picks stay on the device's own pre-aggregated totals, unaffected by this filter.
+  // The daily best/worst pick is kWh-based (see excludeBackfilledDays's doc comment in
+  // statistics.js), and a backfilled day's total yield is real, so it stays eligible here just
+  // like any other recorded day - except for excludeUnreliableDailyYield's narrower range, an
+  // outage backfilled from one offline meter reading spread evenly across its days, where even
+  // the daily split can't be trusted to single out one "best"/"worst" day.
   const pairs = bestWorstPairs(
-    excludeBackfilledDays(fullDailyHistory),
+    excludeUnreliableDailyYield(fullDailyHistory),
     fullMonthlyHistory,
     fullYearlyHistory,
     plant,

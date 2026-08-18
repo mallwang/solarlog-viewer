@@ -129,3 +129,23 @@ export const WEATHER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
  * @type {string[]}
  */
 export const PLANT_PHOTOS = ['plant-01.jpg', 'plant-02.jpg', 'plant-03.jpg', 'plant-04.jpg'];
+
+/**
+ * `[from, to]` ISO ('YYYY-MM-DD') date ranges, inclusive, whose *daily* generated-kWh split isn't
+ * reliable per day - even though the month's/year's total is. The old inverter crashed on
+ * 2026-05-19 and stayed down until the new device went live on INSTALLATION_DATE (2026-07-29);
+ * the gap in days_hist.js was backfilled (scripts/backfill-min-day.js) from a single offline
+ * meter reading (read manually on site by an engineer) for the whole outage, spread evenly across
+ * its days rather than measured per day. That reading makes the *range's total* trustworthy - see
+ * data/statistics.js's computeYoyCumulative/computeLifetimeCumulative, which stay unfiltered - but
+ * any statistic that singles out *one day* within it (streaks, best/worst day, max daily
+ * €/CO2/Ist %) would be picking among an artificially even split rather than real day-to-day
+ * variation, so those exclude it (see data/backfilled-data.js's isUnreliableDailyYield). The
+ * calendar heatmap still shows these days, flagged as backfilled (data/backfilled-data.js) - a
+ * real, meter-derived estimate beats a blank cell there.
+ * Operator-editable: add another `[from, to]` pair here if a future outage gets backfilled the
+ * same way (don't add single-day-total dates here - those belong in
+ * data/backfilled-data.js's regenerated BACKFILLED_DATES instead).
+ * @type {[string, string][]}
+ */
+export const UNRELIABLE_DAILY_YIELD_RANGES = [['2026-05-19', '2026-07-28']];

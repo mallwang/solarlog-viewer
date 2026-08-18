@@ -48,35 +48,46 @@ of records and long-term trends computed entirely from the plant's already-recor
 extra data is fetched beyond what a session opening month/year/total already downloads. A left
 topic nav lists five topics, each its own bookmarkable/shareable link:
 
+Two flavors of "backfilled" day come up across these topics — see Heatmaps below for the full
+explanation. In short: most backfilled days kept a real, device-recorded daily total and only lost
+their minute-level power curve; a narrow date range (the 2026 inverter-outage gap) instead has an
+_estimated_ daily total, spread evenly across its days from a single offline meter reading.
+
 - **Allgemein (Common)** — an 8-tile grid of records: best/worst month & year, the single highest
   daily peak power, the single highest "Ist %" day, and the single highest CO2-saving/revenue
   day. Every tile links to its source day/month/year view. The max-daily-power tile carries a
   small caveat: it's the day's recorded peak, not tied to a specific time of day. The
   worst-year tile excludes the current (still-running) year and the plant's first (commissioning)
   year — both are naturally low-yield partial years and would otherwise "win" worst-year for no
-  meaningful reason — noted as a hover tooltip on that tile. The daily tiles (peak power, Ist %,
-  CO2, revenue), and Best vs. Worst's daily-yield tile below, ignore backfilled days (see Heatmaps
-  below) so a reconstructed rather than measured day can never "win" a record.
+  meaningful reason — noted as a hover tooltip on that tile. The max-daily-power tile ignores every
+  backfilled day (its peak reads 0 regardless of the real power that day). The Ist %/CO2/revenue
+  tiles, and Best vs. Worst's daily-yield tile below, trust a backfilled day's real total and only
+  ignore the narrower estimated-total range, so a day whose yield is genuinely known can still
+  "win" a record.
 - **Heatmaps** — a year selector above three calendar heatmaps (energy/kWh, money/€, CO2/kg), one
   cell per day, color intensity scaled to that year's own minimum/maximum. A day with no recorded
   data renders as a diagonal hatch pattern, always visually distinct from a real recorded zero. A
-  day whose minute data was technically backfilled (reconstructed rather than measured) keeps its
-  real color, but also gets a black/white diagonal-stripe overlay and its own legend entry
-  "backfilled (estimated)" — the value stays visible, but is clearly marked as less reliable.
+  backfilled day keeps its real color (it still shows a value) but also gets a black/white
+  diagonal-stripe overlay and a "backfilled" legend entry; hovering it shows which of the two kinds
+  it is — "backfilled, daily total is real (power curve reconstructed)" for most of them, or
+  "backfilled, estimated (monthly meter reading spread evenly across days)" for the 2026
+  inverter-outage gap.
 - **Serien (Streaks)** — two cards: the longest run of consecutive days each yielding at least
   20 kWh ("high-yield"), and the longest run each yielding under 5 kWh ("low-yield"), each with an
   "läuft noch" (ongoing) badge when that run is still active. Every card shows a strip of the
   streak's own days (plus two days of context on each side) — hover a day for its exact yield,
-  click it to jump to that day's detail view. Backfilled days (see Heatmaps above) don't count
-  toward the streaks themselves — such a day breaks a run in progress instead of artificially
-  extending it — but still show up in the context strip, flagged "(estimated)" in the tooltip. A
-  note under the topic intro calls this out whenever it applies.
-- **Trends** — three charts: year-over-year cumulative yield (aligned by day of year, excluding
-  backfilled days), cumulative lifetime €/CO2 savings since commissioning, and per-year specific
-  yield (kWh/kWp) — the last one carries a permanent caveat noting it assumes constant installed
-  capacity with no weather normalization. The lifetime and specific-yield charts each extend two
-  extra "if this continues" forecast years past the last actual one, shown gray/dashed to stay
-  visually distinct from recorded data.
+  click it to jump to that day's detail view. A backfilled day's real total counts toward the
+  streaks like any other recorded day; only the estimated-total range (see Heatmaps above) is
+  excluded, since a run through an evenly-split estimate wouldn't reflect real day-to-day
+  variation. Days from that range still show up in the context strip if they fall in it, flagged
+  with their tooltip's "estimated" caption.
+- **Trends** — three charts: year-over-year cumulative yield (aligned by day of year, including
+  backfilled days — their real or estimated total still contributes correctly to the running sum),
+  cumulative lifetime €/CO2 savings since commissioning, and per-year specific yield (kWh/kWp) —
+  the last one carries a permanent caveat noting it assumes constant installed capacity with no
+  weather normalization. The lifetime and specific-yield charts each extend two extra "if this
+  continues" forecast years past the last actual one, shown gray/dashed to stay visually distinct
+  from recorded data.
 - **Bestwerte vs. Tiefstwerte (Best vs. Worst)** — the same best/worst pairs from the Common topic
   (month, year, daily yield) shown side by side, each with its own link, no toggle needed.
 

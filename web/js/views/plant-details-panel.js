@@ -1,5 +1,5 @@
 import { t } from '../i18n.js';
-import { formatDate } from '../format.js';
+import { formatDate, formatNumber } from '../format.js';
 import { emptyStateBody } from './empty-state.js';
 
 function inverterRow(inverter) {
@@ -62,7 +62,7 @@ export function plantDetailsMarkup(plant) {
     <div class="plant-details__rows grid grid-cols-1 sm:grid-cols-2 gap-x-md gap-y-xs mb-md">
       ${detailRow('welcome.plantDetails.location', plant.location || '—')}
       ${detailRow('welcome.plantDetails.operator', plant.operator || '—')}
-      ${detailRow('welcome.plantDetails.capacity', `${plant.capacityKwp} kWp`)}
+      ${detailRow('welcome.plantDetails.capacity', `${formatNumber(plant.capacityKwp / 1000)} kWp`)}
       ${detailRow('welcome.plantDetails.commissioned', commissioned)}
       ${detailRow('welcome.plantDetails.moduleType', plant.moduleType || '—')}
       ${detailRow('welcome.plantDetails.orientation', plant.orientation || '—')}

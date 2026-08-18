@@ -291,12 +291,13 @@
       "legendLow": "niedrig",
       "legendHigh": "hoch",
       "legendMissing": "keine Daten",
-      "legendBackfilled": "rückgefüllt (geschätzt)"
+      "legendBackfilled": "rückgefüllt",
+      "legendBackfilledRealTotal": "rückgefüllt, Tagessumme real (Leistungsverlauf rekonstruiert)",
+      "legendBackfilledEstimated": "rückgefüllt, geschätzt (monatliche Zählerablesung gleichmäßig auf die Tage verteilt)"
     },
     "streaks": {
       "title": "Serien",
       "intro": "Die längsten Serien aufeinanderfolgender Tage mit auffällig hohem oder niedrigem Ertrag.",
-      "backfilledNote": "Rückgefüllte Tage ohne Leistungsmessung werden bei dieser Auswertung nicht berücksichtigt.",
       "highTitle": "Hochertrag-Serie",
       "highIntro": "Die längste Serie aufeinanderfolgender Tage mit jeweils mindestens 20 kWh Ertrag.",
       "lowTitle": "Niedrigertrag-Serie",

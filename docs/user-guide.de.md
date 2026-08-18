@@ -53,6 +53,13 @@ aufgezeichneten Historie der Anlage — es werden keine zusätzlichen Daten gela
 die eine Sitzung, die bereits Monat/Jahr/Gesamt geöffnet hat, ohnehin schon heruntergeladen hat.
 Eine linke Themen-Navigation listet fünf Themen, jedes mit eigenem, teil-/lesezeichenfähigem Link:
 
+Bei "rückgefüllten" Tagen gibt es zwei Varianten, die in den folgenden Themen wieder auftauchen —
+siehe Heatmaps unten für die vollständige Erklärung. Kurz gefasst: Die meisten rückgefüllten Tage
+haben eine echte, vom Gerät erfasste Tagessumme und haben nur ihren minutengenauen Leistungsverlauf
+verloren; ein schmaler Datumsbereich (die Wechselrichter-Ausfalllücke 2026) hat dagegen eine
+_geschätzte_ Tagessumme, gleichmäßig verteilt auf seine Tage aus einer einzelnen manuellen
+Zählerablesung.
+
 - **Allgemein** — ein 8-Kachel-Raster mit Bestwerten: bester/schwächster Monat & Jahr, der
   höchste je erfasste Tages-Spitzenwert, der Tag mit dem höchsten "Ist %", sowie der Tag mit der
   höchsten CO2-Ersparnis bzw. dem höchsten Erlös. Jede Kachel verlinkt zur passenden
@@ -61,27 +68,34 @@ Eine linke Themen-Navigation listet fünf Themen, jedes mit eigenem, teil-/lesez
   Kachel zum schwächsten Jahr schließt das laufende (noch nicht abgeschlossene) Jahr sowie das
   erste (Inbetriebnahme-)Jahr der Anlage aus — beide sind naturgemäß unvollständige Jahre, die
   sonst grundlos immer als "schwächstes Jahr" gewinnen würden — als Hinweis in einem Tooltip auf
-  der Kachel vermerkt. Die Tages-Kacheln (Spitzenwert, Ist %, CO2, Erlös) sowie die Tagesertrag-
-  Kachel unter Bestwerte vs. Tiefstwerte ignorieren rückgefüllte Tage (siehe Heatmaps unten), damit
-  ein rekonstruierter statt gemessener Tag keinen Rekord "gewinnt".
+  der Kachel vermerkt. Die Kachel zur maximalen Tagesleistung ignoriert jeden rückgefüllten Tag
+  (dessen Spitzenwert liest sich als 0, unabhängig von der echten Leistung an diesem Tag). Die
+  Kacheln zu Ist %/CO2/Erlös sowie die Tagesertrag-Kachel unter Bestwerte vs. Tiefstwerte
+  vertrauen der echten Tagessumme eines rückgefüllten Tages und ignorieren nur den schmaleren
+  Bereich mit geschätzter Tagessumme — ein Tag mit echtem, bekanntem Ertrag kann also weiterhin
+  einen Rekord "gewinnen".
 - **Heatmaps** — eine Jahresauswahl oberhalb dreier Kalender-Heatmaps (Energie/kWh, Erlös/€,
   CO2/kg), eine Zelle pro Tag, Farbintensität relativ zum Minimum/Maximum dieses Jahres. Ein Tag
   ohne erfasste Daten wird als schraffiertes Muster dargestellt, immer visuell unterscheidbar von
-  einer echten erfassten Null. Ein Tag, dessen Minutendaten technisch rückgefüllt (rekonstruiert
-  statt gemessen) wurden, behält seine echte Farbe, bekommt aber zusätzlich ein
-  schwarz/weißes Diagonalstreifen-Muster und einen eigenen Legendeneintrag "rückgefüllt
-  (geschätzt)" — so bleibt der Wert sichtbar, ist aber klar als weniger belastbar markiert.
+  einer echten erfassten Null. Ein rückgefüllter Tag behält seine echte Farbe (der Wert bleibt
+  sichtbar), bekommt aber zusätzlich ein schwarz/weißes Diagonalstreifen-Muster und einen
+  Legendeneintrag "rückgefüllt"; beim Hovern zeigt der Tooltip, um welche der beiden Varianten es
+  sich handelt — "rückgefüllt, Tagessumme real (Leistungsverlauf rekonstruiert)" für die meisten,
+  oder "rückgefüllt, geschätzt (monatliche Zählerablesung gleichmäßig auf die Tage verteilt)" für
+  die Wechselrichter-Ausfalllücke 2026.
 - **Serien** — zwei Karten: die längste Serie aufeinanderfolgender Tage mit jeweils mindestens
   20 kWh Ertrag ("Ertragsstark"), und die längste Serie mit jeweils unter 5 kWh Ertrag
   ("Ertragsschwach"), jeweils mit einem "läuft noch"-Abzeichen, falls diese Serie noch aktiv ist.
   Jede Karte zeigt einen Streifen der Serie eigener Tage (plus zwei Kontexttage an jedem Ende) —
-  beim Hovern eines Tages erscheint der genaue Ertrag, ein Klick springt zur Tagesansicht.
-  Rückgefüllte Tage (siehe Heatmaps oben) zählen nicht für die Serien selbst — ein solcher Tag
-  unterbricht eine laufende Serie, statt sie künstlich zu verlängern — tauchen aber weiterhin im
-  Kontextstreifen auf, mit "(geschätzt)"-Hinweis im Tooltip. Ein Hinweistext unter der
-  Themen-Einleitung macht darauf aufmerksam, sobald das zutrifft.
+  beim Hovern eines Tages erscheint der genaue Ertrag, ein Klick springt zur Tagesansicht. Die
+  echte Tagessumme eines rückgefüllten Tages zählt wie bei jedem anderen erfassten Tag für die
+  Serien; nur der Bereich mit geschätzter Tagessumme (siehe Heatmaps oben) wird ausgeschlossen, da
+  eine Serie durch eine gleichmäßig verteilte Schätzung keine echte Tag-zu-Tag-Schwankung
+  widerspiegeln würde. Tage aus diesem Bereich tauchen im Kontextstreifen trotzdem auf, mit dem
+  "geschätzt"-Hinweis im Tooltip.
 - **Trends** — drei Diagramme: Jahresvergleich des kumulierten Ertrags (ausgerichtet nach Tag im
-  Jahr, ohne rückgefüllte Tage), kumulierte Lebenszeit-Ersparnis in €/CO2 seit Inbetriebnahme,
+  Jahr, inklusive rückgefüllter Tage — ihre echte oder geschätzte Tagessumme trägt korrekt zur
+  laufenden Summe bei), kumulierte Lebenszeit-Ersparnis in €/CO2 seit Inbetriebnahme,
   sowie spezifischer Ertrag pro Jahr (kWh/kWp) — letzteres trägt einen dauerhaften Hinweis, dass
   von konstanter installierter Leistung ausgegangen wird, ohne Wetter-Normalisierung. Die
   Diagramme für Lebenszeit-Ersparnis und spezifischen Ertrag zeigen zusätzlich zwei "wenn es so
