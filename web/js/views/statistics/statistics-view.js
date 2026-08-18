@@ -108,7 +108,10 @@ export function statTileMarkup(tile, { worst = false, fallbackLabelKey } = {}) {
     ? `<a class="tile-link" href="${formatRoute(tile.route)}">${t(viewLabelKey)}</a>`
     : '';
   const caveat = tile.caveat ? `<span class="power-caveat">${t(tile.caveat)}</span>` : '';
-  return `<div class="stat-tile ${sideClass}">
+  // Doubles the caveat as a native hover tooltip on the whole tile (e.g. bestWorstYear's
+  // worst-year-excludes-current-year note) - a small aside, not worth a second visible line.
+  const titleAttr = tile.caveat ? ` title="${t(tile.caveat)}"` : '';
+  return `<div class="stat-tile ${sideClass}"${titleAttr}>
     <span class="tile-label">${t(tile.label)}</span>
     <span class="tile-value">${tile.value}</span>
     <span class="tile-meta">${tile.period}</span>

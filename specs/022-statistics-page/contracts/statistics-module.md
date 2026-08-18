@@ -16,7 +16,10 @@ per page load — see quickstart.md).
 ```js
 // Common topic (FR-002, FR-003, FR-011) — data-model.md "Stat tile"
 bestWorstMonth(fullMonthlyHistory: MonthlyTotal[]): { best: StatTile, worst: StatTile }
-bestWorstYear(fullYearlyHistory: YearlyTotal[]): { best: StatTile, worst: StatTile }
+// currentYear defaults to the real current year (test-overridable); plant is optional - when
+// given, its commissionedDate's year is excluded too. Both the current (still-running) and
+// commissioning (partial) years are excluded from the "worst" pick only, never "best".
+bestWorstYear(fullYearlyHistory: YearlyTotal[], currentYear?: number, plant?: PlantMetadata): { best: StatTile, worst: StatTile }
 maxDailyPower(fullDailyHistory: DailyTotal[]): StatTile
 maxIstPercent(fullDailyHistory: DailyTotal[], plant: PlantMetadata): StatTile
 maxDailyCo2(fullDailyHistory: DailyTotal[]): StatTile
@@ -43,6 +46,7 @@ bestWorstPairs(
   fullDailyHistory: DailyTotal[],
   fullMonthlyHistory: MonthlyTotal[],
   fullYearlyHistory: YearlyTotal[],
+  plant?: PlantMetadata,
 ): BestWorstPair[]
 
 // Shared gating (FR-012, SC-005) — data-model.md "Not-enough-data gating"

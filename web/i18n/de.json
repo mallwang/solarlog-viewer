@@ -278,7 +278,8 @@
     },
     "commonTiles": {
       "maxDailyPowerCaveat": "nur Tag, keine Uhrzeit erfasst",
-      "notEnough": "n/a"
+      "notEnough": "n/a",
+      "worstYearCaveat": "Laufendes und erstes Betriebsjahr ausgeschlossen (jeweils unvollständig)"
     },
     "heatmaps": {
       "title": "Heatmaps",
@@ -289,11 +290,13 @@
       "co2": "CO₂-Ersparnis (kg)",
       "legendLow": "niedrig",
       "legendHigh": "hoch",
-      "legendMissing": "keine Daten"
+      "legendMissing": "keine Daten",
+      "legendBackfilled": "rückgefüllt (geschätzt)"
     },
     "streaks": {
       "title": "Serien",
       "intro": "Die längsten Serien aufeinanderfolgender Tage mit auffällig hohem oder niedrigem Ertrag.",
+      "backfilledNote": "Rückgefüllte Tage ohne Leistungsmessung werden bei dieser Auswertung nicht berücksichtigt.",
       "highTitle": "Hochertrag-Serie",
       "highIntro": "Die längste Serie aufeinanderfolgender Tage mit jeweils mindestens 20 kWh Ertrag.",
       "lowTitle": "Niedrigertrag-Serie",

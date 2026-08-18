@@ -13,6 +13,7 @@ import {
   maxIstPercent,
   maxDailyCo2,
   maxDailyEuro,
+  excludeBackfilledDays,
 } from '../../data/statistics.js';
 import { statTileMarkup } from './statistics-view.js';
 
@@ -25,17 +26,20 @@ export function render(
   { plant, fullDailyHistory, fullMonthlyHistory, fullYearlyHistory },
 ) {
   const months = bestWorstMonth(fullMonthlyHistory);
-  const years = bestWorstYear(fullYearlyHistory);
+  const years = bestWorstYear(fullYearlyHistory, undefined, plant);
+  // Backfilled days (see backfilled-data.js) are excluded from every daily-granularity record
+  // pick below - their reconstructed values would otherwise win spurious "max" tiles.
+  const reliableDailyHistory = excludeBackfilledDays(fullDailyHistory);
 
   const tiles = [
     [months.best, false, 'statistics.common.bestMonth'],
     [months.worst, true, 'statistics.common.worstMonth'],
     [years.best, false, 'statistics.common.bestYear'],
     [years.worst, true, 'statistics.common.worstYear'],
-    [maxDailyPower(fullDailyHistory), false, 'statistics.common.maxDailyPower'],
-    [maxIstPercent(fullDailyHistory, plant), false, 'statistics.common.maxIstPercent'],
-    [maxDailyCo2(fullDailyHistory), false, 'statistics.common.maxDailyCo2'],
-    [maxDailyEuro(fullDailyHistory, plant), false, 'statistics.common.maxDailyEuro'],
+    [maxDailyPower(reliableDailyHistory), false, 'statistics.common.maxDailyPower'],
+    [maxIstPercent(reliableDailyHistory, plant), false, 'statistics.common.maxIstPercent'],
+    [maxDailyCo2(reliableDailyHistory), false, 'statistics.common.maxDailyCo2'],
+    [maxDailyEuro(reliableDailyHistory, plant), false, 'statistics.common.maxDailyEuro'],
   ];
 
   container.innerHTML = `<section>

@@ -19,7 +19,9 @@ import {
   hasEnoughHistoryForYoy,
   STREAK_HIGH_THRESHOLD_KWH,
   STREAK_LOW_THRESHOLD_KWH,
+  excludeBackfilledDays,
 } from './statistics.js';
+import { BACKFILLED_DATES } from './backfilled-data.js';
 
 const PLANT = {
   capacityKwp: 6200,
@@ -45,9 +47,9 @@ test('bestWorstMonth picks the correct extremum and ignores months with no data'
   const months = [month('2024-01', 1000000), month('2024-02', 5000000), month('2024-03', 0)];
   months[2].perInverter = {}; // no data at all, not a real zero
   const { best, worst } = bestWorstMonth(months);
-  assert.equal(best.period, '2024-02');
+  assert.equal(best.period, 'Februar 2024');
   assert.deepEqual(best.route, { view: 'month', params: { year: 2024, month: 2 } });
-  assert.equal(worst.period, '2024-01');
+  assert.equal(worst.period, 'Januar 2024');
 });
 
 test('bestWorstMonth returns nulls when there is no data at all', () => {
@@ -58,16 +60,43 @@ test('bestWorstMonth returns nulls when there is no data at all', () => {
 
 test('bestWorstYear picks the correct extremum and ignores years with no data', () => {
   const years = [year(2019, 4000000), year(2024, 6000000)];
-  const { best, worst } = bestWorstYear(years);
+  const { best, worst } = bestWorstYear(years, 2030); // 2030 as "current" so neither is excluded
   assert.equal(best.period, '2024');
   assert.equal(worst.period, '2019');
   assert.deepEqual(best.route, { view: 'year', params: { year: 2024 } });
+  assert.equal(worst.caveat, 'statistics.commonTiles.worstYearCaveat');
+});
+
+test('bestWorstYear excludes the current (still-running) year from the worst pick even when it scored lowest', () => {
+  const years = [year(2023, 3000000), year(2024, 1000000), year(2025, 500000)];
+  const { worst } = bestWorstYear(years, 2025);
+  assert.equal(worst.period, '2024'); // 2025 scored lowest but is the current year, so skipped
+});
+
+test('bestWorstYear still lets the current year win "best"', () => {
+  const years = [year(2023, 1000000), year(2024, 3000000), year(2025, 6000000)];
+  const { best } = bestWorstYear(years, 2025);
+  assert.equal(best.period, '2025'); // current year is only excluded from "worst", not "best"
+});
+
+test("bestWorstYear excludes the plant's first (commissioning) year from the worst pick even when it scored lowest", () => {
+  const years = [year(2020, 500000), year(2021, 4000000), year(2022, 2000000)];
+  const plant = { commissionedDate: '2020-03-15' };
+  const { worst } = bestWorstYear(years, 2030, plant);
+  assert.equal(worst.period, '2022'); // 2020 scored lowest but is the install year, so skipped
+});
+
+test('bestWorstYear still lets the commissioning year win "best"', () => {
+  const years = [year(2020, 6000000), year(2021, 1000000), year(2022, 2000000)];
+  const plant = { commissionedDate: '2020-03-15' };
+  const { best } = bestWorstYear(years, 2030, plant);
+  assert.equal(best.period, '2020'); // install year is only excluded from "worst", not "best"
 });
 
 test('maxDailyPower picks the day with the highest recorded peakW, using peakW directly', () => {
   const days = [day('2024-07-01', 30000, 4000), day('2024-07-14', 40000, 8420)];
   const tile = maxDailyPower(days);
-  assert.equal(tile.period, '2024-07-14');
+  assert.equal(tile.period, '14.07.2024');
   assert.equal(tile.value, '8.420 W');
   assert.equal(tile.caveat, 'statistics.commonTiles.maxDailyPowerCaveat');
   assert.deepEqual(tile.route, { view: 'day', params: { year: 2024, month: 7, day: 14 } });
@@ -76,20 +105,20 @@ test('maxDailyPower picks the day with the highest recorded peakW, using peakW d
 test('maxIstPercent picks the day with the highest yield-vs-Soll ratio', () => {
   const days = [day('2024-08-01', 5000000), day('2024-08-03', 36400000)];
   const tile = maxIstPercent(days, PLANT);
-  assert.equal(tile.period, '2024-08-03');
+  assert.equal(tile.period, '03.08.2024');
   assert.ok(tile.value.endsWith('%'));
 });
 
 test('maxDailyCo2 picks the day with the highest CO2 avoided', () => {
   const days = [day('2019-01-01', 1000000), day('2024-06-01', 5000000)];
   const tile = maxDailyCo2(days);
-  assert.equal(tile.period, '2024-06-01');
+  assert.equal(tile.period, '01.06.2024');
 });
 
 test('maxDailyEuro picks the day with the highest feed-in revenue', () => {
   const days = [day('2024-01-01', 1000000), day('2024-06-01', 5000000)];
   const tile = maxDailyEuro(days, PLANT);
-  assert.equal(tile.period, '2024-06-01');
+  assert.equal(tile.period, '01.06.2024');
 });
 
 test('buildCalendarHeatmap marks absent dates as value: null and scales per-year', () => {
@@ -112,6 +141,37 @@ test('buildCalendarHeatmap gives relativeIntensity 0 when yearMax === yearMin (s
   const cell = heatmap.cells.find((c) => c.date === '2023-05-01');
   assert.equal(cell.relativeIntensity, 0);
   assert.equal(heatmap.cells.length, 365);
+});
+
+test('buildCalendarHeatmap flags backfilled dates without hiding their value', () => {
+  BACKFILLED_DATES.add('2023-05-02');
+  try {
+    const days = [day('2023-05-01', 1000000), day('2023-05-02', 3000000)];
+    const heatmap = buildCalendarHeatmap(days, 2023, 'energyKwh', PLANT);
+    const real = heatmap.cells.find((c) => c.date === '2023-05-01');
+    const backfilled = heatmap.cells.find((c) => c.date === '2023-05-02');
+    const absent = heatmap.cells.find((c) => c.date === '2023-05-03');
+    assert.equal(real.backfilled, false);
+    assert.equal(backfilled.backfilled, true);
+    assert.equal(backfilled.value, 3000); // still the real reconstructed value, not hidden
+    assert.equal(absent.backfilled, false);
+  } finally {
+    BACKFILLED_DATES.delete('2023-05-02');
+  }
+});
+
+test('excludeBackfilledDays drops only the dates present in BACKFILLED_DATES', () => {
+  BACKFILLED_DATES.add('2023-05-02');
+  try {
+    const days = [day('2023-05-01', 1000000), day('2023-05-02', 3000000)];
+    const filtered = excludeBackfilledDays(days);
+    assert.deepEqual(
+      filtered.map((d) => d.date),
+      ['2023-05-01'],
+    );
+  } finally {
+    BACKFILLED_DATES.delete('2023-05-02');
+  }
 });
 
 test('computeLongestHighStreak finds the longest consecutive qualifying run and a gap breaks it', () => {
@@ -250,8 +310,8 @@ test('bestWorstPairs composes bestWorstMonth/bestWorstYear plus a daily-yield pa
   const pairs = bestWorstPairs(days, months, years);
   assert.equal(pairs.length, 3);
   const dailyPair = pairs.find((p) => p.label === 'statistics.bestWorst.dailyYield');
-  assert.equal(dailyPair.best.period, '2024-06-01');
-  assert.equal(dailyPair.worst.period, '2024-01-01');
+  assert.equal(dailyPair.best.period, '01.06.2024');
+  assert.equal(dailyPair.worst.period, '01.01.2024');
 });
 
 test('hasEnoughHistory gates heatmaps/streaks/trends and is true given data', () => {

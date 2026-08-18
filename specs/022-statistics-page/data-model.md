@@ -25,18 +25,24 @@ already do (`Object.values(perInverter).reduce(...)`), converts to kWh by `/1000
 
 ## Stat tile (Common topic, FR-002/003/011)
 
-| Field    | Type                                                 | Notes                                                                                         |
-| -------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `label`  | string (i18n key)                                    | e.g. `statistics.common.bestMonth`                                                            |
-| `value`  | string (pre-formatted via `format.js`)               | `formatKwh`/`formatCurrency`/`formatCo2`/plain `W`/`%`, matching existing view formatters.    |
-| `period` | string                                               | Date/period it occurred — `'YYYY-MM-DD'`, `'YYYY-MM'`, or `'YYYY'`.                           |
-| `route`  | `{ view: 'day'\|'month'\|'year', params }` \| `null` | Fed straight to `formatRoute()` (router.js); `null` only if genuinely no source view applies. |
-| `caveat` | string (i18n key) \| `null`                          | Only set on the max-daily-power tile (FR-011's "no time-of-day" note).                        |
+| Field    | Type                                                 | Notes                                                                                                                                                                                                       |
+| -------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`  | string (i18n key)                                    | e.g. `statistics.common.bestMonth`                                                                                                                                                                          |
+| `value`  | string (pre-formatted via `format.js`)               | `formatKwh`/`formatCurrency`/`formatCo2`/plain `W`/`%`, matching existing view formatters.                                                                                                                  |
+| `period` | string                                               | Date/period it occurred, localized via `format.js` — `formatDate` for a day (`'DD.MM.YYYY'` de / `'MM/DD/YYYY'` en), `formatMonthYear` for a month (`'Month YYYY'`), or the plain year number as a string.  |
+| `route`  | `{ view: 'day'\|'month'\|'year', params }` \| `null` | Fed straight to `formatRoute()` (router.js); `null` only if genuinely no source view applies.                                                                                                               |
+| `caveat` | string (i18n key) \| `null`                          | Set on the max-daily-power tile (FR-011's "no time-of-day" note) and on the worst-year tile (excluded-years note, see below); rendered as a hover tooltip (and, for max-daily-power, also as visible text). |
 
 Computed by one function per stat, each taking the relevant already-merged series:
 
 - `bestWorstMonth(fullMonthlyHistory)` → `{ best: StatTile, worst: StatTile }` (compares summed kWh per month).
-- `bestWorstYear(fullYearlyHistory)` → `{ best: StatTile, worst: StatTile }`.
+- `bestWorstYear(fullYearlyHistory, currentYear?, plant?)` → `{ best: StatTile, worst: StatTile }`.
+  `currentYear` defaults to the real current year; when `plant` is given, its `commissionedDate`
+  year is used too. Both the current (still-running) and commissioning (partial) years are
+  excluded from the **worst** pick only — a partial year is naturally low-yield and would
+  otherwise near-permanently "win" worst-year for no meaningful reason. Neither exclusion applies
+  to **best**, since a strong partial year is still a genuine record. The worst tile always
+  carries `caveat: 'statistics.commonTiles.worstYearCaveat'` explaining this.
 - `maxDailyPower(fullDailyHistory)` → `StatTile` — **caveat**: `perInverter[i].peakW` is
   `days.js`/`days_hist.js`'s own daily peak-power field (already present, no minute-file read
   needed), so "max daily power" is a genuine per-day max, not derived from `maxDailyPowerW`
@@ -90,7 +96,7 @@ the record is reported, satisfying the ongoing-tie Edge Case).
 `{ label: string (i18n key), best: StatTile, worst: StatTile }` — one per paired metric (month,
 year; daily-yield best/worst is included as a natural pairing derivable from `fullDailyHistory`
 the same way `bestWorstMonth`/`bestWorstYear` are, extending the Common topic's set). Built by
-`bestWorstPairs(fullDailyHistory, fullMonthlyHistory, fullYearlyHistory)`, composing the same
+`bestWorstPairs(fullDailyHistory, fullMonthlyHistory, fullYearlyHistory, plant?)`, composing the same
 per-metric functions the Common topic uses (no duplicate logic — FR-016's "shown by default" is a
 rendering property of `best-worst-topic.js`, not a separate data shape).
 
