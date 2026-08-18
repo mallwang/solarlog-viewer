@@ -9,9 +9,17 @@
  * contract this file implements.
  */
 
-import { formatKwh, formatCurrency, formatCo2, formatNumber } from '../format.js';
+import {
+  formatKwh,
+  formatCurrency,
+  formatCo2,
+  formatNumber,
+  formatDate,
+  formatMonthYear,
+} from '../format.js';
 import { dailySollKwh, istPercent, specificYieldKwhPerKwp, daysInYear } from './yield-stats.js';
 import { co2FactorForYear } from './co2-factors.js';
+import { isBackfilledDate } from './backfilled-data.js';
 
 // Exported (not just used internally) so view layers - e.g. streaks-topic.js's day-strip tooltips
 // - can show a day's actual yield without duplicating the perInverter-summing logic.
@@ -27,9 +35,35 @@ function hasData(perInverter) {
   return Object.keys(perInverter ?? {}).length > 0;
 }
 
+/**
+ * Drops backfilled days (see backfilled-data.js) from a daily history before it feeds any
+ * "best of" pick or streak run - their reconstructed values (see scripts/backfill-min-day.js)
+ * would otherwise win spurious records or extend a streak on data nobody actually measured.
+ * Not applied to monthly/yearly history: those come from the device's own pre-aggregated
+ * months.js/years.js, which carry no per-day attribution to filter by.
+ * @param {{ date: string, perInverter: object }[]} fullDailyHistory
+ * @returns {{ date: string, perInverter: object }[]}
+ */
+export function excludeBackfilledDays(fullDailyHistory) {
+  return fullDailyHistory.filter((d) => !isBackfilledDate(d.date));
+}
+
 function dateParts(dateIso) {
   const [year, month, day] = dateIso.split('-').map((n) => Number.parseInt(n, 10));
   return { year, month, day };
+}
+
+// `T00:00:00` pins the parse to local midnight (as streaks-topic.js/heatmaps-topic.js already do)
+// so formatDate never rolls the date back a day in timezones behind UTC.
+function formatDateIso(dateIso) {
+  return formatDate(new Date(`${dateIso}T00:00:00`));
+}
+
+// Shared with computeLifetimeCumulative's own commissionedYear derivation below - `null` (rather
+// than that function's -Infinity sentinel) since bestWorstYear only needs "is this year the
+// install year", not a lower bound to filter a range against.
+function commissionedYearOf(plant) {
+  return plant?.commissionedDate ? Number.parseInt(plant.commissionedDate.slice(0, 4), 10) : null;
 }
 
 /**
@@ -72,7 +106,7 @@ export function bestWorstMonth(fullMonthlyHistory) {
     return {
       label: labelKey,
       value: formatKwh(score(m), { decimals: 2 }),
-      period: m.month,
+      period: formatMonthYear(year, month),
       route: { view: 'month', params: { year, month } },
       caveat: null,
     };
@@ -85,27 +119,48 @@ export function bestWorstMonth(fullMonthlyHistory) {
 
 /**
  * Best/worst year by summed kWh (data-model.md "Stat tile"). Years with no recorded data
- * (empty `perInverter`) are ignored.
+ * (empty `perInverter`) are ignored. Two years are excluded from the "worst" pick specifically:
+ * the current (still-running) year and the plant's first (commissioning) year - both are
+ * naturally low-yield because they only cover part of a calendar year, and would otherwise
+ * near-permanently win "worst year" for no meaningful reason. The worst tile carries a caveat
+ * explaining the exclusion. The "best" pick keeps both years eligible, since a strong partial
+ * year is still a genuine record.
  * @param {{ year: number, perInverter: object }[]} fullYearlyHistory
+ * @param {number} [currentYear] - Defaults to the real current year; overridable for tests.
+ * @param {{ commissionedDate?: string }} [plant] - Its commissioning year is excluded too.
  * @returns {{ best: object | null, worst: object | null }}
  */
-export function bestWorstYear(fullYearlyHistory) {
+export function bestWorstYear(
+  fullYearlyHistory,
+  currentYear = new Date().getFullYear(),
+  plant = null,
+) {
+  const firstYear = commissionedYearOf(plant);
   const score = (y) => sumPeriodKwh(y.perInverter);
   const bestYear = pickExtremum(fullYearlyHistory, (y) => hasData(y.perInverter), score, 'max');
-  const worstYear = pickExtremum(fullYearlyHistory, (y) => hasData(y.perInverter), score, 'min');
-  const toTile = (y, labelKey) => {
+  const worstYear = pickExtremum(
+    fullYearlyHistory.filter((y) => y.year !== currentYear && y.year !== firstYear),
+    (y) => hasData(y.perInverter),
+    score,
+    'min',
+  );
+  const toTile = (y, labelKey, caveat = null) => {
     if (!y) return null;
     return {
       label: labelKey,
       value: formatKwh(score(y), { decimals: 2 }),
       period: String(y.year),
       route: { view: 'year', params: { year: y.year } },
-      caveat: null,
+      caveat,
     };
   };
   return {
     best: toTile(bestYear, 'statistics.common.bestYear'),
-    worst: toTile(worstYear, 'statistics.common.worstYear'),
+    worst: toTile(
+      worstYear,
+      'statistics.common.worstYear',
+      'statistics.commonTiles.worstYearCaveat',
+    ),
   };
 }
 
@@ -125,7 +180,7 @@ export function maxDailyPower(fullDailyHistory) {
   return {
     label: 'statistics.common.maxDailyPower',
     value: `${formatNumber(score(day), { decimals: 0 })} W`,
-    period: day.date,
+    period: formatDateIso(day.date),
     route: { view: 'day', params: { year, month, day: dayNum } },
     caveat: 'statistics.commonTiles.maxDailyPowerCaveat',
   };
@@ -155,7 +210,7 @@ export function maxIstPercent(fullDailyHistory, plant) {
   return {
     label: 'statistics.common.maxIstPercent',
     value: `${best.ist}%`,
-    period: best.day.date,
+    period: formatDateIso(best.day.date),
     route: { view: 'day', params: { year: best.year, month: best.month, day: best.dayNum } },
     caveat: null,
   };
@@ -175,7 +230,7 @@ export function maxDailyCo2(fullDailyHistory) {
   return {
     label: 'statistics.common.maxDailyCo2',
     value: formatCo2(score(day)),
-    period: day.date,
+    period: formatDateIso(day.date),
     route: { view: 'day', params: { year, month, day: dayNum } },
     caveat: null,
   };
@@ -196,7 +251,7 @@ export function maxDailyEuro(fullDailyHistory, plant) {
   return {
     label: 'statistics.common.maxDailyEuro',
     value: formatCurrency(score(day)),
-    period: day.date,
+    period: formatDateIso(day.date),
     route: { view: 'day', params: { year, month, day: dayNum } },
     caveat: null,
   };
@@ -213,12 +268,15 @@ function metricValueKwh(perInverter, metric, year, plant) {
  * Builds one calendar year's heatmap cell data for a single metric (data-model.md "Calendar
  * heatmap"). Days absent from `fullDailyHistory` get `value: null` (distinguishable from a real
  * recorded 0, FR-005); `relativeIntensity` is scaled to that year's own min/max among non-null
- * values (FR-015), `0` when every present value is equal (e.g. a single data point).
+ * values (FR-015), `0` when every present value is equal (e.g. a single data point). Backfilled
+ * days (backfilled-data.js) keep their real reconstructed `value` - unlike the "best of" picks
+ * elsewhere in this file, the heatmap shows them, just flagged via `backfilled` so the view layer
+ * can style them distinctly rather than treating them as missing.
  * @param {{ date: string, perInverter: object }[]} fullDailyHistory
  * @param {number} year
  * @param {'energyKwh' | 'moneyEuro' | 'co2Kg'} metric
  * @param {object} plant - PlantMetadata.
- * @returns {{ metric: string, year: number, cells: { date: string, value: number | null, relativeIntensity: number | null }[] }}
+ * @returns {{ metric: string, year: number, cells: { date: string, value: number | null, relativeIntensity: number | null, backfilled: boolean }[] }}
  */
 export function buildCalendarHeatmap(fullDailyHistory, year, metric, plant) {
   const byDate = new Map(fullDailyHistory.map((d) => [d.date, d]));
@@ -238,10 +296,11 @@ export function buildCalendarHeatmap(fullDailyHistory, year, metric, plant) {
   const yearMax = present.length ? Math.max(...present) : null;
 
   const cells = values.map(({ date, value }) => {
-    if (value === null) return { date, value: null, relativeIntensity: null };
+    const backfilled = isBackfilledDate(date);
+    if (value === null) return { date, value: null, relativeIntensity: null, backfilled };
     const relativeIntensity =
       yearMax === yearMin ? 0 : Math.min(1, Math.max(0, (value - yearMin) / (yearMax - yearMin)));
-    return { date, value, relativeIntensity };
+    return { date, value, relativeIntensity, backfilled };
   });
 
   return { metric, year, cells };
@@ -500,11 +559,13 @@ export function computeSpecificYieldTrend(fullYearlyHistory, plant) {
  * @param {{ date: string, perInverter: object }[]} fullDailyHistory
  * @param {{ month: string, perInverter: object }[]} fullMonthlyHistory
  * @param {{ year: number, perInverter: object }[]} fullYearlyHistory
+ * @param {{ commissionedDate?: string }} [plant] - Passed through to bestWorstYear so its first
+ *   (partial) year is excluded from "worst" here too.
  * @returns {{ label: string, best: object | null, worst: object | null }[]}
  */
-export function bestWorstPairs(fullDailyHistory, fullMonthlyHistory, fullYearlyHistory) {
+export function bestWorstPairs(fullDailyHistory, fullMonthlyHistory, fullYearlyHistory, plant) {
   const months = bestWorstMonth(fullMonthlyHistory);
-  const years = bestWorstYear(fullYearlyHistory);
+  const years = bestWorstYear(fullYearlyHistory, undefined, plant);
 
   const score = (d) => sumDailyKwh(d.perInverter);
   const bestDay = pickExtremum(fullDailyHistory, (d) => hasData(d.perInverter), score, 'max');
@@ -515,7 +576,7 @@ export function bestWorstPairs(fullDailyHistory, fullMonthlyHistory, fullYearlyH
     return {
       label: labelKey,
       value: formatKwh(score(d), { decimals: 2 }),
-      period: d.date,
+      period: formatDateIso(d.date),
       route: { view: 'day', params: { year, month, day } },
       caveat: null,
     };

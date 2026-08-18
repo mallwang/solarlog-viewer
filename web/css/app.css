@@ -2512,6 +2512,26 @@ html[data-transparency='on'] body[data-sky='night'] {
   );
 }
 
+/* Backfilled days (backfilled-data.js) keep their real color-mix background from .heatmap-cell
+   above - unlike the missing-data hatch, which replaces it - but layer a diagonal stripe on top
+   so a reconstructed value still reads as distinct from a genuinely measured one. The stripe
+   alternates translucent white and black (rather than a single muted-gray tone) so at least one
+   half of each pair contrasts regardless of the metric's own heat color - a gray-on-gray stripe
+   nearly disappeared against the green "Erlös"/blue "CO2-Ersparnis" blocks even though it read
+   fine on the orange "Energie" one. Never paired with [data-missing='true'] in practice (a
+   backfilled day still has a real total), but :not() guards the layering order regardless. */
+.heatmap-cell[data-backfilled='true']:not([data-missing='true']) {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgb(255 255 255 / 60%) 0,
+    rgb(255 255 255 / 60%) 2px,
+    rgb(0 0 0 / 45%) 2px,
+    rgb(0 0 0 / 45%) 4px,
+    transparent 4px,
+    transparent 6px
+  );
+}
+
 /* Hover previews which day the pointer is over; click pins the same outline on a chosen cell (see
    the click handler in heatmaps-topic.js) so it stays marked while reading its tooltip value. */
 .heatmap-cell:hover,
@@ -2571,6 +2591,33 @@ html[data-transparency='on'] body[data-sky='night'] {
     var(--color-text-muted) 2px,
     var(--color-text-muted) 3px
   );
+}
+
+/* Mirrors .heatmap-cell[data-backfilled='true']'s layered stripe-over-color treatment, so the
+   legend swatch actually previews what a flagged cell looks like. */
+.heatmap-legend .swatch.backfilled {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      rgb(255 255 255 / 60%) 0,
+      rgb(255 255 255 / 60%) 2px,
+      rgb(0 0 0 / 45%) 2px,
+      rgb(0 0 0 / 45%) 4px,
+      transparent 4px,
+      transparent 6px
+    ),
+    linear-gradient(
+      color-mix(
+        in srgb,
+        var(--heat-color, var(--color-accent)) calc(var(--v, 0) * 100%),
+        var(--color-bg)
+      ),
+      color-mix(
+        in srgb,
+        var(--heat-color, var(--color-accent)) calc(var(--v, 0) * 100%),
+        var(--color-bg)
+      )
+    );
 }
 
 /* ---- Streaks ---- */

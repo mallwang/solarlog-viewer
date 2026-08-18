@@ -14,9 +14,11 @@ import {
   computeLongestLowStreak,
   hasEnoughHistory,
   sumDailyKwh,
+  excludeBackfilledDays,
   STREAK_HIGH_THRESHOLD_KWH,
   STREAK_LOW_THRESHOLD_KWH,
 } from '../../data/statistics.js';
+import { isBackfilledDate, BACKFILLED_DATES } from '../../data/backfilled-data.js';
 import { formatRoute } from '../../router.js';
 import { insufficientHistoryMarkup } from './statistics-view.js';
 
@@ -53,9 +55,11 @@ function buildDailyKwhByDate(fullDailyHistory) {
 function dayCellTitle(date, dailyKwhByDate) {
   const dateLabel = isoDate(date);
   const kwh = dailyKwhByDate.get(date);
-  return kwh === undefined
-    ? `${dateLabel}: ${t('statistics.heatmaps.legendMissing')}`
-    : `${dateLabel}: ${formatKwh(kwh, { decimals: TOOLTIP_KWH_DECIMALS })}`;
+  if (kwh === undefined) return `${dateLabel}: ${t('statistics.heatmaps.legendMissing')}`;
+  const value = formatKwh(kwh, { decimals: TOOLTIP_KWH_DECIMALS });
+  return isBackfilledDate(date)
+    ? `${dateLabel}: ${value} (${t('statistics.heatmaps.legendBackfilled')})`
+    : `${dateLabel}: ${value}`;
 }
 
 /**
@@ -134,8 +138,13 @@ export function render(container, { fullDailyHistory, fullYearlyHistory }) {
     return;
   }
 
-  const highStreak = computeLongestHighStreak(fullDailyHistory);
-  const lowStreak = computeLongestLowStreak(fullDailyHistory);
+  // Backfilled days (see backfilled-data.js) are excluded from the streak runs themselves - a
+  // reconstructed day correctly breaks a run instead of extending it on data nobody measured -
+  // but stay in dailyKwhByDate below so a backfilled day inside the strip's context window still
+  // shows its real (flagged) value rather than reading as "no data".
+  const reliableDailyHistory = excludeBackfilledDays(fullDailyHistory);
+  const highStreak = computeLongestHighStreak(reliableDailyHistory);
+  const lowStreak = computeLongestLowStreak(reliableDailyHistory);
   const highThresholdLabel = formatKwh(STREAK_HIGH_THRESHOLD_KWH, { decimals: 2 });
   const lowThresholdLabel = formatKwh(STREAK_LOW_THRESHOLD_KWH, { decimals: 2 });
   const dailyKwhByDate = buildDailyKwhByDate(fullDailyHistory);
@@ -158,9 +167,16 @@ export function render(container, { fullDailyHistory, fullYearlyHistory }) {
     nonQualifyingLabel: `≥ ${lowThresholdLabel}`,
   });
 
+  // Only worth mentioning when there's actually something excluded from the runs above.
+  const backfilledNote =
+    BACKFILLED_DATES.size > 0
+      ? `<p class="topic-note text-sm text-text-muted">${t('statistics.streaks.backfilledNote')}</p>`
+      : '';
+
   container.innerHTML = `<section>
     <h2>${t('statistics.streaks.title')}</h2>
     <p class="topic-intro">${t('statistics.streaks.intro')}</p>
+    ${backfilledNote}
     ${highBlock}
     ${lowBlock}
   </section>`;

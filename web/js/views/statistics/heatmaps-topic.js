@@ -43,7 +43,8 @@ function availableYears(fullDailyHistory) {
 function cellTitle(cell, metric) {
   const dateLabel = formatDate(new Date(`${cell.date}T00:00:00`), { lang: getLanguage() });
   if (cell.value === null) return `${dateLabel}: ${t('statistics.heatmaps.legendMissing')}`;
-  return `${dateLabel}: ${metric.format(cell.value)}`;
+  const value = `${dateLabel}: ${metric.format(cell.value)}`;
+  return cell.backfilled ? `${value} (${t('statistics.heatmaps.legendBackfilled')})` : value;
 }
 
 function cellMarkup(cell, metric) {
@@ -51,7 +52,7 @@ function cellMarkup(cell, metric) {
   const style = missing
     ? ''
     : `style="--v:${cell.relativeIntensity};--heat-color:var(${metric.heatColorVar})"`;
-  return `<div class="heatmap-cell" data-missing="${missing}" ${style} title="${cellTitle(cell, metric)}"></div>`;
+  return `<div class="heatmap-cell" data-missing="${missing}" data-backfilled="${cell.backfilled}" ${style} title="${cellTitle(cell, metric)}"></div>`;
 }
 
 // Groups cells (day-of-year order) by calendar month so each month renders as its own 7-row
@@ -134,6 +135,7 @@ export function render(container, { plant, fullDailyHistory, fullYearlyHistory }
         <span class="legend-item"><span class="swatch" style="--v:0.2;--heat-color:var(--color-primary)"></span>${t('statistics.heatmaps.legendLow')}</span>
         <span class="legend-item"><span class="swatch" style="--v:1;--heat-color:var(--color-primary)"></span>${t('statistics.heatmaps.legendHigh')}</span>
         <span class="legend-item"><span class="swatch missing"></span>${t('statistics.heatmaps.legendMissing')}</span>
+        <span class="legend-item"><span class="swatch backfilled" style="--v:0.6;--heat-color:var(--color-primary)"></span>${t('statistics.heatmaps.legendBackfilled')}</span>
       </div>
     </div>
     <div class="heatmap-blocks"></div>

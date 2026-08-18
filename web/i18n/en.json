@@ -278,7 +278,8 @@
     },
     "commonTiles": {
       "maxDailyPowerCaveat": "day only, no time of day recorded",
-      "notEnough": "n/a"
+      "notEnough": "n/a",
+      "worstYearCaveat": "Current and first (commissioning) year excluded (both incomplete)"
     },
     "heatmaps": {
       "title": "Heatmaps",
@@ -289,11 +290,13 @@
       "co2": "CO₂ saved (kg)",
       "legendLow": "low",
       "legendHigh": "high",
-      "legendMissing": "no data"
+      "legendMissing": "no data",
+      "legendBackfilled": "backfilled (estimated)"
     },
     "streaks": {
       "title": "Streaks",
       "intro": "The longest runs of consecutive days that were unusually strong or unusually weak.",
+      "backfilledNote": "Backfilled days without a real power measurement are excluded from this analysis.",
       "highTitle": "High-yield streak",
       "highIntro": "The longest run of consecutive days each producing at least 20 kWh.",
       "lowTitle": "Low-yield streak",

@@ -5,6 +5,7 @@ ftpstat.csv
 pm.csv
 min_day.part
 /data/
+tmp
 
 # SolarLog device data mirrors (live-overwritten `web/data/`, frozen `web/hist/`) — served over
 # the dev-server proxy (bs-config.cjs) at runtime and synced from the FTP archive via the

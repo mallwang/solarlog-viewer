@@ -6,7 +6,7 @@
 
 import { t } from '../../i18n.js';
 import { formatRoute } from '../../router.js';
-import { bestWorstPairs } from '../../data/statistics.js';
+import { bestWorstPairs, excludeBackfilledDays } from '../../data/statistics.js';
 
 function pairSideMarkup(tile, { worst }) {
   const sideClass = worst ? 'worst' : 'best';
@@ -17,7 +17,10 @@ function pairSideMarkup(tile, { worst }) {
     </span>`;
   }
   const href = tile.route ? formatRoute(tile.route) : '#';
-  return `<a class="pair-side ${sideClass}" href="${href}">
+  // Surfaces bestWorstYear's worst-year-excludes-current-year note (and any future per-side
+  // caveat) as a native hover tooltip - a small aside, not worth a second visible line here.
+  const titleAttr = tile.caveat ? ` title="${t(tile.caveat)}"` : '';
+  return `<a class="pair-side ${sideClass}" href="${href}"${titleAttr}>
     <span class="pair-tag">${t(tile.label)}</span>
     <span class="pair-value">${tile.value}</span>
     <small class="pair-period">${tile.period}</small>
@@ -26,10 +29,20 @@ function pairSideMarkup(tile, { worst }) {
 
 /**
  * @param {HTMLElement} container - The `.stats-content` mount point.
- * @param {{ fullDailyHistory: object[], fullMonthlyHistory: object[], fullYearlyHistory: object[] }} data
+ * @param {{ plant: object | null, fullDailyHistory: object[], fullMonthlyHistory: object[], fullYearlyHistory: object[] }} data
  */
-export function render(container, { fullDailyHistory, fullMonthlyHistory, fullYearlyHistory }) {
-  const pairs = bestWorstPairs(fullDailyHistory, fullMonthlyHistory, fullYearlyHistory);
+export function render(
+  container,
+  { plant, fullDailyHistory, fullMonthlyHistory, fullYearlyHistory },
+) {
+  // Backfilled days (see backfilled-data.js) are excluded from the daily best/worst pick only -
+  // month/year picks stay on the device's own pre-aggregated totals, unaffected by this filter.
+  const pairs = bestWorstPairs(
+    excludeBackfilledDays(fullDailyHistory),
+    fullMonthlyHistory,
+    fullYearlyHistory,
+    plant,
+  );
 
   const rows = pairs
     .map(

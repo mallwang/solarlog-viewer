@@ -57,23 +57,36 @@ Eine linke Themen-Navigation listet fünf Themen, jedes mit eigenem, teil-/lesez
   höchste je erfasste Tages-Spitzenwert, der Tag mit dem höchsten "Ist %", sowie der Tag mit der
   höchsten CO2-Ersparnis bzw. dem höchsten Erlös. Jede Kachel verlinkt zur passenden
   Tages-/Monats-/Jahresansicht. Die Kachel zur maximalen Tagesleistung trägt einen kleinen
-  Hinweis: es ist der erfasste Tages-Spitzenwert, nicht an eine bestimmte Uhrzeit gebunden.
+  Hinweis: es ist der erfasste Tages-Spitzenwert, nicht an eine bestimmte Uhrzeit gebunden. Die
+  Kachel zum schwächsten Jahr schließt das laufende (noch nicht abgeschlossene) Jahr sowie das
+  erste (Inbetriebnahme-)Jahr der Anlage aus — beide sind naturgemäß unvollständige Jahre, die
+  sonst grundlos immer als "schwächstes Jahr" gewinnen würden — als Hinweis in einem Tooltip auf
+  der Kachel vermerkt. Die Tages-Kacheln (Spitzenwert, Ist %, CO2, Erlös) sowie die Tagesertrag-
+  Kachel unter Bestwerte vs. Tiefstwerte ignorieren rückgefüllte Tage (siehe Heatmaps unten), damit
+  ein rekonstruierter statt gemessener Tag keinen Rekord "gewinnt".
 - **Heatmaps** — eine Jahresauswahl oberhalb dreier Kalender-Heatmaps (Energie/kWh, Erlös/€,
   CO2/kg), eine Zelle pro Tag, Farbintensität relativ zum Minimum/Maximum dieses Jahres. Ein Tag
   ohne erfasste Daten wird als schraffiertes Muster dargestellt, immer visuell unterscheidbar von
-  einer echten erfassten Null.
+  einer echten erfassten Null. Ein Tag, dessen Minutendaten technisch rückgefüllt (rekonstruiert
+  statt gemessen) wurden, behält seine echte Farbe, bekommt aber zusätzlich ein
+  schwarz/weißes Diagonalstreifen-Muster und einen eigenen Legendeneintrag "rückgefüllt
+  (geschätzt)" — so bleibt der Wert sichtbar, ist aber klar als weniger belastbar markiert.
 - **Serien** — zwei Karten: die längste Serie aufeinanderfolgender Tage mit jeweils mindestens
   20 kWh Ertrag ("Ertragsstark"), und die längste Serie mit jeweils unter 5 kWh Ertrag
   ("Ertragsschwach"), jeweils mit einem "läuft noch"-Abzeichen, falls diese Serie noch aktiv ist.
   Jede Karte zeigt einen Streifen der Serie eigener Tage (plus zwei Kontexttage an jedem Ende) —
   beim Hovern eines Tages erscheint der genaue Ertrag, ein Klick springt zur Tagesansicht.
+  Rückgefüllte Tage (siehe Heatmaps oben) zählen nicht für die Serien selbst — ein solcher Tag
+  unterbricht eine laufende Serie, statt sie künstlich zu verlängern — tauchen aber weiterhin im
+  Kontextstreifen auf, mit "(geschätzt)"-Hinweis im Tooltip. Ein Hinweistext unter der
+  Themen-Einleitung macht darauf aufmerksam, sobald das zutrifft.
 - **Trends** — drei Diagramme: Jahresvergleich des kumulierten Ertrags (ausgerichtet nach Tag im
-  Jahr), kumulierte Lebenszeit-Ersparnis in €/CO2 seit Inbetriebnahme, sowie spezifischer Ertrag
-  pro Jahr (kWh/kWp) — letzteres trägt einen dauerhaften Hinweis, dass von konstanter
-  installierter Leistung ausgegangen wird, ohne Wetter-Normalisierung. Die Diagramme für
-  Lebenszeit-Ersparnis und spezifischen Ertrag zeigen zusätzlich zwei "wenn es so weitergeht"
-  Prognosejahre über das letzte tatsächliche Jahr hinaus, grau/gestrichelt dargestellt, um sich
-  klar von erfassten Daten abzuheben.
+  Jahr, ohne rückgefüllte Tage), kumulierte Lebenszeit-Ersparnis in €/CO2 seit Inbetriebnahme,
+  sowie spezifischer Ertrag pro Jahr (kWh/kWp) — letzteres trägt einen dauerhaften Hinweis, dass
+  von konstanter installierter Leistung ausgegangen wird, ohne Wetter-Normalisierung. Die
+  Diagramme für Lebenszeit-Ersparnis und spezifischen Ertrag zeigen zusätzlich zwei "wenn es so
+  weitergeht" Prognosejahre über das letzte tatsächliche Jahr hinaus, grau/gestrichelt
+  dargestellt, um sich klar von erfassten Daten abzuheben.
 - **Bestwerte vs. Tiefstwerte** — dieselben Best-/Tiefstwert-Paare aus dem Thema Allgemein (Monat,
   Jahr, Tagesertrag) nebeneinander dargestellt, jeweils mit eigenem Link, ohne Umschalter.
 

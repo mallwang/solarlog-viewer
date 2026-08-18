@@ -76,6 +76,21 @@ export function formatDate(date, { lang } = {}) {
 }
 
 /**
+ * Formats a year+month as a localized "Month YYYY" label (e.g. "August 2026") — used for
+ * month-granularity stats (statistics.js's best/worst month) where a full day-level date would be
+ * misleading.
+ * @param {number} year
+ * @param {number} month - 1-12.
+ * @param {{ lang?: 'de' | 'en' }} [opts]
+ * @returns {string}
+ */
+export function formatMonthYear(year, month, { lang } = {}) {
+  return new Intl.DateTimeFormat(resolveLocale(lang), { month: 'long', year: 'numeric' }).format(
+    new Date(year, month - 1, 1),
+  );
+}
+
+/**
  * Formats a calendar date's day+month only, no year (DD.MM. for de, MM/DD for en) — used where the
  * year is either implied or, as in the trends topic's year-over-year chart, deliberately varies
  * per series and shouldn't be baked into a shared axis/tooltip label.
