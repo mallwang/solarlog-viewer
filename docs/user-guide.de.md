@@ -158,13 +158,18 @@ dargestellt statt als einfache Form — eine rein optische Verbesserung ohne Kon
 ## Globales Desktop-Infopanel
 
 Ab Desktop-Breiten (768px und mehr) zeigt ein Panel im Header — sichtbar in jeder Ansicht, nicht
-nur im Dashboard — die aktuelle Leistung der Anlage zusammen mit dem aktuellen Wetter und der
-Restprognose für den heutigen Tag am Standort der Anlage. Die Leistung (sowie „Tagesertrag“/
-„Monatsertrag“) aktualisiert sich nach demselben Zeitplan wie das Diagramm der Tagesansicht
-(siehe „Automatische Aktualisierung der Tagesansicht & Startseite“ unten) — eine gemeinsame
-Einstellung, damit beide nie auseinanderlaufen. Der Wetter-/Prognosebereich aktualisiert sich
-separat und seltener (standardmäßig alle ~10 Minuten), da sich das Wetter nicht minütlich merklich
-ändert. Ein kleiner pulsierender Punkt neben dem Leistungswert wird größer und pulsiert schneller,
+nur im Dashboard — die aktuelle Leistung der Anlage zusammen mit dem aktuellen Wetter und einer
+Prognose für den Standort der Anlage. Beide Wetterzeilen beginnen mit einem kleinen dekorativen
+Icon (☀️/⛅/☁️/🌧️/❄️), das zur Bedingung passt, z. B. „🌧️ Regen, 18°C“ für die aktuelle Bedingung;
+nachts zeigt eine „sonnig“-Meldung stattdessen ein Mond-Icon und „Klar“ statt Sonnen-Icon/
+„Sonnig“. Die Prognosezeile beginnt mit „Heute:“ plus der Tiefst-Höchst-Spanne dieses Tages, z. B.
+„Heute: ☀️ Sonnig (13°C - 19°C)“, und wechselt ab 18:00 Uhr Ortszeit auf „Morgen:“ (Prognose für
+den Folgetag). Die Leistung (sowie „Tagesertrag“/„Monatsertrag“) aktualisiert sich nach demselben
+Zeitplan wie das Diagramm der Tagesansicht (siehe „Automatische Aktualisierung der Tagesansicht &
+Startseite“ unten) — eine gemeinsame Einstellung, damit beide nie auseinanderlaufen. Der Wetter-/
+Prognosebereich aktualisiert sich separat und seltener (standardmäßig alle ~10 Minuten), da sich
+das Wetter nicht minütlich merklich ändert. Ein kleiner pulsierender Punkt neben dem Leistungswert
+wird größer und pulsiert schneller,
 je näher die aktuelle Leistung an der konfigurierten Spitzenleistung der Anlage liegt, und
 beruhigt sich nahe null (z. B. nachts). Neben dem Leistungswert zeigt das Panel den aktuellen
 Wirkungsgrad des Wechselrichters (AC-Ausgang ÷ DC-Eingang, z. B. „1234 W · 94%“), sofern

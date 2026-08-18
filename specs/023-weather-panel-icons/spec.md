@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-18
 
-**Status**: Draft
+**Status**: Implemented
 
 **Design**: See [design.md](./design.md) for the approved mockup and layout (icon/label
 combinations, the nighttime "clear" override, and the Heute→Morgen forecast cutoff).

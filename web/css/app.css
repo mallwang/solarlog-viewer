@@ -1562,6 +1562,16 @@ a {
   font-size: var(--font-size-xs, 0.8em);
 }
 
+/* Decorative icon glyph (weather/weather-icon.js) prefixing the current-conditions/forecast
+   text (023-weather-panel-icons). inline-flex + no-wrap keeps it glued to its label at 320px
+   width (FR-010/SC-003) instead of the glyph wrapping onto its own line. */
+.info-panel__weather-icon {
+  display: inline-flex;
+  vertical-align: -0.1em;
+  margin-right: var(--space-2xs, 0.25em);
+  white-space: nowrap;
+}
+
 .info-panel__weather[data-available='false'] {
   pointer-events: none;
   color: var(--color-text-muted);

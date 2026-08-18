@@ -142,11 +142,16 @@ sprites rather than a plain shape — a purely visual upgrade that needs no conf
 
 At desktop widths (768px and above), a panel in the header — visible on every view, not just
 the dashboard — shows the plant's current production alongside the current weather condition
-and today's remaining forecast for the installation's location. Production (and the "Today's
-yield"/"Month's yield" figures) refreshes on the same schedule as the day view's chart (see "Day
-view auto-refresh" below) — one shared setting, so the two never drift out of sync. The weather/
-forecast side refreshes on its own, slower schedule (every ~10 minutes by default), since weather
-doesn't change meaningfully minute to minute. A small pulsing dot next to the production value gets larger
+and a forecast for the installation's location. Both weather lines lead with a small decorative
+icon (☀️/⛅/☁️/🌧️/❄️) matching the condition's label, e.g. "🌧️ Regen, 18°C" for the current
+condition; at night, a clear-sky reading shows a moon icon and "Klar"/"Clear" instead of the
+sun icon/"Sonnig"/"Sunny". The forecast line shows "Heute:" (today) plus that day's low–high
+range, e.g. "Heute: ☀️ Sonnig (13°C - 19°C)", switching to "Morgen:" (tomorrow's forecast) once
+it's past 18:00 local time. Production (and the "Today's yield"/"Month's yield" figures)
+refreshes on the same schedule as the day view's chart (see "Day view auto-refresh" below) — one
+shared setting, so the two never drift out of sync. The weather/forecast side refreshes on its
+own, slower schedule (every ~10 minutes by default), since weather doesn't change meaningfully
+minute to minute. A small pulsing dot next to the production value gets larger
 and pulses faster the closer current output is to the plant's configured peak capacity, and
 calms to idle near zero (e.g. at night). Next to the production wattage, the panel shows the
 inverter's current efficiency (AC output ÷ DC input, e.g. "1234 W · 94%") whenever DC input is

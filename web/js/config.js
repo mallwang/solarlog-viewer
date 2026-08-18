@@ -149,3 +149,14 @@ export const PLANT_PHOTOS = ['plant-01.jpg', 'plant-02.jpg', 'plant-03.jpg', 'pl
  * @type {[string, string][]}
  */
 export const UNRELIABLE_DAILY_YIELD_RANGES = [['2026-05-19', '2026-07-28']];
+
+/**
+ * Local hour (0–23, browser wall-clock, same "today" boundary convention `todayParams()` uses
+ * in `info-panel-controller.js`) at/after which the global info panel's forecast line switches
+ * from showing today's forecast ("Heute:") to tomorrow's ("Morgen:") — see
+ * `info-panel/info-panel-controller.js`'s `renderWeather()`. A fixed, developer-set constant
+ * (FR-014) — not a per-visitor setting, no `localStorage` persistence, no UI control. Matches
+ * this file's existing manual-override pattern (`SITE_TITLE`, `SKY_LOCATION_OVERRIDE`).
+ * @type {number}
+ */
+export const FORECAST_DAY_SWITCH_HOUR = 18;

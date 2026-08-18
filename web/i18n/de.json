@@ -235,13 +235,15 @@
     "unavailable": "Nicht verfügbar",
     "currentLabel": "Aktuell",
     "todayLabel": "Heute",
+    "tomorrowLabel": "Morgen",
     "asOfLabel": "Stand",
     "weatherCategory": {
       "sunny": "Sonnig",
       "mixed": "Wechselnd bewölkt",
       "cloudy": "Bewölkt",
       "rain": "Regen",
-      "snow": "Schnee"
+      "snow": "Schnee",
+      "clear": "Klar"
     }
   },
   "explanations": {
