@@ -39,6 +39,9 @@ import { formatKwh, formatNumber } from '../format.js';
 import { resolveInstallationLocation } from '../sky/location.js';
 import { formatRoute } from '../router.js';
 import { fetchWeatherAndForecast, weatherCodeToLabelKey } from './weather-forecast-client.js';
+import { weatherCodeToCategory } from '../weather/weather-category.js';
+import { weatherCategoryToIcon, MOON_ICON } from '../weather/weather-icon.js';
+import { isDaytime } from '../weather/daytime.js';
 import {
   productionIntensity,
   productionColor,
@@ -46,7 +49,11 @@ import {
 } from './production-animation.js';
 import { buildWetteronlineSearchUrl } from './wetteronline-link.js';
 import { t } from '../i18n.js';
-import { DATA_REFRESH_INTERVAL_MS, WEATHER_REFRESH_INTERVAL_MS } from '../config.js';
+import {
+  DATA_REFRESH_INTERVAL_MS,
+  WEATHER_REFRESH_INTERVAL_MS,
+  FORECAST_DAY_SWITCH_HOUR,
+} from '../config.js';
 
 /**
  * @returns {{ year: number, month: number, day: number }} Today's date in Route-param shape
@@ -230,31 +237,81 @@ function renderYield({ todayEls, monthEls }, yield_) {
 }
 
 /**
- * Renders the weather/forecast side of every panel variant.
+ * Builds a `<span class="info-panel__weather-icon" aria-hidden="true">` holding a single glyph
+ * (data-model.md's "Current-Conditions Line"/"Forecast Line" render shapes) — the emoji is
+ * excluded from the accessible name; the adjacent label text remains the sole accessible name
+ * for the condition (FR-009, research.md §3).
+ * @param {string} glyph
+ * @returns {HTMLSpanElement}
+ */
+function buildWeatherIconEl(glyph) {
+  const iconEl = document.createElement('span');
+  iconEl.className = 'info-panel__weather-icon';
+  iconEl.setAttribute('aria-hidden', 'true');
+  iconEl.textContent = glyph;
+  return iconEl;
+}
+
+/**
+ * Renders the weather/forecast side of every panel variant. The current-conditions line drops
+ * the "Aktuell:" prefix entirely, showing `<icon> <label>, <temp>°C` (FR-001/FR-002/FR-003),
+ * with a nighttime-only "sunny"→moon/"clear" override (FR-011/FR-012/FR-013,
+ * data-model.md's "Nighttime Clear Display"). The forecast line keeps its "Heute:"/"Morgen:"
+ * prefix, switching at `FORECAST_DAY_SWITCH_HOUR` (FR-004/FR-014), and shows
+ * `<icon> <label> (<low>°C - <high>°C)` for whichever day is selected — falling back to the
+ * existing empty "unavailable" state if that day's fields didn't parse (FR-008/FR-015).
  * @param {{ linkEls: NodeListOf<HTMLAnchorElement>, currentEls: NodeListOf<HTMLElement>,
  *   forecastEls: NodeListOf<HTMLElement> }} elements
  * @param {Awaited<ReturnType<typeof fetchWeatherAndForecast>> | { available: false }} weather
  */
 function renderWeather({ linkEls, currentEls, forecastEls }, weather) {
   const available = Boolean(weather?.available);
-  const currentText = available
-    ? `${t('infoPanel.currentLabel')}: ${t(weatherCodeToLabelKey(weather.weatherCode))} · ` +
-      `${Math.round(weather.temperatureC)}°C`
-    : t('infoPanel.unavailable');
-  const forecastText = available
-    ? `${t('infoPanel.todayLabel')}: ${t(weatherCodeToLabelKey(weather.todayWeatherCode))} · ` +
-      `${Math.round(weather.todayMaxC)}°C / ${Math.round(weather.todayMinC)}°C`
-    : '';
 
   linkEls.forEach((el) => {
     el.hidden = false;
     el.dataset.available = String(available);
   });
+
   currentEls.forEach((el) => {
-    el.textContent = currentText;
+    el.textContent = '';
+    if (!available) {
+      el.textContent = t('infoPanel.unavailable');
+      return;
+    }
+
+    const category = weatherCodeToCategory(weather.weatherCode);
+    const isNighttimeSunny =
+      category === 'sunny' && isDaytime(new Date(), weather.sunrise, weather.sunset) === false;
+    const icon = isNighttimeSunny ? MOON_ICON : weatherCategoryToIcon(category);
+    const label = isNighttimeSunny
+      ? t('infoPanel.weatherCategory.clear')
+      : t(weatherCodeToLabelKey(weather.weatherCode));
+
+    el.append(
+      buildWeatherIconEl(icon),
+      document.createTextNode(`${label}, ${Math.round(weather.temperatureC)}°C`),
+    );
   });
+
   forecastEls.forEach((el) => {
-    el.textContent = forecastText;
+    el.textContent = '';
+    if (!available) return;
+
+    const dayIndex = new Date().getHours() >= FORECAST_DAY_SWITCH_HOUR ? 1 : 0;
+    const weatherCode = dayIndex === 0 ? weather.todayWeatherCode : weather.tomorrowWeatherCode;
+    const maxC = dayIndex === 0 ? weather.todayMaxC : weather.tomorrowMaxC;
+    const minC = dayIndex === 0 ? weather.todayMinC : weather.tomorrowMinC;
+    if (!Number.isFinite(weatherCode) || !Number.isFinite(maxC) || !Number.isFinite(minC)) return;
+
+    const prefixKey = dayIndex === 0 ? 'infoPanel.todayLabel' : 'infoPanel.tomorrowLabel';
+    const icon = weatherCategoryToIcon(weatherCodeToCategory(weatherCode));
+    const label = t(weatherCodeToLabelKey(weatherCode));
+
+    el.append(
+      document.createTextNode(`${t(prefixKey)}: `),
+      buildWeatherIconEl(icon),
+      document.createTextNode(`${label} (${Math.round(minC)}°C - ${Math.round(maxC)}°C)`),
+    );
   });
 }
 

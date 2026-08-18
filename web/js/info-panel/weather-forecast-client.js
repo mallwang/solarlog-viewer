@@ -25,23 +25,29 @@ export function weatherCodeToLabelKey(weatherCode) {
 }
 
 /**
- * Fetches the current weather code/temperature and today's forecast (weather code, min/max
- * temperature) for a resolved installation location, in one request. Never throws — any
- * network error, non-2xx status, or malformed response resolves to `{ available: false }` so
- * the caller can render an independent "unavailable" state for the weather/forecast side of
- * the panel (FR-008) without affecting the production side.
+ * Fetches the current weather code/temperature, today's forecast (weather code, min/max
+ * temperature), today's sunrise/sunset, and tomorrow's forecast for a resolved installation
+ * location, in one request. Never throws — any network error, non-2xx status, or malformed
+ * *current/today* response resolves to `{ available: false }` so the caller can render an
+ * independent "unavailable" state for the weather/forecast side of the panel (FR-008) without
+ * affecting the production side. `sunrise`/`sunset` (research.md §5/FR-013) and the
+ * `tomorrowWeatherCode`/`tomorrowMaxC`/`tomorrowMinC` fields (research.md §6/FR-015) are each
+ * independently optional — a missing/malformed value among them does NOT flip the whole response
+ * to `available: false` as long as the current-conditions/today's fields parsed fine.
  * @param {{ lat: number, lon: number }} coords - Resolved installation coordinates.
  * @param {{ fetchImpl?: typeof fetch }} [deps] - Injectable `fetch` implementation for tests.
  * @returns {Promise<{ weatherCode: number, temperatureC: number, todayWeatherCode: number,
- *   todayMaxC: number, todayMinC: number, available: true } | { available: false }>}
+ *   todayMaxC: number, todayMinC: number, sunrise?: string, sunset?: string,
+ *   tomorrowWeatherCode?: number, tomorrowMaxC?: number, tomorrowMinC?: number,
+ *   available: true } | { available: false }>}
  */
 export async function fetchWeatherAndForecast({ lat, lon }, { fetchImpl = fetch } = {}) {
   try {
     const url =
       `${FORECAST_BASE_URL}?latitude=${lat}&longitude=${lon}` +
       `&current=weather_code,temperature_2m` +
-      `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
-      `&forecast_days=1&timezone=auto`;
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset` +
+      `&forecast_days=2&timezone=auto`;
     const response = await fetchImpl(url);
     if (!response.ok) return { available: false };
     const data = await response.json();
@@ -62,7 +68,25 @@ export async function fetchWeatherAndForecast({ lat, lon }, { fetchImpl = fetch 
       return { available: false };
     }
 
-    return { weatherCode, temperatureC, todayWeatherCode, todayMaxC, todayMinC, available: true };
+    const sunrise = data?.daily?.sunrise?.[0];
+    const sunset = data?.daily?.sunset?.[0];
+    const tomorrowWeatherCode = data?.daily?.weather_code?.[1];
+    const tomorrowMaxC = data?.daily?.temperature_2m_max?.[1];
+    const tomorrowMinC = data?.daily?.temperature_2m_min?.[1];
+
+    return {
+      weatherCode,
+      temperatureC,
+      todayWeatherCode,
+      todayMaxC,
+      todayMinC,
+      ...(sunrise === undefined ? {} : { sunrise }),
+      ...(sunset === undefined ? {} : { sunset }),
+      ...(Number.isFinite(tomorrowWeatherCode) ? { tomorrowWeatherCode } : {}),
+      ...(Number.isFinite(tomorrowMaxC) ? { tomorrowMaxC } : {}),
+      ...(Number.isFinite(tomorrowMinC) ? { tomorrowMinC } : {}),
+      available: true,
+    };
   } catch {
     return { available: false };
   }

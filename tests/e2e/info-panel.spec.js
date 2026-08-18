@@ -29,9 +29,23 @@ async function mockProduction(page, { pacW = 3100, pdcW = [0, 0], aborted = fals
  * superset shape so both parse successfully, and `aborted: true` fails both, mirroring
  * quickstart.md §3.
  * @param {import('@playwright/test').Page} page
- * @param {{ aborted?: boolean, weatherCode?: number }} [options]
+ * @param {{ aborted?: boolean, weatherCode?: number, sunrise?: string, sunset?: string,
+ *   tomorrowWeatherCode?: number, tomorrowMaxC?: number, tomorrowMinC?: number,
+ *   omitTomorrow?: boolean }} [options]
  */
-async function mockForecast(page, { aborted = false, weatherCode = 61 } = {}) {
+async function mockForecast(
+  page,
+  {
+    aborted = false,
+    weatherCode = 61,
+    sunrise = '2026-08-10T06:00',
+    sunset = '2026-08-10T20:30',
+    tomorrowWeatherCode = weatherCode,
+    tomorrowMaxC = 22,
+    tomorrowMinC = 12,
+    omitTomorrow = false,
+  } = {},
+) {
   if (aborted) {
     await page.route('**/api.open-meteo.com/**', (route) => route.abort());
     return;
@@ -45,11 +59,11 @@ async function mockForecast(page, { aborted = false, weatherCode = 61 } = {}) {
           // Two sunrise entries: the sky feature's weather-client.js also hits this same mocked
           // endpoint and requires today's *and* tomorrow's sunrise (nextSunrise) to parse
           // successfully — see data-model.md §Sky Weather Reading.
-          sunrise: ['2026-08-10T06:00', '2026-08-11T06:02'],
-          sunset: ['2026-08-10T20:30'],
-          weather_code: [weatherCode],
-          temperature_2m_max: [22],
-          temperature_2m_min: [12],
+          sunrise: omitTomorrow ? [sunrise] : [sunrise, '2026-08-11T06:02'],
+          sunset: [sunset],
+          weather_code: omitTomorrow ? [weatherCode] : [weatherCode, tomorrowWeatherCode],
+          temperature_2m_max: omitTomorrow ? [22] : [22, tomorrowMaxC],
+          temperature_2m_min: omitTomorrow ? [12] : [12, tomorrowMinC],
         },
       }),
     }),
@@ -132,6 +146,9 @@ test.describe('Global info panel — desktop placement (beneath the header icons
   });
 
   test("shows current weather and today's forecast summary", async ({ page }) => {
+    // Fixed daytime timestamp so the current-conditions line shows the regular (non-nighttime-
+    // override) icon/label for a "rain" weatherCode (the default mockForecast() code, 61).
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
     await mockProduction(page);
     await mockForecast(page);
     await page.goto('/');
@@ -141,9 +158,21 @@ test.describe('Global info panel — desktop placement (beneath the header icons
       'data-available',
       'true',
     );
-    await expect(desktop.locator('[data-role="weather-current"]')).toContainText('18°C');
-    await expect(desktop.locator('[data-role="weather-forecast"]')).toContainText('22°C');
-    await expect(desktop.locator('[data-role="weather-forecast"]')).toContainText('12°C');
+    const current = desktop.locator('[data-role="weather-current"]');
+    await expect(current).toContainText('18°C');
+    await expect(current).not.toContainText('Aktuell:');
+    await expect(current.locator('.info-panel__weather-icon')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+
+    const forecast = desktop.locator('[data-role="weather-forecast"]');
+    await expect(forecast).toContainText('Heute:');
+    await expect(forecast).toContainText('(12°C - 22°C)');
+    await expect(forecast.locator('.info-panel__weather-icon')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
   });
 
   test('a weather fetch failure shows an unavailable state without blocking production', async ({
@@ -309,6 +338,10 @@ test.describe('Global info panel weather text — background/nav-bar agreement (
   test('a fixed BACKGROUND_WEATHER override leaves the nav bar showing the real, live condition', async ({
     page,
   }) => {
+    // Fixed daytime timestamp so the "sunny" weatherCode below shows the regular "Sonnig" text,
+    // not the nighttime "Klar" override (mockForecast()'s default sunrise/sunset are
+    // 2026-08-10T06:00/20:30).
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
     await overrideBackgroundWeather(page, 'snow');
     await mockProduction(page);
     await mockForecast(page, { weatherCode: 0 }); // sunny — differs from the fixed "snow"
@@ -317,6 +350,141 @@ test.describe('Global info panel weather text — background/nav-bar agreement (
     const desktop = page.locator('[data-info-panel="desktop"]');
     await expect(desktop.locator('[data-role="weather-current"]')).toContainText('Sonnig');
     await expect(page.locator('.sky-clouds')).toHaveAttribute('data-weather', 'snow');
+  });
+});
+
+test.describe('Global info panel — current-conditions nighttime "sunny" override (US1)', () => {
+  test('a nighttime "sunny" reading shows the moon icon and "Klar" instead of "Sonnig"', async ({
+    page,
+  }) => {
+    // 02:00, well after sunset (20:30) and well before sunrise (06:00) on the same mocked day.
+    await page.clock.install({ time: new Date('2026-08-10T02:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 0 }); // sunny
+    await page.goto('/');
+
+    const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
+    await expect(current).toContainText('Klar');
+    await expect(current).not.toContainText('Sonnig');
+    await expect(current.locator('.info-panel__weather-icon')).toHaveText('🌙');
+  });
+
+  test('a daytime "sunny" reading still shows the regular sun icon and "Sonnig"', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 0 }); // sunny
+    await page.goto('/');
+
+    const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
+    await expect(current).toContainText('Sonnig');
+    await expect(current).not.toContainText('Klar');
+  });
+
+  test('a non-"sunny" category at night is unaffected by the nighttime override', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T02:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61 }); // rain
+    await page.goto('/');
+
+    const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
+    await expect(current).toContainText('Regen');
+    await expect(current).not.toContainText('Klar');
+  });
+});
+
+test.describe('Global info panel — forecast day switch at FORECAST_DAY_SWITCH_HOUR (US2)', () => {
+  test('before the cutoff hour, the forecast line shows "Heute:" and today\'s icon/label/range', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61 });
+    await page.goto('/');
+
+    const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
+    await expect(forecast).toContainText('Heute:');
+    await expect(forecast).toContainText('(12°C - 22°C)');
+    await expect(forecast.locator('.info-panel__weather-icon')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+  });
+
+  test('at/after the cutoff hour, the forecast line shows "Morgen:" and tomorrow\'s distinct icon/label/range', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T18:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, {
+      weatherCode: 61, // today: rain
+      tomorrowWeatherCode: 71, // tomorrow: snow — distinct from today's
+      tomorrowMaxC: 5,
+      tomorrowMinC: -2,
+    });
+    await page.goto('/');
+
+    const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
+    await expect(forecast).toContainText('Morgen:');
+    await expect(forecast).toContainText('Schnee');
+    await expect(forecast).toContainText('(-2°C - 5°C)');
+    await expect(forecast).not.toContainText('(12°C - 22°C)');
+  });
+
+  test("at/after the cutoff hour with tomorrow's fields omitted, the forecast line falls back to empty", async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T18:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61, omitTomorrow: true });
+    await page.goto('/');
+
+    const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
+    await expect(forecast).toHaveText('');
+  });
+
+  test(
+    'a "sunny" mocked response at nighttime still shows the regular sun icon in the forecast line ' +
+      "(FR-012's independence from the current-conditions override)",
+    async ({ page }) => {
+      await page.clock.install({ time: new Date('2026-08-10T02:00:00') });
+      await mockProduction(page);
+      await mockForecast(page, { weatherCode: 0, tomorrowWeatherCode: 0 }); // sunny
+      await page.goto('/');
+
+      const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
+      await expect(forecast).toContainText('Sonnig');
+      await expect(forecast).not.toContainText('Klar');
+    },
+  );
+
+  test('a low/high that round to the same whole degree still renders both bounds', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
+    await mockProduction(page);
+    await page.route('**/api.open-meteo.com/**', (route) =>
+      route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          current: { weather_code: 61, temperature_2m: 18.4 },
+          daily: {
+            sunrise: ['2026-08-10T06:00'],
+            sunset: ['2026-08-10T20:30'],
+            weather_code: [61, 61],
+            temperature_2m_max: [14.3, 14.3],
+            temperature_2m_min: [13.6, 13.6],
+          },
+        }),
+      }),
+    );
+    await page.goto('/');
+
+    const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
+    await expect(forecast).toContainText('(14°C - 14°C)');
   });
 });
 

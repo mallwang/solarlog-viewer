@@ -1,0 +1,871 @@
+<title>Weather Panel Icons — layout review (023-weather-panel-icons)</title>
+<style>
+  :root {
+    color-scheme: light;
+
+    /* Copied verbatim from web/css/tokens.css (2026-08-18) */
+    --color-bg: #ffffff;
+    --color-bg-app: #e3f2fd;
+    --color-bg-elevated: #f4f6f8;
+    --color-text: #1a1d21;
+    --color-text-muted: #5b6470;
+    --color-border: #d8dee4;
+    --color-primary: #ff9800;
+    --color-primary-dark: #e65100;
+    --color-accent: #2e7d32;
+    --color-danger: #c62828;
+
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+
+    --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-size-xs: 0.8rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.75rem;
+
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Review-tool-only tokens */
+    --review-bg: #f6f5f2;
+    --review-ink: #33312c;
+    --review-muted: #7a7669;
+    --review-line: #ddd9d0;
+    --review-accent: #b45f2c;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--review-bg);
+    color: var(--review-ink);
+    font-family: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, p {
+    text-wrap: balance;
+  }
+
+  /* ============ Review-tool chrome (reusable as-is) ============ */
+
+  .review-header {
+    padding: var(--space-lg) var(--space-xl) var(--space-md);
+    border-bottom: 1px solid var(--review-line);
+  }
+
+  .review-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--review-accent);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs);
+  }
+
+  .review-header h1 {
+    margin: 0 0 var(--space-xs);
+    font-size: 1.375rem;
+    font-weight: 700;
+  }
+
+  .review-header p {
+    margin: 0;
+    color: var(--review-muted);
+    font-size: 0.9rem;
+    max-width: 62ch;
+  }
+
+  .review-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    align-items: center;
+    padding: var(--space-md) var(--space-xl);
+    background: #fff;
+    border-bottom: 1px solid var(--review-line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .control-group span.label {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--review-muted);
+    font-weight: 600;
+  }
+
+  .segmented {
+    display: inline-flex;
+    border: 1px solid var(--review-line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: #fff;
+    color: var(--review-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    border-right: 1px solid var(--review-line);
+  }
+
+  .segmented button:last-child {
+    border-right: none;
+  }
+
+  .segmented button:hover {
+    background: #f1efe9;
+  }
+
+  .segmented button:focus-visible {
+    outline: 2px solid var(--review-accent);
+    outline-offset: -2px;
+  }
+
+  .segmented button[aria-pressed='true'] {
+    background: var(--review-accent);
+    color: #fff;
+  }
+
+  .review-stage {
+    padding: var(--space-xl);
+    display: flex;
+    justify-content: center;
+  }
+
+  .stage-frame {
+    width: 100%;
+    max-width: 1180px;
+    background: #d9d4c8;
+    border-radius: 14px;
+    padding: var(--space-lg);
+    transition: max-width 0.2s ease;
+  }
+
+  .stage-frame[data-viewport='mobile'] {
+    max-width: 400px;
+  }
+
+  .stage-frame-label {
+    font-size: 0.75rem;
+    color: var(--review-muted);
+    text-align: center;
+    margin: 0 0 var(--space-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .canvas {
+    background: var(--color-bg-app);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    min-height: 340px;
+  }
+
+  .review-footer {
+    padding: 0 var(--space-xl) var(--space-xl);
+    max-width: 1180px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--review-muted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .review-footer code {
+    background: #fff;
+    border: 1px solid var(--review-line);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    font-size: 0.8em;
+  }
+
+  .review-footer h2 {
+    margin: var(--space-md) 0 var(--space-xs);
+    font-size: 0.85rem;
+    color: var(--review-ink);
+  }
+
+  .review-footer ul {
+    margin: 0 0 var(--space-sm);
+    padding-left: 1.2em;
+  }
+
+  /* ============ generic state-visibility mechanism ============ */
+
+  [data-state] [data-show] {
+    display: none;
+  }
+
+  /* ---- weather-panel-icons: per-state visibility overrides ----
+     Only the current-conditions line has three mutually exclusive variants (day/night/
+     unavailable) — the forecast line never changes with time of day (FR-012), so it has no
+     [data-show] of its own; it's hidden as a whole in the unavailable state below instead. */
+  [data-state='day'] [data-show='day'],
+  [data-state='night'] [data-show='night'],
+  [data-state='unavailable'] [data-show='unavailable'] {
+    display: inline-flex;
+  }
+
+  /* ============ weather-panel-icons: mocked app-header ============ */
+
+  .app-header {
+    position: relative;
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-family);
+  }
+
+  .app-header__start {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    min-width: 0;
+  }
+
+  .app-header__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .app-header__logo {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    flex: none;
+  }
+
+  .app-header__title {
+    font-size: var(--font-size-lg);
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .app-nav {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .stage-frame[data-viewport='mobile'] .app-nav,
+  .stage-frame[data-viewport='mobile'] .info-panel--desktop {
+    display: none !important;
+  }
+
+  .app-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .chrome-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-elevated);
+    color: var(--color-text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+
+  /* Unavailable state: the whole forecast line disappears (matches existing FR-008 fallback
+     behavior — empty, not an icon/placeholder), the current-conditions line's day/night variant
+     spans are hidden by [data-show] and the plain "unavailable" span (no data-show) shows. */
+  [data-state='unavailable'] .info-panel__weather-forecast {
+    display: none;
+  }
+
+  /* ---- info panel (real classes from web/index.html + app.css, weather portion reworked) ---- */
+
+  .info-panel {
+    align-items: center;
+    gap: var(--space-md);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family);
+  }
+
+  .info-panel--desktop {
+    display: flex;
+    margin-inline-end: var(--space-lg);
+  }
+
+  /* Mirrors the real Tailwind `flex md:hidden` / `hidden md:flex` split: only one of
+     .info-panel--desktop / .info-panel--mobile is visible per viewport. */
+  .info-panel--mobile {
+    display: none;
+    padding: var(--space-xs) var(--space-md);
+    background: var(--color-bg-elevated);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .stage-frame[data-viewport='mobile'] .info-panel--mobile {
+    display: flex;
+  }
+
+  .info-panel__production {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .info-panel__pulse {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 8px var(--color-accent);
+  }
+
+  .info-panel__production-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .info-panel__value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .info-panel__timestamp {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .info-panel__yield {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .info-panel__yield-month {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  /* ---- the part under review ---- */
+
+  .info-panel__weather {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-xs) var(--space-sm);
+    position: relative;
+  }
+
+  .info-panel__weather:hover {
+    background: var(--color-border);
+  }
+
+  .info-panel__weather-current,
+  .info-panel__weather-forecast {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+  }
+
+  .info-panel__weather-forecast {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .info-panel__weather-icon {
+    font-size: 1em;
+    line-height: 1;
+  }
+
+  .info-panel__weather-current [data-show] {
+    align-items: center;
+    gap: 0.35em;
+  }
+
+  .info-panel__weather[data-available='false'] .info-panel__weather-current {
+    color: var(--color-text-muted);
+  }
+
+  /* Reworked-region marker: a soft dashed outline + eyebrow so reviewers can find the two lines
+     that changed without a visual diff cluttering the mockup itself. */
+  .review-marker {
+    position: absolute;
+    inset: -6px -8px;
+    border: 1.5px dashed var(--review-accent);
+    border-radius: var(--radius-md);
+    pointer-events: none;
+    opacity: 0.55;
+  }
+
+  .review-marker-tag {
+    position: absolute;
+    top: -1.6em;
+    left: -8px;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--review-accent);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* ============ compare panel ============ */
+
+  .compare {
+    margin: var(--space-lg) var(--space-xl) 0;
+    max-width: 1180px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+  }
+
+  @media (max-width: 640px) {
+    .compare {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .compare-card {
+    background: #fff;
+    border: 1px solid var(--review-line);
+    border-radius: 10px;
+    padding: var(--space-md) var(--space-lg);
+  }
+
+  .compare-card h3 {
+    margin: 0 0 var(--space-sm);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--review-muted);
+  }
+
+  .compare-line {
+    font-family: var(--font-family);
+    font-size: 0.95rem;
+    padding: var(--space-xs) 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+  }
+
+  .compare-line.muted {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .compare-card--before .compare-line {
+    color: var(--review-ink);
+  }
+
+  .compare-card--after {
+    border-color: var(--review-accent);
+    background: #fffaf5;
+  }
+
+  /* ============ combination gallery ============ */
+
+  .gallery-section {
+    margin: var(--space-xl) var(--space-xl) 0;
+    max-width: 1180px;
+    margin-inline: auto;
+  }
+
+  .gallery-section h2 {
+    font-size: 1rem;
+    margin: 0 0 var(--space-xs);
+  }
+
+  .gallery-section p.gallery-note {
+    margin: 0 0 var(--space-md);
+    color: var(--review-muted);
+    font-size: 0.85rem;
+    max-width: 70ch;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-sm);
+  }
+
+  .gallery-card {
+    background: var(--color-bg);
+    border: 1px solid var(--review-line);
+    border-radius: 8px;
+    padding: var(--space-sm) var(--space-md);
+    font-family: var(--font-family);
+  }
+
+  .gallery-card__eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--review-muted);
+    margin: 0 0 4px;
+  }
+
+  .gallery-card__line {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+  }
+
+  .gallery-card__line.muted {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    margin-top: 2px;
+  }
+
+  .gallery-card--night {
+    background: #f1f0fb;
+    border-color: #c9c6e8;
+  }
+</style>
+
+<header class="review-header">
+  <p class="review-eyebrow">Non-functional review mockup</p>
+  <h1>Weather Panel Icons — layout review (023-weather-panel-icons)</h1>
+  <p>
+    Reworks the nav bar's weather/forecast text: the current-conditions line drops its "Aktuell:"
+    prefix for a leading icon, and the forecast line gains an icon, a low–high range in
+    parentheses, and now switches from "Heute:" (today) to "Morgen:" (tomorrow) at a fixed
+    18:00 cutoff. Toggle content state below to see the day/night icon swap for "sunny" (FR-011)
+    and the unavailable fallback (FR-008); toggle viewport to check the mobile sub-nav bar. The
+    two galleries further down show every category/day-night/Heute-Morgen combination side by
+    side.
+  </p>
+</header>
+
+<div class="review-controls">
+  <div class="control-group">
+    <span class="label">Viewport</span>
+    <div class="segmented" id="viewport-toggle">
+      <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+      <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="label">Content state</span>
+    <div class="segmented" id="state-toggle">
+      <button type="button" data-state="day" aria-pressed="true">Day · sunny</button>
+      <button type="button" data-state="night" aria-pressed="false">Night · clear</button>
+      <button type="button" data-state="unavailable" aria-pressed="false">Unavailable</button>
+    </div>
+  </div>
+</div>
+
+<div class="review-stage">
+  <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+    <p class="stage-frame-label" id="stage-frame-label">Desktop — combined header + nav row</p>
+    <div class="canvas" data-state="day" id="canvas">
+      <header class="app-header">
+        <div class="app-header__start">
+          <a class="app-header__brand" href="#">
+            <span class="app-header__logo" aria-hidden="true"></span>
+            <h1 class="app-header__title">SolarLog Viewer</h1>
+          </a>
+          <nav class="app-nav">
+            <span>Tag</span><span>Monat</span><span>Jahr</span><span>Gesamt</span>
+          </nav>
+        </div>
+        <div class="app-header__actions">
+          <div class="info-panel info-panel--desktop">
+            <a class="info-panel__production" data-available="true">
+              <span class="info-panel__pulse" aria-hidden="true"></span>
+              <span class="info-panel__production-text">
+                <span class="info-panel__value">2 340 W</span>
+                <span class="info-panel__timestamp">Stand: 13:05</span>
+              </span>
+            </a>
+            <div class="info-panel__yield">
+              <span>Heute: 14,2 kWh</span>
+              <span class="info-panel__yield-month">Monat: 312,8 kWh</span>
+            </div>
+            <a class="info-panel__weather" data-available="true">
+              <div class="review-marker" aria-hidden="true"></div>
+              <span class="review-marker-tag">reworked</span>
+              <span class="info-panel__weather-current">
+                <span data-show="day">
+                  <span class="info-panel__weather-icon" aria-hidden="true">☀️</span>Sonnig, 24°C
+                </span>
+                <span data-show="night">
+                  <span class="info-panel__weather-icon" aria-hidden="true">🌙</span>Klar, 11°C
+                </span>
+                <span data-show="unavailable">Nicht verfügbar</span>
+              </span>
+              <span class="info-panel__weather-forecast">
+                Heute:
+                <span class="info-panel__weather-icon" aria-hidden="true">🌧️</span>Regen (13°C -
+                19°C)
+              </span>
+            </a>
+          </div>
+          <span class="chrome-dot" title="language switcher (decorative)">DE</span>
+          <span class="chrome-dot" title="transparency toggle (decorative)">◑</span>
+          <span class="chrome-dot" title="nav burger (decorative)">☰</span>
+        </div>
+      </header>
+
+      <div class="info-panel info-panel--mobile">
+        <a class="info-panel__production" data-available="true">
+          <span class="info-panel__pulse" aria-hidden="true"></span>
+          <span class="info-panel__production-text">
+            <span class="info-panel__value">2 340 W</span>
+            <span class="info-panel__timestamp">Stand: 13:05</span>
+          </span>
+        </a>
+        <div class="info-panel__yield">
+          <span>Heute: 14,2 kWh</span>
+          <span class="info-panel__yield-month">Monat: 312,8 kWh</span>
+        </div>
+        <a class="info-panel__weather" data-available="true">
+          <div class="review-marker" aria-hidden="true"></div>
+          <span class="review-marker-tag">reworked</span>
+          <span class="info-panel__weather-current">
+            <span data-show="day">
+              <span class="info-panel__weather-icon" aria-hidden="true">☀️</span>Sonnig, 24°C
+            </span>
+            <span data-show="night">
+              <span class="info-panel__weather-icon" aria-hidden="true">🌙</span>Klar, 11°C
+            </span>
+            <span data-show="unavailable">Nicht verfügbar</span>
+          </span>
+          <span class="info-panel__weather-forecast">
+            Heute:
+            <span class="info-panel__weather-icon" aria-hidden="true">🌧️</span>Regen (13°C - 19°C)
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="compare">
+  <div class="compare-card compare-card--before">
+    <h3>Before (current site)</h3>
+    <div class="compare-line">Aktuell: Sonnig, 24°C</div>
+    <div class="compare-line muted">Heute: Regen · 19°C / 13°C</div>
+  </div>
+  <div class="compare-card compare-card--after">
+    <h3>After (day, this proposal)</h3>
+    <div class="compare-line">☀️ Sonnig, 24°C</div>
+    <div class="compare-line muted">Heute: 🌧️ Regen (13°C - 19°C)</div>
+  </div>
+</div>
+
+<section class="gallery-section">
+  <h2>Current-conditions line — every combination</h2>
+  <p class="gallery-note">
+    The five weather categories, plus the nighttime-only "clear" override that replaces "sunny"
+    after sunset (FR-011). Every other category looks the same day or night — only "sunny" has a
+    nighttime variant.
+  </p>
+  <div class="gallery-grid">
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Sunny · day</p>
+      <span class="gallery-card__line"><span aria-hidden="true">☀️</span>Sonnig, 24°C</span>
+    </div>
+    <div class="gallery-card gallery-card--night">
+      <p class="gallery-card__eyebrow">Sunny · night (override)</p>
+      <span class="gallery-card__line"><span aria-hidden="true">🌙</span>Klar, 11°C</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Mixed</p>
+      <span class="gallery-card__line"><span aria-hidden="true">⛅</span>Wechselnd bewölkt, 18°C</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Cloudy</p>
+      <span class="gallery-card__line"><span aria-hidden="true">☁️</span>Bewölkt, 15°C</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Rain</p>
+      <span class="gallery-card__line"><span aria-hidden="true">🌧️</span>Regen, 11°C</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Snow</p>
+      <span class="gallery-card__line"><span aria-hidden="true">❄️</span>Schnee, -2°C</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Unavailable</p>
+      <span class="gallery-card__line" style="color: var(--color-text-muted)">Nicht verfügbar</span>
+    </div>
+  </div>
+</section>
+
+<section class="gallery-section">
+  <h2>Forecast line — every combination</h2>
+  <p class="gallery-note">
+    Each category shown for both sides of the configurable cutoff hour
+    (<code>FORECAST_DAY_SWITCH_HOUR</code>, default <strong>18:00</strong> — a fixed value in
+    <code>config.js</code>, not a user-facing setting): before the cutoff the line reads "Heute:"
+    with today's figures; at/after it, "Morgen:" with tomorrow's (FR-004/FR-014). The forecast
+    icon/label never gets the nighttime override above — it always reflects a whole day
+    (FR-012).
+  </p>
+  <div class="gallery-grid">
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Sunny · before 18:00</p>
+      <span class="gallery-card__line">Heute: <span aria-hidden="true">☀️</span>Sonnig (16°C - 26°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Sunny · at/after 18:00</p>
+      <span class="gallery-card__line">Morgen: <span aria-hidden="true">☀️</span>Sonnig (14°C - 24°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Mixed · before 18:00</p>
+      <span class="gallery-card__line">Heute: <span aria-hidden="true">⛅</span>Wechselnd bewölkt (12°C - 19°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Mixed · at/after 18:00</p>
+      <span class="gallery-card__line">Morgen: <span aria-hidden="true">⛅</span>Wechselnd bewölkt (10°C - 18°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Cloudy · before 18:00</p>
+      <span class="gallery-card__line">Heute: <span aria-hidden="true">☁️</span>Bewölkt (9°C - 14°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Cloudy · at/after 18:00</p>
+      <span class="gallery-card__line">Morgen: <span aria-hidden="true">☁️</span>Bewölkt (8°C - 13°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Rain · before 18:00</p>
+      <span class="gallery-card__line">Heute: <span aria-hidden="true">🌧️</span>Regen (13°C - 19°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Rain · at/after 18:00</p>
+      <span class="gallery-card__line">Morgen: <span aria-hidden="true">🌧️</span>Regen (11°C - 17°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Snow · before 18:00</p>
+      <span class="gallery-card__line">Heute: <span aria-hidden="true">❄️</span>Schnee (-4°C - 1°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Snow · at/after 18:00</p>
+      <span class="gallery-card__line">Morgen: <span aria-hidden="true">❄️</span>Schnee (-6°C - -1°C)</span>
+    </div>
+    <div class="gallery-card">
+      <p class="gallery-card__eyebrow">Unavailable</p>
+      <span class="gallery-card__line" style="color: var(--color-text-muted)">(empty — line renders nothing)</span>
+    </div>
+  </div>
+</section>
+
+<footer class="review-footer">
+  <h2>What changed</h2>
+  <ul>
+    <li>Current-conditions line: "Aktuell:" text prefix removed; a decorative icon now leads
+      instead (FR-001–FR-003).</li>
+    <li>Forecast line: gains an icon; range reorders from "max / min" to
+      "(low°C&nbsp;-&nbsp;high°C)"; prefix switches "Heute:" → "Morgen:" (and its data switches
+      today → tomorrow) at a fixed local cutoff hour, default <strong>18:00</strong>
+      (FR-004–FR-006, FR-014). See the second gallery below for every category on both sides of
+      the cutoff.</li>
+    <li>Nighttime-only override: when "sunny" and it's after sunset/before sunrise, the
+      current-conditions line shows 🌙 "Klar" instead of ☀️ "Sonnig" — the forecast line is never
+      affected by time of day, only by the separate Heute/Morgen cutoff above (FR-011/FR-012).
+      Try the "Night · clear" state above.</li>
+    <li>Unavailable state is unchanged in substance — no icon, existing fallback text/emptiness
+      (FR-008); a forecast day whose data fails to load past the cutoff also falls back to this
+      same empty state rather than showing a mismatched day (FR-015). Try the "Unavailable" state
+      above.</li>
+  </ul>
+  <h2>Fixed constraints</h2>
+  <ul>
+    <li>Icons are decorative Unicode glyphs, <code>aria-hidden="true"</code> (FR-009) — the label
+      text remains the sole accessible name.</li>
+    <li>Icon and label must never separate across a line wrap, at any width from 320px up
+      (FR-010).</li>
+    <li>The Heute→Morgen cutoff hour is a fixed value in <code>config.js</code>
+      (<code>FORECAST_DAY_SWITCH_HOUR</code>), not a user-facing setting — no settings UI is part
+      of this feature.</li>
+    <li>The dashed outline and "reworked" tag above are review annotations only — not part of the
+      shipped UI.</li>
+  </ul>
+  <h2>Out of scope for this mockup</h2>
+  <ul>
+    <li>Exact icon glyph choices beyond the five-category set + moon (☀️/⛅/☁️/🌧️/❄️/🌙) — final
+      glyphs are a research.md decision, not a layout question.</li>
+    <li>Data-sourcing/network changes (the extra Open-Meteo sunrise/sunset fields) — no visual
+      effect.</li>
+    <li>Production/yield styling (pulse dot, wattage, kWh figures) — shown only for layout
+      context, unchanged by this feature.</li>
+  </ul>
+</footer>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const stageFrame = document.getElementById('stage-frame');
+  const stageLabel = document.getElementById('stage-frame-label');
+
+  function wire(groupId, attr, target, onChange) {
+    const group = document.getElementById(groupId);
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-' + attr + ']');
+      if (!btn) return;
+      const value = btn.getAttribute('data-' + attr);
+      target.setAttribute('data-' + attr, value);
+      [...group.querySelectorAll('button')].forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)),
+      );
+      if (onChange) onChange(value);
+    });
+  }
+
+  wire('viewport-toggle', 'viewport', stageFrame, (value) => {
+    stageLabel.textContent =
+      value === 'mobile'
+        ? 'Mobile — info panel drops to its own sub-nav bar'
+        : 'Desktop — combined header + nav row';
+  });
+  wire('state-toggle', 'state', canvas);
+</script>

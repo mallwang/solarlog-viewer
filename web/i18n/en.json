@@ -235,13 +235,15 @@
     "unavailable": "Unavailable",
     "currentLabel": "Current",
     "todayLabel": "Today",
+    "tomorrowLabel": "Tomorrow",
     "asOfLabel": "As of",
     "weatherCategory": {
       "sunny": "Sunny",
       "mixed": "Partly cloudy",
       "cloudy": "Cloudy",
       "rain": "Rain",
-      "snow": "Snow"
+      "snow": "Snow",
+      "clear": "Clear"
     }
   },
   "explanations": {
