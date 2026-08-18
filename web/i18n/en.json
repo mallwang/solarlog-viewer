@@ -291,12 +291,13 @@
       "legendLow": "low",
       "legendHigh": "high",
       "legendMissing": "no data",
-      "legendBackfilled": "backfilled (estimated)"
+      "legendBackfilled": "backfilled",
+      "legendBackfilledRealTotal": "backfilled, daily total is real (power curve reconstructed)",
+      "legendBackfilledEstimated": "backfilled, estimated (monthly meter reading spread evenly across days)"
     },
     "streaks": {
       "title": "Streaks",
       "intro": "The longest runs of consecutive days that were unusually strong or unusually weak.",
-      "backfilledNote": "Backfilled days without a real power measurement are excluded from this analysis.",
       "highTitle": "High-yield streak",
       "highIntro": "The longest run of consecutive days each producing at least 20 kWh.",
       "lowTitle": "Low-yield streak",

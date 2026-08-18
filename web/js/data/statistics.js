@@ -19,7 +19,7 @@ import {
 } from '../format.js';
 import { dailySollKwh, istPercent, specificYieldKwhPerKwp, daysInYear } from './yield-stats.js';
 import { co2FactorForYear } from './co2-factors.js';
-import { isBackfilledDate } from './backfilled-data.js';
+import { isBackfilledDate, isUnreliableDailyYield } from './backfilled-data.js';
 
 // Exported (not just used internally) so view layers - e.g. streaks-topic.js's day-strip tooltips
 // - can show a day's actual yield without duplicating the perInverter-summing logic.
@@ -36,16 +36,41 @@ function hasData(perInverter) {
 }
 
 /**
- * Drops backfilled days (see backfilled-data.js) from a daily history before it feeds any
- * "best of" pick or streak run - their reconstructed values (see scripts/backfill-min-day.js)
- * would otherwise win spurious records or extend a streak on data nobody actually measured.
- * Not applied to monthly/yearly history: those come from the device's own pre-aggregated
+ * Drops backfilled days (see backfilled-data.js) from a daily history before it feeds a pick that
+ * depends on `peakW` (scripts/backfill-min-day.js's zeroBlock() zeros every field of a
+ * reconstructed day except the scaled Wh counter it writes, so `peakW` reads 0 for every
+ * backfilled day regardless of the real instantaneous power that day). Each day's total yield
+ * (`yieldWh`, summed via sumDailyKwh) is untouched by backfilling - it comes from days_hist.js,
+ * which backfill-min-day.js reads from rather than overwrites - so kWh-based picks (best/worst
+ * day, streaks, YoY, Ist %, CO2, €) must NOT be filtered through this and should use the full
+ * history instead (except within config.js's UNRELIABLE_DAILY_YIELD_RANGES, where even the daily
+ * kWh split isn't trustworthy - see excludeUnreliableDailyYield below for that narrower filter).
+ * Not applied to monthly/yearly history either: those come from the device's own pre-aggregated
  * months.js/years.js, which carry no per-day attribution to filter by.
  * @param {{ date: string, perInverter: object }[]} fullDailyHistory
  * @returns {{ date: string, perInverter: object }[]}
  */
 export function excludeBackfilledDays(fullDailyHistory) {
   return fullDailyHistory.filter((d) => !isBackfilledDate(d.date));
+}
+
+/**
+ * Drops days inside config.js's UNRELIABLE_DAILY_YIELD_RANGES from a daily history before it
+ * feeds any pick that singles out *one day* by its kWh total (streaks, best/worst day, max daily
+ * €/CO2/Ist %) - within those ranges the "daily" total itself is an even split of one offline
+ * meter reading across the whole outage, not a real per-day measurement, so picking a single
+ * winning/losing day (or a run of them) from it would be spurious. Unlike excludeBackfilledDays,
+ * this is a narrow filter: most backfilled days keep a real per-day total and only need excluding
+ * from peakW-based picks (see that function's own doc comment) - this one is for the strictly
+ * smaller set where even the daily kWh split can't be trusted. Not applied to
+ * computeYoyCumulative/computeLifetimeCumulative/monthly/yearly totals or the calendar heatmap:
+ * those stay on the full history since the range's *total* is trustworthy and a cumulative curve
+ * or flagged heatmap cell doesn't claim any one day within it is exact.
+ * @param {{ date: string, perInverter: object }[]} fullDailyHistory
+ * @returns {{ date: string, perInverter: object }[]}
+ */
+export function excludeUnreliableDailyYield(fullDailyHistory) {
+  return fullDailyHistory.filter((d) => !isUnreliableDailyYield(d.date));
 }
 
 function dateParts(dateIso) {
@@ -168,6 +193,10 @@ export function bestWorstYear(
  * The single day with the highest recorded peak power (`peakW`, summed across inverters) —
  * already present in days.js/days_hist.js, so this is a genuine per-day max without any
  * minute-file read (FR-010/FR-011). Carries a `caveat` since the source data has no time-of-day.
+ * Callers must pass a history with backfilled days already dropped (excludeBackfilledDays) -
+ * unlike this file's other daily "max" picks, `peakW` reads 0 for every backfilled day (see
+ * excludeBackfilledDays's own doc comment) and would otherwise never win here, silently hiding
+ * the real peak among the remaining days behind a false "no peak that day" reading.
  * @param {{ date: string, perInverter: { [i: string]: { peakW: number } } }[]} fullDailyHistory
  * @returns {object | null}
  */

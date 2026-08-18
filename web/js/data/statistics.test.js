@@ -20,8 +20,10 @@ import {
   STREAK_HIGH_THRESHOLD_KWH,
   STREAK_LOW_THRESHOLD_KWH,
   excludeBackfilledDays,
+  excludeUnreliableDailyYield,
 } from './statistics.js';
 import { BACKFILLED_DATES } from './backfilled-data.js';
+import { UNRELIABLE_DAILY_YIELD_RANGES } from '../config.js';
 
 const PLANT = {
   capacityKwp: 6200,
@@ -172,6 +174,19 @@ test('excludeBackfilledDays drops only the dates present in BACKFILLED_DATES', (
   } finally {
     BACKFILLED_DATES.delete('2023-05-02');
   }
+});
+
+test("excludeUnreliableDailyYield drops only the dates inside config.js's configured ranges", () => {
+  const [from] = UNRELIABLE_DAILY_YIELD_RANGES[0];
+  const dayBefore = new Date(`${from}T00:00:00`);
+  dayBefore.setDate(dayBefore.getDate() - 1);
+  const outsideDate = dayBefore.toISOString().slice(0, 10);
+  const days = [day(outsideDate, 1000000), day(from, 3000000)];
+  const filtered = excludeUnreliableDailyYield(days);
+  assert.deepEqual(
+    filtered.map((d) => d.date),
+    [outsideDate],
+  );
 });
 
 test('computeLongestHighStreak finds the longest consecutive qualifying run and a gap breaks it', () => {

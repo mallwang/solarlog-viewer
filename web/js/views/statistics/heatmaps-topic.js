@@ -8,6 +8,7 @@
 import { t, getLanguage } from '../../i18n.js';
 import { formatKwh, formatCurrency, formatCo2, formatDate } from '../../format.js';
 import { buildCalendarHeatmap, hasEnoughHistory } from '../../data/statistics.js';
+import { isUnreliableDailyYield } from '../../data/backfilled-data.js';
 import { insufficientHistoryMarkup } from './statistics-view.js';
 
 const METRICS = [
@@ -40,11 +41,22 @@ function availableYears(fullDailyHistory) {
   return [...years].sort((a, b) => b - a);
 }
 
+// Two different backfilled captions (see config.js's UNRELIABLE_DAILY_YIELD_RANGES): most
+// backfilled days kept a real per-day total and only lost their minute-level power curve, but a
+// day inside that narrower range is itself an even split of one offline meter reading, not a real
+// per-day measurement - the tooltip says which one a given cell is, rather than one caption
+// silently overclaiming accuracy for the other case.
+function backfilledCaption(dateIso) {
+  return isUnreliableDailyYield(dateIso)
+    ? t('statistics.heatmaps.legendBackfilledEstimated')
+    : t('statistics.heatmaps.legendBackfilledRealTotal');
+}
+
 function cellTitle(cell, metric) {
   const dateLabel = formatDate(new Date(`${cell.date}T00:00:00`), { lang: getLanguage() });
   if (cell.value === null) return `${dateLabel}: ${t('statistics.heatmaps.legendMissing')}`;
   const value = `${dateLabel}: ${metric.format(cell.value)}`;
-  return cell.backfilled ? `${value} (${t('statistics.heatmaps.legendBackfilled')})` : value;
+  return cell.backfilled ? `${value} (${backfilledCaption(cell.date)})` : value;
 }
 
 function cellMarkup(cell, metric) {

@@ -14,11 +14,11 @@ import {
   computeLongestLowStreak,
   hasEnoughHistory,
   sumDailyKwh,
-  excludeBackfilledDays,
+  excludeUnreliableDailyYield,
   STREAK_HIGH_THRESHOLD_KWH,
   STREAK_LOW_THRESHOLD_KWH,
 } from '../../data/statistics.js';
-import { isBackfilledDate, BACKFILLED_DATES } from '../../data/backfilled-data.js';
+import { isBackfilledDate, isUnreliableDailyYield } from '../../data/backfilled-data.js';
 import { formatRoute } from '../../router.js';
 import { insufficientHistoryMarkup } from './statistics-view.js';
 
@@ -52,13 +52,22 @@ function buildDailyKwhByDate(fullDailyHistory) {
   return new Map(fullDailyHistory.map((d) => [d.date, sumDailyKwh(d.perInverter)]));
 }
 
+// Mirrors heatmaps-topic.js's backfilledCaption: a context day inside the strip can fall in
+// either backfilled category, and each needs its own caption (see config.js's
+// UNRELIABLE_DAILY_YIELD_RANGES for why they're not interchangeable).
+function backfilledCaption(dateIso) {
+  return isUnreliableDailyYield(dateIso)
+    ? t('statistics.heatmaps.legendBackfilledEstimated')
+    : t('statistics.heatmaps.legendBackfilledRealTotal');
+}
+
 function dayCellTitle(date, dailyKwhByDate) {
   const dateLabel = isoDate(date);
   const kwh = dailyKwhByDate.get(date);
   if (kwh === undefined) return `${dateLabel}: ${t('statistics.heatmaps.legendMissing')}`;
   const value = formatKwh(kwh, { decimals: TOOLTIP_KWH_DECIMALS });
   return isBackfilledDate(date)
-    ? `${dateLabel}: ${value} (${t('statistics.heatmaps.legendBackfilled')})`
+    ? `${dateLabel}: ${value} (${backfilledCaption(date)})`
     : `${dateLabel}: ${value}`;
 }
 
@@ -138,13 +147,15 @@ export function render(container, { fullDailyHistory, fullYearlyHistory }) {
     return;
   }
 
-  // Backfilled days (see backfilled-data.js) are excluded from the streak runs themselves - a
-  // reconstructed day correctly breaks a run instead of extending it on data nobody measured -
-  // but stay in dailyKwhByDate below so a backfilled day inside the strip's context window still
-  // shows its real (flagged) value rather than reading as "no data".
-  const reliableDailyHistory = excludeBackfilledDays(fullDailyHistory);
-  const highStreak = computeLongestHighStreak(reliableDailyHistory);
-  const lowStreak = computeLongestLowStreak(reliableDailyHistory);
+  // Backfilled days keep their real daily total (see excludeBackfilledDays's doc comment in
+  // statistics.js), so they stay eligible to extend or start a streak run just like any other
+  // recorded day - only their instantaneous power (peakW), unused here, is unreliable. The
+  // narrower excludeUnreliableDailyYield range is the exception: that outage's "daily" totals are
+  // themselves an even split of one offline meter reading, not real day-to-day variation, so a
+  // run through it would be spurious either way.
+  const reliableDailySplitHistory = excludeUnreliableDailyYield(fullDailyHistory);
+  const highStreak = computeLongestHighStreak(reliableDailySplitHistory);
+  const lowStreak = computeLongestLowStreak(reliableDailySplitHistory);
   const highThresholdLabel = formatKwh(STREAK_HIGH_THRESHOLD_KWH, { decimals: 2 });
   const lowThresholdLabel = formatKwh(STREAK_LOW_THRESHOLD_KWH, { decimals: 2 });
   const dailyKwhByDate = buildDailyKwhByDate(fullDailyHistory);
@@ -167,16 +178,9 @@ export function render(container, { fullDailyHistory, fullYearlyHistory }) {
     nonQualifyingLabel: `≥ ${lowThresholdLabel}`,
   });
 
-  // Only worth mentioning when there's actually something excluded from the runs above.
-  const backfilledNote =
-    BACKFILLED_DATES.size > 0
-      ? `<p class="topic-note text-sm text-text-muted">${t('statistics.streaks.backfilledNote')}</p>`
-      : '';
-
   container.innerHTML = `<section>
     <h2>${t('statistics.streaks.title')}</h2>
     <p class="topic-intro">${t('statistics.streaks.intro')}</p>
-    ${backfilledNote}
     ${highBlock}
     ${lowBlock}
   </section>`;

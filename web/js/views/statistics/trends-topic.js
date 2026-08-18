@@ -16,7 +16,6 @@ import {
   forecastYears,
   hasEnoughHistory,
   hasEnoughHistoryForYoy,
-  excludeBackfilledDays,
 } from '../../data/statistics.js';
 import { insufficientHistoryMarkup } from './statistics-view.js';
 
@@ -56,12 +55,13 @@ export function render(container, { plant, fullDailyHistory, fullYearlyHistory }
   const lang = getLanguage();
 
   if (canShowYoy) {
-    // Backfilled days (see backfilled-data.js) are excluded - a reconstructed daily value would
-    // otherwise distort that year's whole cumulative curve, not just one point on it.
+    // Backfilled days keep their real daily total (see excludeBackfilledDays's doc comment in
+    // statistics.js) and stay in the cumulative curve - dropping them would otherwise flatline
+    // the curve across their span instead of showing the genuine yield those days added.
     renderChart(
       container.querySelector('[data-chart="yoy"]'),
       'yoy-cumulative',
-      computeYoyCumulative(excludeBackfilledDays(fullDailyHistory)),
+      computeYoyCumulative(fullDailyHistory),
       { lang },
     );
   }

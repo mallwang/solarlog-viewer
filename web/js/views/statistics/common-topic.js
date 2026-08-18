@@ -14,6 +14,7 @@ import {
   maxDailyCo2,
   maxDailyEuro,
   excludeBackfilledDays,
+  excludeUnreliableDailyYield,
 } from '../../data/statistics.js';
 import { statTileMarkup } from './statistics-view.js';
 
@@ -27,9 +28,13 @@ export function render(
 ) {
   const months = bestWorstMonth(fullMonthlyHistory);
   const years = bestWorstYear(fullYearlyHistory, undefined, plant);
-  // Backfilled days (see backfilled-data.js) are excluded from every daily-granularity record
-  // pick below - their reconstructed values would otherwise win spurious "max" tiles.
+  // Backfilled days (see excludeBackfilledDays's doc comment in statistics.js) only need
+  // excluding from the peakW-based pick below - their peakW reads 0 regardless of the real power
+  // that day. The other three picks are kWh-based (Ist %, CO2, €): most backfilled days keep a
+  // real per-day total, so only the narrower excludeUnreliableDailyYield range (an outage
+  // backfilled from one meter reading spread evenly across its days) needs excluding from those.
   const reliableDailyHistory = excludeBackfilledDays(fullDailyHistory);
+  const reliableDailySplitHistory = excludeUnreliableDailyYield(fullDailyHistory);
 
   const tiles = [
     [months.best, false, 'statistics.common.bestMonth'],
@@ -37,9 +42,9 @@ export function render(
     [years.best, false, 'statistics.common.bestYear'],
     [years.worst, true, 'statistics.common.worstYear'],
     [maxDailyPower(reliableDailyHistory), false, 'statistics.common.maxDailyPower'],
-    [maxIstPercent(reliableDailyHistory, plant), false, 'statistics.common.maxIstPercent'],
-    [maxDailyCo2(reliableDailyHistory), false, 'statistics.common.maxDailyCo2'],
-    [maxDailyEuro(reliableDailyHistory, plant), false, 'statistics.common.maxDailyEuro'],
+    [maxIstPercent(reliableDailySplitHistory, plant), false, 'statistics.common.maxIstPercent'],
+    [maxDailyCo2(reliableDailySplitHistory), false, 'statistics.common.maxDailyCo2'],
+    [maxDailyEuro(reliableDailySplitHistory, plant), false, 'statistics.common.maxDailyEuro'],
   ];
 
   container.innerHTML = `<section>

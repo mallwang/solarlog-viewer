@@ -11,6 +11,8 @@
  * (don't hand-edit the date list below — rerun the detector so this stays authoritative).
  */
 
+import { UNRELIABLE_DAILY_YIELD_RANGES } from '../config.js';
+
 /** @type {ReadonlySet<string>} ISO 'YYYY-MM-DD' dates. */
 export const BACKFILLED_DATES = new Set([
   '2006-03-15',
@@ -391,4 +393,19 @@ export const BACKFILLED_DATES = new Set([
  */
 export function isBackfilledDate(dateIso) {
   return BACKFILLED_DATES.has(dateIso);
+}
+
+/**
+ * Whether a given ISO date falls inside one of config.js's UNRELIABLE_DAILY_YIELD_RANGES - a
+ * backfilled date whose *daily* split (not just its minute-level trace) is unreliable, because
+ * the whole range was reconstructed from one offline meter reading spread evenly across its days
+ * rather than measured per day (see that constant's own doc comment for the specific outage this
+ * covers). A strict subset of BACKFILLED_DATES: every date here is backfilled, but most
+ * backfilled dates *don't* have this stronger caveat - they only lost their minute-level trace
+ * (peakW) and kept a real per-day total (isBackfilledDate above).
+ * @param {string} dateIso - 'YYYY-MM-DD'.
+ * @returns {boolean}
+ */
+export function isUnreliableDailyYield(dateIso) {
+  return UNRELIABLE_DAILY_YIELD_RANGES.some(([from, to]) => dateIso >= from && dateIso <= to);
 }
