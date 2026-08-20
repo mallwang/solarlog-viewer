@@ -42,6 +42,7 @@ import { fetchWeatherAndForecast, weatherCodeToLabelKey } from './weather-foreca
 import { weatherCodeToCategory } from '../weather/weather-category.js';
 import { weatherCategoryToIcon, MOON_ICON } from '../weather/weather-icon.js';
 import { isDaytime } from '../weather/daytime.js';
+import { buildCurrentWeatherText, buildForecastWeatherText } from '../weather/weather-text.js';
 import {
   productionIntensity,
   productionColor,
@@ -237,35 +238,64 @@ function renderYield({ todayEls, monthEls }, yield_) {
 }
 
 /**
- * Builds a `<span class="info-panel__weather-icon" aria-hidden="true">` holding a single glyph
- * (data-model.md's "Current-Conditions Line"/"Forecast Line" render shapes) — the emoji is
- * excluded from the accessible name; the adjacent label text remains the sole accessible name
- * for the condition (FR-009, research.md §3).
- * @param {string} glyph
- * @returns {HTMLSpanElement}
+ * Renders one compact weather indicator's DOM (025-weather-icon-compact, data-model.md's
+ * "Compact Weather Indicator" shape): a decorative icon, a short value beneath it (temperature or
+ * range) when available — nothing but the dimmed dash icon otherwise — and a decorative floating
+ * tooltip holding the full previous inline text. Sets `data-available` and `aria-label`
+ * (unconditionally, not only while hovered/focused — FR-006/research.md §2) on `el` itself, which
+ * already carries `tabindex="0"` from index.html so it's keyboard-reachable.
+ * @param {HTMLElement} el - A `[data-role="weather-current"]`/`[data-role="weather-forecast"]`
+ *   wrapper element.
+ * @param {{ icon: string, compactValue: string, fullText: string, available: boolean }} text -
+ *   Output of `buildCurrentWeatherText()`/`buildForecastWeatherText()` (weather-text.js).
+ * @param {string} valueClass - `info-panel__weather-temp` or `info-panel__weather-range`.
  */
-function buildWeatherIconEl(glyph) {
+function renderWeatherIndicator(el, text, valueClass) {
+  el.textContent = '';
+  el.dataset.available = String(text.available);
+  el.setAttribute('aria-label', text.fullText);
+
   const iconEl = document.createElement('span');
   iconEl.className = 'info-panel__weather-icon';
   iconEl.setAttribute('aria-hidden', 'true');
-  iconEl.textContent = glyph;
-  return iconEl;
+  iconEl.textContent = text.icon;
+  el.append(iconEl);
+
+  if (text.available) {
+    const valueEl = document.createElement('span');
+    valueEl.className = valueClass;
+    valueEl.textContent = text.compactValue;
+    el.append(valueEl);
+  }
+
+  // Decorative only — aria-hidden since `aria-label` above already covers assistive tech
+  // regardless of hover/focus/tap state (Constraints, research.md §2).
+  const tooltipEl = document.createElement('span');
+  tooltipEl.className = 'info-panel__weather-tooltip';
+  tooltipEl.setAttribute('aria-hidden', 'true');
+  tooltipEl.textContent = text.fullText;
+  el.append(tooltipEl);
 }
 
 /**
- * Renders the weather/forecast side of every panel variant. The current-conditions line drops
- * the "Aktuell:" prefix entirely, showing `<icon> <label>, <temp>°C` (FR-001/FR-002/FR-003),
- * with a nighttime-only "sunny"→moon/"clear" override (FR-011/FR-012/FR-013,
- * data-model.md's "Nighttime Clear Display"). The forecast line keeps its "Heute:"/"Morgen:"
- * prefix, switching at `FORECAST_DAY_SWITCH_HOUR` (FR-004/FR-014), and shows
- * `<icon> <label> (<low>°C - <high>°C)` for whichever day is selected — falling back to the
- * existing empty "unavailable" state if that day's fields didn't parse (FR-008/FR-015).
+ * Renders the weather/forecast side of every panel variant as two compact icon-over-value
+ * indicators, each independently available/unavailable (FR-007). The current-conditions
+ * indicator shows `<icon>` / `<temp>°C`, with a nighttime-only "sunny"→moon/"clear" override
+ * (FR-011/FR-012/FR-013, data-model.md's "Nighttime Clear Display") folded into its full text.
+ * The forecast indicator shows `<icon>` / `<low>° - <high>°` for whichever day is selected
+ * (switching at `FORECAST_DAY_SWITCH_HOUR`, FR-004/FR-014), with its full text keeping the
+ * "Heute:"/"Morgen:" prefix; it now renders the same dimmed dash "unavailable" shape as
+ * current-conditions when that day's fields don't parse, instead of rendering nothing
+ * (data-model.md's "Unavailable" column, research.md §5 — a behavior change from
+ * 023-weather-panel-icons). Both indicators' compact/full text come from the single
+ * `weather-text.js` source of truth so they can never drift apart (FR-004).
  * @param {{ linkEls: NodeListOf<HTMLAnchorElement>, currentEls: NodeListOf<HTMLElement>,
  *   forecastEls: NodeListOf<HTMLElement> }} elements
  * @param {Awaited<ReturnType<typeof fetchWeatherAndForecast>> | { available: false }} weather
  */
 function renderWeather({ linkEls, currentEls, forecastEls }, weather) {
   const available = Boolean(weather?.available);
+  const unavailableText = t('infoPanel.unavailable');
 
   linkEls.forEach((el) => {
     el.hidden = false;
@@ -273,9 +303,12 @@ function renderWeather({ linkEls, currentEls, forecastEls }, weather) {
   });
 
   currentEls.forEach((el) => {
-    el.textContent = '';
     if (!available) {
-      el.textContent = t('infoPanel.unavailable');
+      renderWeatherIndicator(
+        el,
+        buildCurrentWeatherText({ available: false, unavailableText }),
+        'info-panel__weather-temp',
+      );
       return;
     }
 
@@ -287,31 +320,85 @@ function renderWeather({ linkEls, currentEls, forecastEls }, weather) {
       ? t('infoPanel.weatherCategory.clear')
       : t(weatherCodeToLabelKey(weather.weatherCode));
 
-    el.append(
-      buildWeatherIconEl(icon),
-      document.createTextNode(`${label}, ${Math.round(weather.temperatureC)}°C`),
+    renderWeatherIndicator(
+      el,
+      buildCurrentWeatherText({ available: true, icon, label, temperatureC: weather.temperatureC }),
+      'info-panel__weather-temp',
     );
   });
 
   forecastEls.forEach((el) => {
-    el.textContent = '';
-    if (!available) return;
+    const isToday = new Date().getHours() < FORECAST_DAY_SWITCH_HOUR;
+    let weatherCode;
+    let maxC;
+    let minC;
+    if (available) {
+      weatherCode = isToday ? weather.todayWeatherCode : weather.tomorrowWeatherCode;
+      maxC = isToday ? weather.todayMaxC : weather.tomorrowMaxC;
+      minC = isToday ? weather.todayMinC : weather.tomorrowMinC;
+    }
+    const dayAvailable =
+      available && Number.isFinite(weatherCode) && Number.isFinite(maxC) && Number.isFinite(minC);
 
-    const dayIndex = new Date().getHours() >= FORECAST_DAY_SWITCH_HOUR ? 1 : 0;
-    const weatherCode = dayIndex === 0 ? weather.todayWeatherCode : weather.tomorrowWeatherCode;
-    const maxC = dayIndex === 0 ? weather.todayMaxC : weather.tomorrowMaxC;
-    const minC = dayIndex === 0 ? weather.todayMinC : weather.tomorrowMinC;
-    if (!Number.isFinite(weatherCode) || !Number.isFinite(maxC) || !Number.isFinite(minC)) return;
+    if (!dayAvailable) {
+      renderWeatherIndicator(
+        el,
+        buildForecastWeatherText({ available: false, unavailableText }),
+        'info-panel__weather-range',
+      );
+      return;
+    }
 
-    const prefixKey = dayIndex === 0 ? 'infoPanel.todayLabel' : 'infoPanel.tomorrowLabel';
+    const prefixText = isToday ? t('infoPanel.todayLabel') : t('infoPanel.tomorrowLabel');
     const icon = weatherCategoryToIcon(weatherCodeToCategory(weatherCode));
     const label = t(weatherCodeToLabelKey(weatherCode));
 
-    el.append(
-      document.createTextNode(`${t(prefixKey)}: `),
-      buildWeatherIconEl(icon),
-      document.createTextNode(`${label} (${Math.round(minC)}°C - ${Math.round(maxC)}°C)`),
+    renderWeatherIndicator(
+      el,
+      buildForecastWeatherText({ available: true, icon, label, prefixText, minC, maxC }),
+      'info-panel__weather-range',
     );
+  });
+}
+
+/**
+ * Wires the tap-to-reveal fallback for touch/sighted users whose browser doesn't move focus (and
+ * therefore doesn't trigger `:focus-within`) on a bare tap of a non-form focusable element
+ * (research.md §3). Toggles `data-open="true"` on the tapped indicator — purely visual, CSS-only
+ * (mirrors `:hover`/`:focus-within`); accessibility is already covered by the unconditional
+ * `aria-label` set in `renderWeatherIndicator()`, independent of this. Closed by tapping/clicking
+ * outside either indicator or pressing Escape. Wired once at mount time, not per render, since
+ * `renderWeather()` only replaces each indicator's children, never these wrapper elements.
+ * @param {HTMLElement[]} indicatorEls - The current-conditions and forecast wrapper elements
+ *   (desktop + mobile panel copies combined).
+ */
+function wireWeatherTapToggle(indicatorEls) {
+  function closeAll() {
+    indicatorEls.forEach((el) => delete el.dataset.open);
+  }
+
+  function toggle(el) {
+    const wasOpen = el.dataset.open === 'true';
+    closeAll();
+    if (!wasOpen) el.dataset.open = 'true';
+  }
+
+  indicatorEls.forEach((el) => {
+    el.addEventListener('touchstart', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggle(el);
+    });
+    el.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggle(el);
+    });
+  });
+
+  document.addEventListener('click', closeAll);
+  document.addEventListener('touchstart', closeAll);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeAll();
   });
 }
 
@@ -338,6 +425,8 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
     currentEls: document.querySelectorAll('[data-role="weather-current"]'),
     forecastEls: document.querySelectorAll('[data-role="weather-forecast"]'),
   };
+
+  wireWeatherTapToggle([...elements.currentEls, ...elements.forecastEls]);
 
   const wetteronlineUrl = buildWetteronlineSearchUrl(plant?.location);
   elements.linkEls.forEach((el) => {

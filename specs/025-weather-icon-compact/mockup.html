@@ -1,0 +1,778 @@
+<title>Compact Weather Widget</title>
+<style>
+  :root {
+    color-scheme: light;
+
+    /* Copied verbatim from web/css/tokens.css */
+    --color-bg: #ffffff;
+    --color-bg-app: #e3f2fd;
+    --color-bg-elevated: #f4f6f8;
+    --color-text: #1a1d21;
+    --color-text-muted: #5b6470;
+    --color-border: #d8dee4;
+    --color-primary: #ff9800;
+    --color-primary-dark: #e65100;
+    --color-accent: #2e7d32;
+    --color-danger: #c62828;
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.75rem;
+    --font-size-xs: 0.8em;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Review-tool-only tokens */
+    --review-bg: #f6f5f2;
+    --review-ink: #33312c;
+    --review-muted: #7a7669;
+    --review-line: #ddd9d0;
+    --review-accent: #b45f2c;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--review-bg);
+    color: var(--review-ink);
+    font-family: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, p {
+    text-wrap: balance;
+  }
+
+  /* ============ Review-tool chrome (reusable as-is) ============ */
+
+  .review-header {
+    padding: var(--space-lg) var(--space-xl) var(--space-md);
+    border-bottom: 1px solid var(--review-line);
+  }
+
+  .review-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--review-accent);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs);
+  }
+
+  .review-header h1 {
+    margin: 0 0 var(--space-xs);
+    font-size: 1.375rem;
+    font-weight: 700;
+  }
+
+  .review-header p {
+    margin: 0;
+    color: var(--review-muted);
+    font-size: 0.9rem;
+    max-width: 62ch;
+  }
+
+  .review-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    align-items: center;
+    padding: var(--space-md) var(--space-xl);
+    background: #fff;
+    border-bottom: 1px solid var(--review-line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .control-group span.label {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--review-muted);
+    font-weight: 600;
+  }
+
+  .segmented {
+    display: inline-flex;
+    border: 1px solid var(--review-line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: #fff;
+    color: var(--review-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    border-right: 1px solid var(--review-line);
+  }
+
+  .segmented button:last-child {
+    border-right: none;
+  }
+
+  .segmented button:hover {
+    background: #f1efe9;
+  }
+
+  .segmented button:focus-visible {
+    outline: 2px solid var(--review-accent);
+    outline-offset: -2px;
+  }
+
+  .segmented button[aria-pressed='true'] {
+    background: var(--review-accent);
+    color: #fff;
+  }
+
+  .review-stage {
+    padding: var(--space-xl);
+    display: flex;
+    justify-content: center;
+  }
+
+  .stage-frame {
+    width: 100%;
+    max-width: 1180px;
+    background: #d9d4c8;
+    border-radius: 14px;
+    padding: var(--space-lg);
+    transition: max-width 0.2s ease;
+  }
+
+  .stage-frame[data-viewport='mobile'] {
+    max-width: 400px;
+  }
+
+  .stage-frame-label {
+    font-size: 0.75rem;
+    color: var(--review-muted);
+    text-align: center;
+    margin: 0 0 var(--space-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .canvas {
+    background: var(--color-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .review-footer {
+    padding: 0 var(--space-xl) var(--space-xl);
+    max-width: 1180px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--review-muted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .review-footer code {
+    background: #fff;
+    border: 1px solid var(--review-line);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    font-size: 0.8em;
+  }
+
+  .review-footer h3 {
+    margin: var(--space-md) 0 var(--space-xs);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--review-ink);
+  }
+
+  .review-footer ul {
+    margin: 0 0 var(--space-sm);
+    padding-left: 1.2em;
+  }
+
+  /* ============ generic state-visibility mechanism (reusable as-is) ============ */
+
+  [data-state] [data-show] {
+    display: none;
+  }
+
+  /* ---- weather-icon-compact: per-state visibility overrides ----
+     Explicit per-element display values (not `revert`, which would fall back to the inline
+     default rather than the flex layout these elements actually need). */
+  .canvas[data-state='available'] .info-panel__weather-current[data-show='available'],
+  .canvas[data-state='hover-preview'] .info-panel__weather-current[data-show='available'] {
+    display: inline-flex;
+  }
+  .canvas[data-state='unavailable'] .info-panel__weather-current[data-show='unavailable'] {
+    display: inline-flex;
+  }
+  .canvas[data-state='available'] .info-panel__weather-forecast[data-show='available'],
+  .canvas[data-state='hover-preview'] .info-panel__weather-forecast[data-show='available'] {
+    display: inline-flex;
+  }
+  .canvas[data-state='unavailable'] .info-panel__weather-forecast[data-show='unavailable'] {
+    display: inline-flex;
+  }
+  .canvas[data-state='available'] .before-widget[data-show='available'],
+  .canvas[data-state='hover-preview'] .before-widget[data-show='available'] {
+    display: flex;
+  }
+  .canvas[data-state='unavailable'] .before-widget[data-show='unavailable'] {
+    display: flex;
+  }
+
+  /* Forces the tooltip open for the "Hover previewed" state button, in addition to real
+     mouse :hover / keyboard :focus-within below — lets a reviewer see the revealed text
+     without needing to land the pointer precisely. */
+  .canvas[data-state='hover-preview'] .info-panel__weather-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+    pointer-events: auto;
+  }
+
+  /* ============ weather-icon-compact: layout-specific styles ============ */
+
+  /* ---- Mocked real app header (derived from web/index.html + app.css) ---- */
+  .app-chrome-mock {
+    font-family: var(--font-family);
+  }
+
+  .app-header-mock {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .app-header-mock__start {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+  }
+
+  .app-header-mock__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  .app-header-mock__logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  }
+
+  .app-header-mock__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .app-header-mock__nav {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .stage-frame[data-viewport='mobile'] .app-header-mock__nav {
+    display: none;
+  }
+
+  .app-header-mock__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  /* Info panel: production + yield placeholders, present only for layout context. */
+  .info-panel-mock {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .stage-frame[data-viewport='mobile'] .info-panel-mock--desktop-row {
+    display: none;
+  }
+
+  .info-panel-mock--mobile-row {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-md);
+    background: var(--color-bg-elevated);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .stage-frame[data-viewport='mobile'] .info-panel-mock--mobile-row {
+    display: flex;
+  }
+
+  .info-panel-mock__production {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .info-panel-mock__pulse {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 8px var(--color-accent);
+  }
+
+  .info-panel-mock__value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .info-panel-mock__timestamp,
+  .info-panel-mock__yield-month {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .info-panel-mock__yield {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .transparency-toggle-mock {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-elevated);
+  }
+
+  /* ---- The feature itself: compact icon + temperature, hover/focus reveals detail ---- */
+
+  /* Now a row of two indicators (current + forecast) split by a divider, rather than a
+     stacked current/forecast pair — each indicator keeps its own icon-over-value shape. */
+  .info-panel__weather {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-xs) 0;
+  }
+
+  .info-panel__weather:hover {
+    background: var(--color-border);
+  }
+
+  /* Shared shape for both compact indicators: icon above, value below, centered as one
+     column. Anchored (position: relative) so each tooltip can hang off its own bottom edge. */
+  .info-panel__weather-current,
+  .info-panel__weather-forecast {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    cursor: default;
+    /* generous hit target so the hover/focus zone isn't just the glyph's own tiny box */
+    padding: 2px var(--space-sm);
+  }
+
+  /* FR-008: visible divider between the current-conditions and forecast indicators. Only
+     needed once both are shown, so it's a border on the forecast indicator's leading edge
+     rather than a separate element. */
+  .info-panel__weather-forecast {
+    border-left: 1px solid var(--color-border);
+  }
+
+  .info-panel__weather-icon {
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+
+  .info-panel__weather-temp,
+  .info-panel__weather-range {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* Detail tooltip: same text that used to render inline, now revealed on demand. Built as a
+     floating bubble rather than a native title="" attribute so it can be styled to match the
+     app and made keyboard-reachable via :focus-within. */
+  .info-panel__weather-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    margin-bottom: 4px;
+    background: var(--color-text);
+    color: var(--color-bg);
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    z-index: 5;
+  }
+
+  .info-panel__weather-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--color-text);
+  }
+
+  /* Real hover + keyboard focus both reveal it — try hovering/tabbing to either icon below. */
+  .info-panel__weather-current:hover .info-panel__weather-tooltip,
+  .info-panel__weather-current:focus-within .info-panel__weather-tooltip,
+  .info-panel__weather-forecast:hover .info-panel__weather-tooltip,
+  .info-panel__weather-forecast:focus-within .info-panel__weather-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+    pointer-events: auto;
+  }
+
+  .info-panel__weather-current:focus-visible,
+  .info-panel__weather-forecast:focus-visible {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 2px;
+  }
+
+  .info-panel__weather[data-available='false'] {
+    pointer-events: none;
+    color: var(--color-text-muted);
+  }
+
+  /* ---- Before / after comparison strip ---- */
+
+  .compare {
+    padding: var(--space-lg);
+    border-top: 1px dashed var(--color-border);
+  }
+
+  .compare h2 {
+    margin: 0 0 var(--space-xs);
+    font-size: 1rem;
+  }
+
+  .compare p {
+    margin: 0 0 var(--space-md);
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    max-width: 60ch;
+  }
+
+  .compare-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-xl);
+    flex-wrap: wrap;
+  }
+
+  .compare-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .compare-col__label {
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+
+  .compare-frame {
+    display: inline-flex;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  /* The old inline layout, reproduced only for width comparison — not part of the feature. */
+  .before-widget {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    white-space: nowrap;
+  }
+
+  .before-widget__icon {
+    margin-right: 4px;
+  }
+
+  .compare-note {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+</style>
+
+<header class="review-header">
+  <p class="review-eyebrow">Non-functional review mockup</p>
+  <h1>Compact Weather Widget — layout review (025-weather-icon-compact)</h1>
+  <p>
+    Current conditions and the forecast both collapse from inline sentences to small
+    icon-over-value stacks, split by a vertical divider. Hover or focus either icon to reveal
+    the same descriptive text that used to sit directly in the panel.
+  </p>
+</header>
+
+<div class="review-controls">
+  <div class="control-group">
+    <span class="label">Viewport</span>
+    <div class="segmented" id="viewport-toggle">
+      <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+      <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="label">Content state</span>
+    <div class="segmented" id="state-toggle">
+      <button type="button" data-state="available" aria-pressed="true">Available</button>
+      <button type="button" data-state="hover-preview" aria-pressed="false">Hover previewed</button>
+      <button type="button" data-state="unavailable" aria-pressed="false">Unavailable</button>
+    </div>
+  </div>
+</div>
+
+<div class="review-stage">
+  <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+    <p class="stage-frame-label" id="stage-frame-label">Desktop — split layout</p>
+    <div class="canvas" data-state="available" id="canvas">
+      <div class="app-chrome-mock">
+        <header class="app-header-mock">
+          <div class="app-header-mock__start">
+            <a class="app-header-mock__brand" href="#">
+              <span class="app-header-mock__logo" aria-hidden="true"></span>
+              <h2 class="app-header-mock__title">SolarLog Viewer</h2>
+            </a>
+            <nav class="app-header-mock__nav">
+              <span>Tag</span><span>Monat</span><span>Jahr</span><span>Gesamt</span>
+            </nav>
+          </div>
+          <div class="app-header-mock__actions">
+            <div class="info-panel-mock info-panel-mock--desktop-row">
+              <div class="info-panel-mock__production">
+                <span class="info-panel-mock__pulse" aria-hidden="true"></span>
+                <div>
+                  <div class="info-panel-mock__value">2,4 kW</div>
+                  <div class="info-panel-mock__timestamp">Stand: 14:32</div>
+                </div>
+              </div>
+              <div class="info-panel-mock__yield">
+                <span class="info-panel-mock__value">18,6 kWh</span>
+                <span class="info-panel-mock__yield-month">342 kWh Monat</span>
+              </div>
+
+              <!-- ============ THE FEATURE: two compact indicators, divider between them ============ -->
+              <a class="info-panel__weather" data-available="true">
+                <span class="info-panel__weather-current" tabindex="0" data-show="available">
+                  <span class="info-panel__weather-icon" aria-hidden="true">☀️</span>
+                  <span class="info-panel__weather-temp">24°C</span>
+                  <span class="info-panel__weather-tooltip" role="tooltip">Sonnig, 24°C</span>
+                </span>
+                <span class="info-panel__weather-current" data-show="unavailable">
+                  <span class="info-panel__weather-icon" aria-hidden="true" style="opacity: 0.4">–</span>
+                </span>
+                <span class="info-panel__weather-forecast" tabindex="0" data-show="available">
+                  <span class="info-panel__weather-icon" aria-hidden="true">🌧️</span>
+                  <span class="info-panel__weather-range">15° - 19°</span>
+                  <span class="info-panel__weather-tooltip" role="tooltip">Heute: Regen (15°C - 19°C)</span>
+                </span>
+                <span class="info-panel__weather-forecast" data-show="unavailable">
+                  <span class="info-panel__weather-icon" aria-hidden="true" style="opacity: 0.4">–</span>
+                </span>
+              </a>
+              <!-- ============ /THE FEATURE ============ -->
+            </div>
+            <span class="transparency-toggle-mock" aria-hidden="true"></span>
+          </div>
+        </header>
+
+        <div class="info-panel-mock info-panel-mock--mobile-row">
+          <div class="info-panel-mock__production">
+            <span class="info-panel-mock__pulse" aria-hidden="true"></span>
+            <div>
+              <div class="info-panel-mock__value">2,4 kW</div>
+              <div class="info-panel-mock__timestamp">Stand: 14:32</div>
+            </div>
+          </div>
+          <div class="info-panel-mock__yield">
+            <span class="info-panel-mock__value">18,6 kWh</span>
+            <span class="info-panel-mock__yield-month">342 kWh Monat</span>
+          </div>
+          <a class="info-panel__weather" data-available="true">
+            <span class="info-panel__weather-current" tabindex="0" data-show="available">
+              <span class="info-panel__weather-icon" aria-hidden="true">☀️</span>
+              <span class="info-panel__weather-temp">24°C</span>
+              <span class="info-panel__weather-tooltip" role="tooltip">Sonnig, 24°C</span>
+            </span>
+            <span class="info-panel__weather-current" data-show="unavailable">
+              <span class="info-panel__weather-icon" aria-hidden="true" style="opacity: 0.4">–</span>
+            </span>
+            <span class="info-panel__weather-forecast" tabindex="0" data-show="available">
+              <span class="info-panel__weather-icon" aria-hidden="true">🌧️</span>
+              <span class="info-panel__weather-range">15° - 19°</span>
+              <span class="info-panel__weather-tooltip" role="tooltip">Heute: Regen (15°C - 19°C)</span>
+            </span>
+            <span class="info-panel__weather-forecast" data-show="unavailable">
+              <span class="info-panel__weather-icon" aria-hidden="true" style="opacity: 0.4">–</span>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <div class="compare">
+        <h2>Footprint comparison (SC-001)</h2>
+        <p>
+          Same data, side by side. Both indicators trade their label's horizontal run for a few
+          pixels of vertical stacking, and a divider now marks the boundary between them.
+        </p>
+        <div class="compare-row">
+          <div class="compare-col">
+            <span class="compare-col__label">Before (current)</span>
+            <div class="compare-frame">
+              <span class="before-widget" data-show="available">
+                <span class="before-widget__icon" aria-hidden="true">☀️</span>
+                <span>Sonnig, 24°C</span>
+                <span style="margin: 0 var(--space-sm); color: var(--color-text-muted)">·</span>
+                <span>Heute: 🌧️ Regen (15°C - 19°C)</span>
+              </span>
+              <span class="before-widget" data-show="unavailable">Nicht verfügbar</span>
+            </div>
+            <span class="compare-note">~260px wide</span>
+          </div>
+          <div class="compare-col">
+            <span class="compare-col__label">After (this feature)</span>
+            <div class="compare-frame">
+              <a class="info-panel__weather" data-available="true" style="padding: 0">
+                <span class="info-panel__weather-current" tabindex="0" data-show="available">
+                  <span class="info-panel__weather-icon" aria-hidden="true">☀️</span>
+                  <span class="info-panel__weather-temp">24°C</span>
+                  <span class="info-panel__weather-tooltip" role="tooltip">Sonnig, 24°C</span>
+                </span>
+                <span class="info-panel__weather-current" data-show="unavailable">
+                  <span class="info-panel__weather-icon" aria-hidden="true" style="opacity: 0.4">–</span>
+                  <span class="info-panel__weather-temp" style="opacity: 0.6">–</span>
+                </span>
+                <span class="info-panel__weather-forecast" tabindex="0" data-show="available">
+                  <span class="info-panel__weather-icon" aria-hidden="true">🌧️</span>
+                  <span class="info-panel__weather-range">15° - 19°</span>
+                  <span class="info-panel__weather-tooltip" role="tooltip">Heute: Regen (15°C - 19°C)</span>
+                </span>
+                <span class="info-panel__weather-forecast" data-show="unavailable">
+                  <span class="info-panel__weather-icon" aria-hidden="true" style="opacity: 0.4">–</span>
+                </span>
+              </a>
+            </div>
+            <span class="compare-note">~90px wide — hover/tab either icon to reveal its full text</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="review-footer">
+  <p>
+    <strong>Try it:</strong> hover your pointer over either icon above (current or forecast), or
+    tab to it with the keyboard, to see its own tooltip reveal the full text. The "Hover
+    previewed" state button forces both open for a static look without needing precise pointer
+    placement.
+  </p>
+  <h3>Fixed constraints</h3>
+  <ul>
+    <li>Both indicators are compacted the same way: icon on top, current temperature or forecast
+      range beneath, label/day-prefix text moved into the hover tooltip (FR-001, FR-003).</li>
+    <li>A vertical divider (border on the forecast indicator's leading edge) separates the two
+      indicators (FR-008).</li>
+    <li>Each tooltip is exactly the same text previously shown inline for that indicator — the
+      forecast tooltip keeps its "Heute:"/"Morgen:" prefix — no new wording (FR-004).</li>
+    <li>Each indicator's "unavailable" state stays visible by default, not hidden behind hover
+      (FR-007) — see the Unavailable content-state button; current/forecast availability are
+      independent.</li>
+    <li>Touch/keyboard equivalent: tapping or focusing an icon reveals its tooltip via
+      <code>:focus-within</code>, the same interaction as hover (FR-006).</li>
+  </ul>
+  <h3>Out of scope for this mockup</h3>
+  <ul>
+    <li>Exact icon glyph per weather category (already defined in <code>weather-icon.js</code>,
+      unchanged) — only sunny/rain glyphs are shown here for illustration.</li>
+    <li>Production/yield widget styling — shown only for layout context, unchanged by this
+      feature.</li>
+    <li>Forecast day-switch logic (today vs. tomorrow) — unaffected, only its display shape
+      changes.</li>
+  </ul>
+</footer>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const stageFrame = document.getElementById('stage-frame');
+  const stageLabel = document.getElementById('stage-frame-label');
+
+  function wire(groupId, attr, target, onChange) {
+    const group = document.getElementById(groupId);
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-' + attr + ']');
+      if (!btn) return;
+      const value = btn.getAttribute('data-' + attr);
+      target.setAttribute('data-' + attr, value);
+      [...group.querySelectorAll('button')].forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)),
+      );
+      if (onChange) onChange(value);
+    });
+  }
+
+  wire('viewport-toggle', 'viewport', stageFrame, (value) => {
+    stageLabel.textContent =
+      value === 'mobile' ? 'Mobile — stacked layout' : 'Desktop — split layout';
+  });
+  wire('state-toggle', 'state', canvas);
+</script>

@@ -142,12 +142,16 @@ sprites rather than a plain shape — a purely visual upgrade that needs no conf
 
 At desktop widths (768px and above), a panel in the header — visible on every view, not just
 the dashboard — shows the plant's current production alongside the current weather condition
-and a forecast for the installation's location. Both weather lines lead with a small decorative
-icon (☀️/⛅/☁️/🌧️/❄️) matching the condition's label, e.g. "🌧️ Regen, 18°C" for the current
-condition; at night, a clear-sky reading shows a moon icon and "Klar"/"Clear" instead of the
-sun icon/"Sonnig"/"Sunny". The forecast line shows "Heute:" (today) plus that day's low–high
-range, e.g. "Heute: ☀️ Sonnig (13°C - 19°C)", switching to "Morgen:" (tomorrow's forecast) once
-it's past 18:00 local time. Production (and the "Today's yield"/"Month's yield" figures)
+and a forecast for the installation's location. Both weather indicators are compact: a small
+decorative icon (☀️/⛅/☁️/🌧️/❄️) with just the temperature (current condition, e.g. "24°C") or
+the low–high range (forecast, e.g. "15° - 19°") shown beneath it, separated by a vertical
+divider — at night, a clear-sky current-conditions reading shows a moon icon instead of the sun
+icon. Hovering, focusing (keyboard), or tapping (touch) either icon reveals a floating tooltip
+with the full description that used to be shown inline, e.g. "Regen, 18°C" for the current
+condition, or "Heute: Sonnig (13°C - 19°C)" for the forecast — switching to "Morgen:" (tomorrow's
+forecast) once it's past 18:00 local time; the same full text is also always available as the
+icon's accessible name for screen readers, independent of hover/focus/tap state. Production (and
+the "Today's yield"/"Month's yield" figures)
 refreshes on the same schedule as the day view's chart (see "Day view auto-refresh" below) — one
 shared setting, so the two never drift out of sync. The weather/forecast side refreshes on its
 own, slower schedule (every ~10 minutes by default), since weather doesn't change meaningfully

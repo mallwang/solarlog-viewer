@@ -87,11 +87,13 @@ vollständige Spezifikation/Planung.
 ## Globales Desktop-Infopanel
 
 Ein dauerhaftes Panel im Header, sichtbar ab Desktop-Breiten, zeigt die aktuelle Leistung der
-Anlage, das aktuelle Wetter (Icon + Bedingung + Temperatur) und eine Prognose (für heute, ab
-18:00 Uhr Ortszeit für morgen) — aus jeder Ansicht, nicht nur dem Dashboard. Es hält seine
+Anlage sowie kompakte Icon-über-Temperatur-Anzeigen für das aktuelle Wetter und eine Prognose
+(für heute, ab 18:00 Uhr Ortszeit für morgen) — Bedingung und Tagespräfix erscheinen als
+Sprechblase bei Hover/Fokus/Tap — aus jeder Ansicht, nicht nur dem Dashboard. Es hält seine
 Leistungs-/Ertragswerte synchron mit der automatischen Aktualisierung des Tagesdiagramms, und das
-Wetter aktualisiert sich separat und seltener. Siehe `specs/010-global-info-panel/` und
-`specs/023-weather-panel-icons/` für die vollständige Spezifikation/Planung.
+Wetter aktualisiert sich separat und seltener. Siehe `specs/010-global-info-panel/`,
+`specs/023-weather-panel-icons/` und `specs/025-weather-icon-compact/` für die vollständige
+Spezifikation/Planung.
 
 ## Ereignisse-Seite
 

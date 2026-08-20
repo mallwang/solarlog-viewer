@@ -81,12 +81,13 @@ spec/plan.
 
 ## Global desktop info panel
 
-A persistent panel in the header, visible at desktop widths, shows the plant's current production,
-current weather (icon + condition + temperature), and a forecast (today's, switching to
-tomorrow's after 18:00 local time) from every view — not just the dashboard. It keeps its
-production/yield figures in sync with the day chart's own auto-refresh, and weather refreshes on
-a separate, slower schedule. See `specs/010-global-info-panel/` and `specs/023-weather-panel-icons/`
-for the full spec/plan.
+A persistent panel in the header, visible at desktop widths, shows the plant's current production
+plus compact icon-over-temperature indicators for current weather and a forecast (today's,
+switching to tomorrow's after 18:00 local time) — condition and day prefix reveal in a tooltip on
+hover/focus/tap — from every view, not just the dashboard. It keeps its production/yield figures
+in sync with the day chart's own auto-refresh, and weather refreshes on a separate, slower
+schedule. See `specs/010-global-info-panel/`, `specs/023-weather-panel-icons/`, and
+`specs/025-weather-icon-compact/` for the full spec/plan.
 
 ## Ereignisse (events) page
 

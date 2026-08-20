@@ -159,12 +159,17 @@ dargestellt statt als einfache Form — eine rein optische Verbesserung ohne Kon
 
 Ab Desktop-Breiten (768px und mehr) zeigt ein Panel im Header — sichtbar in jeder Ansicht, nicht
 nur im Dashboard — die aktuelle Leistung der Anlage zusammen mit dem aktuellen Wetter und einer
-Prognose für den Standort der Anlage. Beide Wetterzeilen beginnen mit einem kleinen dekorativen
-Icon (☀️/⛅/☁️/🌧️/❄️), das zur Bedingung passt, z. B. „🌧️ Regen, 18°C“ für die aktuelle Bedingung;
-nachts zeigt eine „sonnig“-Meldung stattdessen ein Mond-Icon und „Klar“ statt Sonnen-Icon/
-„Sonnig“. Die Prognosezeile beginnt mit „Heute:“ plus der Tiefst-Höchst-Spanne dieses Tages, z. B.
-„Heute: ☀️ Sonnig (13°C - 19°C)“, und wechselt ab 18:00 Uhr Ortszeit auf „Morgen:“ (Prognose für
-den Folgetag). Die Leistung (sowie „Tagesertrag“/„Monatsertrag“) aktualisiert sich nach demselben
+Prognose für den Standort der Anlage. Beide Wetteranzeigen sind kompakt: ein kleines dekoratives
+Icon (☀️/⛅/☁️/🌧️/❄️) mit nur der Temperatur (aktuelle Bedingung, z. B. „24°C“) bzw. der
+Tiefst-Höchst-Spanne (Prognose, z. B. „15° - 19°“) darunter, getrennt durch eine senkrechte
+Trennlinie — nachts zeigt eine „sonnig“-Meldung bei der aktuellen Bedingung stattdessen ein
+Mond-Icon statt des Sonnen-Icons. Ein Hover, Fokus (Tastatur) oder Tap (Touch) auf ein Icon zeigt
+eine schwebende Sprechblase mit der vollständigen Beschreibung, die früher direkt im Text stand,
+z. B. „Regen, 18°C“ für die aktuelle Bedingung oder „Heute: Sonnig (13°C - 19°C)“ für die
+Prognose — wechselt ab 18:00 Uhr Ortszeit auf „Morgen:“ (Prognose für den Folgetag); derselbe
+vollständige Text steht Screenreadern unabhängig von Hover/Fokus/Tap auch immer als
+Accessible-Name des Icons zur Verfügung. Die Leistung (sowie „Tagesertrag“/„Monatsertrag“)
+aktualisiert sich nach demselben
 Zeitplan wie das Diagramm der Tagesansicht (siehe „Automatische Aktualisierung der Tagesansicht &
 Startseite“ unten) — eine gemeinsame Einstellung, damit beide nie auseinanderlaufen. Der Wetter-/
 Prognosebereich aktualisiert sich separat und seltener (standardmäßig alle ~10 Minuten), da sich
