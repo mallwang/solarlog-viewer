@@ -145,9 +145,12 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     );
   });
 
-  test("shows current weather and today's forecast summary", async ({ page }) => {
-    // Fixed daytime timestamp so the current-conditions line shows the regular (non-nighttime-
-    // override) icon/label for a "rain" weatherCode (the default mockForecast() code, 61).
+  test("shows current weather and today's forecast as compact icon-over-value indicators", async ({
+    page,
+  }) => {
+    // Fixed daytime timestamp so the current-conditions indicator shows the regular
+    // (non-nighttime-override) icon/label for a "rain" weatherCode (the default mockForecast()
+    // code, 61).
     await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
     await mockProduction(page);
     await mockForecast(page);
@@ -158,20 +161,41 @@ test.describe('Global info panel — desktop placement (beneath the header icons
       'data-available',
       'true',
     );
+
+    // Current conditions: compact value only, no condition label visible by default (FR-001/
+    // FR-002) — the full text lives in aria-label/the (aria-hidden) tooltip instead, so the
+    // "not visible by default" check targets the compact-value span alone, not the whole
+    // indicator (whose textContent also includes the hidden tooltip's full text).
     const current = desktop.locator('[data-role="weather-current"]');
-    await expect(current).toContainText('18°C');
-    await expect(current).not.toContainText('Aktuell:');
+    await expect(current.locator('.info-panel__weather-temp')).toHaveText('18°C');
+    await expect(current).toHaveAttribute('aria-label', 'Regen, 18°C');
     await expect(current.locator('.info-panel__weather-icon')).toHaveAttribute(
       'aria-hidden',
       'true',
     );
 
+    // Forecast: compact range only, no condition label or "Heute:"/"Morgen:" prefix visible by
+    // default (FR-003) — the full text (with prefix) lives in aria-label instead.
     const forecast = desktop.locator('[data-role="weather-forecast"]');
-    await expect(forecast).toContainText('Heute:');
-    await expect(forecast).toContainText('(12°C - 22°C)');
+    await expect(forecast.locator('.info-panel__weather-range')).toHaveText('12° - 22°');
+    await expect(forecast).toHaveAttribute('aria-label', 'Heute: Regen (12°C - 22°C)');
     await expect(forecast.locator('.info-panel__weather-icon')).toHaveAttribute(
       'aria-hidden',
       'true',
+    );
+  });
+
+  test('a visible divider separates the current-conditions and forecast indicators (FR-008)', async ({
+    page,
+  }) => {
+    await mockProduction(page);
+    await mockForecast(page);
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="weather-forecast"]')).toHaveCSS(
+      'border-left-style',
+      'solid',
     );
   });
 
@@ -318,7 +342,10 @@ test.describe('Global info panel weather text — background/nav-bar agreement (
     await page.goto('/');
 
     const desktop = page.locator('[data-info-panel="desktop"]');
-    await expect(desktop.locator('[data-role="weather-current"]')).toContainText('Schnee');
+    await expect(desktop.locator('[data-role="weather-current"]')).toHaveAttribute(
+      'aria-label',
+      /Schnee/,
+    );
     await expect(page.locator('.sky-clouds')).toHaveAttribute('data-weather', 'snow');
   });
 
@@ -331,7 +358,10 @@ test.describe('Global info panel weather text — background/nav-bar agreement (
     await page.goto('/');
 
     const desktop = page.locator('[data-info-panel="desktop"]');
-    await expect(desktop.locator('[data-role="weather-current"]')).toContainText('Regen');
+    await expect(desktop.locator('[data-role="weather-current"]')).toHaveAttribute(
+      'aria-label',
+      /Regen/,
+    );
     await expect(page.locator('.sky-clouds')).not.toHaveAttribute('data-weather', /.+/);
   });
 
@@ -348,7 +378,10 @@ test.describe('Global info panel weather text — background/nav-bar agreement (
     await page.goto('/');
 
     const desktop = page.locator('[data-info-panel="desktop"]');
-    await expect(desktop.locator('[data-role="weather-current"]')).toContainText('Sonnig');
+    await expect(desktop.locator('[data-role="weather-current"]')).toHaveAttribute(
+      'aria-label',
+      /Sonnig/,
+    );
     await expect(page.locator('.sky-clouds')).toHaveAttribute('data-weather', 'snow');
   });
 });
@@ -364,8 +397,8 @@ test.describe('Global info panel — current-conditions nighttime "sunny" overri
     await page.goto('/');
 
     const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
-    await expect(current).toContainText('Klar');
-    await expect(current).not.toContainText('Sonnig');
+    await expect(current).toHaveAttribute('aria-label', /Klar/);
+    await expect(current).not.toHaveAttribute('aria-label', /Sonnig/);
     await expect(current.locator('.info-panel__weather-icon')).toHaveText('🌙');
   });
 
@@ -378,8 +411,8 @@ test.describe('Global info panel — current-conditions nighttime "sunny" overri
     await page.goto('/');
 
     const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
-    await expect(current).toContainText('Sonnig');
-    await expect(current).not.toContainText('Klar');
+    await expect(current).toHaveAttribute('aria-label', /Sonnig/);
+    await expect(current).not.toHaveAttribute('aria-label', /Klar/);
   });
 
   test('a non-"sunny" category at night is unaffected by the nighttime override', async ({
@@ -391,13 +424,13 @@ test.describe('Global info panel — current-conditions nighttime "sunny" overri
     await page.goto('/');
 
     const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
-    await expect(current).toContainText('Regen');
-    await expect(current).not.toContainText('Klar');
+    await expect(current).toHaveAttribute('aria-label', /Regen/);
+    await expect(current).not.toHaveAttribute('aria-label', /Klar/);
   });
 });
 
 test.describe('Global info panel — forecast day switch at FORECAST_DAY_SWITCH_HOUR (US2)', () => {
-  test('before the cutoff hour, the forecast line shows "Heute:" and today\'s icon/label/range', async ({
+  test('before the cutoff hour, the forecast indicator shows today\'s compact range with a "Heute:" aria-label', async ({
     page,
   }) => {
     await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
@@ -406,15 +439,15 @@ test.describe('Global info panel — forecast day switch at FORECAST_DAY_SWITCH_
     await page.goto('/');
 
     const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
-    await expect(forecast).toContainText('Heute:');
-    await expect(forecast).toContainText('(12°C - 22°C)');
+    await expect(forecast.locator('.info-panel__weather-range')).toHaveText('12° - 22°');
+    await expect(forecast).toHaveAttribute('aria-label', 'Heute: Regen (12°C - 22°C)');
     await expect(forecast.locator('.info-panel__weather-icon')).toHaveAttribute(
       'aria-hidden',
       'true',
     );
   });
 
-  test('at/after the cutoff hour, the forecast line shows "Morgen:" and tomorrow\'s distinct icon/label/range', async ({
+  test('at/after the cutoff hour, the forecast indicator shows tomorrow\'s distinct compact range with a "Morgen:" aria-label', async ({
     page,
   }) => {
     await page.clock.install({ time: new Date('2026-08-10T18:00:00') });
@@ -428,13 +461,11 @@ test.describe('Global info panel — forecast day switch at FORECAST_DAY_SWITCH_
     await page.goto('/');
 
     const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
-    await expect(forecast).toContainText('Morgen:');
-    await expect(forecast).toContainText('Schnee');
-    await expect(forecast).toContainText('(-2°C - 5°C)');
-    await expect(forecast).not.toContainText('(12°C - 22°C)');
+    await expect(forecast.locator('.info-panel__weather-range')).toHaveText('-2° - 5°');
+    await expect(forecast).toHaveAttribute('aria-label', 'Morgen: Schnee (-2°C - 5°C)');
   });
 
-  test("at/after the cutoff hour with tomorrow's fields omitted, the forecast line falls back to empty", async ({
+  test("at/after the cutoff hour with tomorrow's fields omitted, the forecast indicator falls back to the dimmed dash unavailable state", async ({
     page,
   }) => {
     await page.clock.install({ time: new Date('2026-08-10T18:00:00') });
@@ -443,11 +474,27 @@ test.describe('Global info panel — forecast day switch at FORECAST_DAY_SWITCH_
     await page.goto('/');
 
     const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
-    await expect(forecast).toHaveText('');
+    // FR-007/data-model.md: independent per-indicator unavailable state, same dimmed dash icon
+    // current-conditions already used — a behavior change from 023-weather-panel-icons, which
+    // rendered nothing here.
+    await expect(forecast).toHaveAttribute('data-available', 'false');
+    await expect(forecast.locator('.info-panel__weather-icon')).toHaveText('–');
+    await expect(forecast).toHaveAttribute('aria-label', 'Nicht verfügbar');
+    // The outer link and the current-conditions indicator stay available — only the forecast
+    // side is affected (independent availability, FR-007).
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="weather"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
+    await expect(desktop.locator('[data-role="weather-current"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
   });
 
   test(
-    'a "sunny" mocked response at nighttime still shows the regular sun icon in the forecast line ' +
+    'a "sunny" mocked response at nighttime still shows the regular sun icon/label in the forecast indicator ' +
       "(FR-012's independence from the current-conditions override)",
     async ({ page }) => {
       await page.clock.install({ time: new Date('2026-08-10T02:00:00') });
@@ -456,8 +503,8 @@ test.describe('Global info panel — forecast day switch at FORECAST_DAY_SWITCH_
       await page.goto('/');
 
       const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
-      await expect(forecast).toContainText('Sonnig');
-      await expect(forecast).not.toContainText('Klar');
+      await expect(forecast).toHaveAttribute('aria-label', /Sonnig/);
+      await expect(forecast).not.toHaveAttribute('aria-label', /Klar/);
     },
   );
 
@@ -484,7 +531,129 @@ test.describe('Global info panel — forecast day switch at FORECAST_DAY_SWITCH_
     await page.goto('/');
 
     const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
-    await expect(forecast).toContainText('(14°C - 14°C)');
+    await expect(forecast).toContainText('14° - 14°');
+    await expect(forecast).toHaveAttribute('aria-label', /\(14°C - 14°C\)/);
+  });
+});
+
+test.describe('Global info panel — weather hover/focus/tap tooltip detail (US2)', () => {
+  test('hovering the current-conditions icon reveals a tooltip with the full previous text, hidden again on mouse-out', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61 });
+    await page.goto('/');
+
+    const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
+    const tooltip = current.locator('.info-panel__weather-tooltip');
+    await expect(tooltip).toHaveText('Regen, 18°C');
+    await expect(tooltip).not.toBeVisible();
+
+    await current.hover();
+    await expect(tooltip).toBeVisible();
+
+    // Moving the pointer elsewhere hides it again.
+    await page.locator('body').hover({ position: { x: 5, y: 5 } });
+    await expect(tooltip).not.toBeVisible();
+  });
+
+  test('hovering the forecast icon reveals its own tooltip (including the day prefix), independent of the current-conditions tooltip', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61 });
+    await page.goto('/');
+
+    const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
+    const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
+    const currentTooltip = current.locator('.info-panel__weather-tooltip');
+    const forecastTooltip = forecast.locator('.info-panel__weather-tooltip');
+    await expect(forecastTooltip).toHaveText('Heute: Regen (12°C - 22°C)');
+
+    await forecast.hover();
+    await expect(forecastTooltip).toBeVisible();
+    // Hovering forecast never reveals the current-conditions tooltip.
+    await expect(currentTooltip).not.toBeVisible();
+  });
+
+  test('tabbing to each indicator via keyboard reveals the same tooltip on focus', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61 });
+    await page.goto('/');
+
+    const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
+    const tooltip = current.locator('.info-panel__weather-tooltip');
+    // `.focus()` (unlike `.hover()`) doesn't auto-wait for actionability — wait for the weather
+    // fetch to resolve and the panel's `hidden` attribute to clear first, or a focus() called
+    // while still hidden silently no-ops.
+    await expect(current).toHaveAttribute('aria-label', 'Regen, 18°C');
+    await expect(tooltip).not.toBeVisible();
+
+    await current.focus();
+    await expect(tooltip).toBeVisible();
+
+    await current.blur();
+    await expect(tooltip).not.toBeVisible();
+  });
+
+  test("each indicator's aria-label carries the full previous text unconditionally, without hover/focus (FR-006/SC-002)", async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61 });
+    await page.goto('/');
+
+    const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
+    const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
+    // Present in the accessibility tree from render, before any interaction.
+    await expect(current).toHaveAttribute('aria-label', 'Regen, 18°C');
+    await expect(forecast).toHaveAttribute('aria-label', 'Heute: Regen (12°C - 22°C)');
+  });
+
+  test('unavailable weather still exposes "Nicht verfügbar" as the aria-label on both indicators', async ({
+    page,
+  }) => {
+    await mockProduction(page);
+    await mockForecast(page, { aborted: true });
+    await page.goto('/');
+
+    const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
+    const forecast = page.locator('[data-info-panel="desktop"] [data-role="weather-forecast"]');
+    await expect(current).toHaveAttribute('data-available', 'false');
+    await expect(forecast).toHaveAttribute('data-available', 'false');
+    await expect(current).toHaveAttribute('aria-label', 'Nicht verfügbar');
+    await expect(forecast).toHaveAttribute('aria-label', 'Nicht verfügbar');
+  });
+
+  test('tapping an indicator (touch, no real hover) opens its tooltip, and tapping elsewhere closes it', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'touchstart emulation is most reliable on Chromium');
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61 });
+    await page.goto('/');
+
+    const current = page.locator('[data-info-panel="desktop"] [data-role="weather-current"]');
+    const tooltip = current.locator('.info-panel__weather-tooltip');
+    // `.dispatchEvent()` (unlike `.hover()`) doesn't auto-wait for actionability — wait for the
+    // weather fetch to resolve first (see the focus test above for the same reasoning).
+    await expect(current).toHaveAttribute('aria-label', 'Regen, 18°C');
+    await expect(tooltip).not.toBeVisible();
+
+    await current.dispatchEvent('touchstart');
+    await expect(tooltip).toBeVisible();
+
+    // Tapping elsewhere closes it.
+    await page.locator('body').dispatchEvent('touchstart');
+    await expect(tooltip).not.toBeVisible();
   });
 });
 
@@ -539,5 +708,70 @@ test.describe('Global info panel — mobile placement (bar below the nav)', () =
       clientWidth: document.documentElement.clientWidth,
     }));
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
+  });
+
+  test('the mobile compact indicators show the same divider and per-indicator unavailable state as desktop', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T18:00:00') }); // after the day switch
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61, omitTomorrow: true });
+    await page.goto('/');
+
+    const mobile = page.locator('[data-info-panel="mobile"]');
+    await expect(mobile.locator('[data-role="weather-forecast"]')).toHaveCSS(
+      'border-left-style',
+      'solid',
+    );
+    await expect(mobile.locator('[data-role="weather-current"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
+    await expect(mobile.locator('[data-role="weather-forecast"]')).toHaveAttribute(
+      'data-available',
+      'false',
+    );
+    await expect(
+      mobile.locator('[data-role="weather-forecast"] .info-panel__weather-icon'),
+    ).toHaveText('–');
+  });
+});
+
+test.describe('Global info panel — weather tooltip fits within a 320px viewport (constitution Principle IV)', () => {
+  test.use({ viewport: { width: 320, height: 800 } });
+
+  test('an open tooltip on either indicator does not overflow the viewport edge', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T13:00:00') });
+    await mockProduction(page);
+    await mockForecast(page, { weatherCode: 61 });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const mobile = page.locator('[data-info-panel="mobile"]');
+    const current = mobile.locator('[data-role="weather-current"]');
+    const forecast = mobile.locator('[data-role="weather-forecast"]');
+
+    // Baseline before either tooltip opens — whether or not the rest of the mobile info panel
+    // row itself already fits exactly at 320px is a pre-existing, out-of-scope layout concern;
+    // this feature's own requirement (Constraints) is narrower: revealing a tooltip must not add
+    // *further* horizontal overflow on top of whatever baseline already exists.
+    const baseline = await page.evaluate(() => document.documentElement.scrollWidth);
+
+    await current.focus();
+    const currentTooltipBox = await current.locator('.info-panel__weather-tooltip').boundingBox();
+    // Anchored to its own (leftmost) indicator's left edge (app.css), so it can't hang off the
+    // left side of the viewport regardless of where that indicator sits.
+    expect(currentTooltipBox.x).toBeGreaterThanOrEqual(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      baseline,
+    );
+    await current.blur();
+
+    await forecast.focus();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      baseline,
+    );
   });
 });

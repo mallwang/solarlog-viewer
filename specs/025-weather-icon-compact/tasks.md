@@ -36,16 +36,16 @@ either indicator's render logic is rewritten.
 
 **⚠️ CRITICAL**: No user-story rendering work can begin until T001–T002 are complete.
 
-- [ ] T001 [P] Write `node:test` unit tests in `web/js/weather/weather-text.test.js` covering, per
+- [x] T001 [P] Write `node:test` unit tests in `web/js/weather/weather-text.test.js` covering, per
       data-model.md's Current-Conditions/Forecast tables: current-conditions available
       (`compactValue` = `"21°C"`, `fullText` = `"Klar, 21°C"`, including the nighttime
       sunny→"clear" override producing the moon-label wording) and unavailable
       (`fullText` = `t('infoPanel.unavailable')`, no `compactValue`); forecast available for both
       today and tomorrow prefixes (`compactValue` = `"15° - 19°"`, `fullText` = `"Heute: Regen
-    (15°C - 19°C)"` / `"Morgen: ..."`) and unavailable; assert `compactValue` never contains the
+(15°C - 19°C)"` / `"Morgen: ..."`) and unavailable; assert `compactValue` never contains the
       condition label or day prefix substring. Run first and confirm it fails (module doesn't
       exist yet).
-- [ ] T002 Implement `web/js/weather/weather-text.js` — pure functions
+- [x] T002 Implement `web/js/weather/weather-text.js` — pure functions
       `buildCurrentWeatherText({ available, icon, label, temperatureC })` and
       `buildForecastWeatherText({ available, icon, label, prefixKey, minC, maxC })` (or an
       equivalent single-module shape matching data-model.md's Compact Weather Indicator fields:
@@ -72,16 +72,16 @@ default.
 
 ### Implementation for User Story 1
 
-- [ ] T003 [US1] Restructure the desktop weather markup in `web/index.html`
+- [x] T003 [US1] Restructure the desktop weather markup in `web/index.html`
       (`.info-panel--desktop`'s `.info-panel__weather` block, ~line 282–290): give both
       `[data-role="weather-current"]` and `[data-role="weather-forecast"]` an icon child span, a
       compact-value child span, `tabindex="0"`, and an empty tooltip child span (structure per
       design.md/mockup.html); keep the existing `data-role`/wrapper attributes so
       `info-panel-controller.js` keeps selecting the same elements.
-- [ ] T004 [US1] Apply the identical markup restructure to the mobile weather block in
+- [x] T004 [US1] Apply the identical markup restructure to the mobile weather block in
       `web/index.html` (`.info-panel--mobile`'s `.info-panel__weather`, ~line 332–340) — same
       shape as T003, kept in sync per plan.md's "four indicator elements total" scope.
-- [ ] T005 [US1] Rewrite `renderWeather()` in
+- [x] T005 [US1] Rewrite `renderWeather()` in
       `web/js/info-panel/info-panel-controller.js` (~line 267–316) to call the new
       `weather-text.js` functions per indicator, set `icon`/`compactValue` into the new child
       spans (icon `aria-hidden="true"`), set `data-available` independently on each indicator (not
@@ -89,24 +89,24 @@ default.
       indicator's `aria-label` to the `fullText` unconditionally (research.md §2). Remove the old
       inline text-node building (`buildWeatherIconEl` sentence construction) in favor of the
       structured icon+value+tooltip DOM.
-- [ ] T006 [US1] Update `web/css/app.css`'s `.info-panel__weather-*` rules (~line 1545–1580):
+- [x] T006 [US1] Update `web/css/app.css`'s `.info-panel__weather-*` rules (~line 1545–1580):
       turn `.info-panel__weather-current`/`-forecast` into flex columns (icon on top, value
       beneath) per design.md's layout; add the divider as a `border-left: 1px solid
-    var(--color-border)` on the forecast indicator's leading edge; add a dimmed/reduced-opacity
+var(--color-border)` on the forecast indicator's leading edge; add a dimmed/reduced-opacity
       style for the unavailable dash-icon state, applied per-indicator via the new per-indicator
       `data-available` attribute from T005.
-- [ ] T007 [US1] Update the forecast indicator's unavailable handling so it renders the dimmed
+- [x] T007 [US1] Update the forecast indicator's unavailable handling so it renders the dimmed
       dash icon (matching current-conditions) instead of rendering nothing, per data-model.md's
       "Unavailable" column and research.md §5 — covered by the same `renderWeather()` rewrite in
       T005; call out explicitly here since it's a behavior change from 023-weather-panel-icons,
       not just a restyle.
-- [ ] T008 [US1] Rewrite the existing text-content assertions in
+- [x] T008 [US1] Rewrite the existing text-content assertions in
       `tests/e2e/info-panel.spec.js` that currently expect inline label text (e.g. `toContainText`
       on `Schnee`/`Regen`/`Sonnig` around lines 321, 334, 351, 393) to instead assert the compact
       value only (e.g. temperature text) is visible and the condition label is absent from visible
       text, per US1's Independent Test. Do not yet add hover/tooltip assertions — those belong to
       US2 (T012).
-- [ ] T009 [US1] Add a Playwright assertion in `tests/e2e/info-panel.spec.js` that a divider
+- [x] T009 [US1] Add a Playwright assertion in `tests/e2e/info-panel.spec.js` that a divider
       element/style is present between the current and forecast indicators (Acceptance Scenario 3),
       and that the forecast's unavailable state now renders the dimmed dash icon instead of empty
       content (covers T007's behavior change), for both `.info-panel--desktop` and
@@ -132,32 +132,32 @@ the same text as its accessible name.
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Add the floating tooltip CSS to `web/css/app.css`: a new
+- [x] T010 [US2] Add the floating tooltip CSS to `web/css/app.css`: a new
       `.info-panel__weather-tooltip` rule (`position: absolute`, centered under/over the icon, using
       `--color-text`/`--color-bg` per plan.md's Project Structure notes) with opacity/
       pointer-events toggled by `:hover`, `:focus-within`, and a `[data-open]` attribute fallback;
       clamp horizontal offset so it never overflows the viewport at 320px width (Constraints); add
       a `:focus-visible` outline on each indicator.
-- [ ] T011 [US2] Wire the tooltip content and touch fallback in
+- [x] T011 [US2] Wire the tooltip content and touch fallback in
       `web/js/info-panel/info-panel-controller.js`'s `renderWeather()` (building on T005): set the
       tooltip child span's text content to `fullText`, `aria-hidden="true"` on the tooltip itself
       (decorative — `aria-label` on the indicator already covers assistive tech per research.md
       §2); add a `click`/`touchstart` handler (wired once during `initInfoPanelController`, not
       per-render) that toggles `data-open="true"` on the tapped indicator and closes it on an
       outside tap or `Escape` key (research.md §3).
-- [ ] T012 [P] [US2] Add Playwright coverage in `tests/e2e/info-panel.spec.js` for: hovering the
+- [x] T012 [P] [US2] Add Playwright coverage in `tests/e2e/info-panel.spec.js` for: hovering the
       current-conditions icon reveals a tooltip containing the exact previous inline text;
       hovering the forecast icon reveals a tooltip containing the day prefix + label + range;
       moving the pointer away hides each tooltip independently (hovering current never reveals the
       forecast tooltip and vice versa, per design.md); tabbing to each indicator via keyboard
       reveals the same tooltip.
-- [ ] T013 [P] [US2] Add Playwright coverage in `tests/e2e/info-panel.spec.js` asserting each
+- [x] T013 [P] [US2] Add Playwright coverage in `tests/e2e/info-panel.spec.js` asserting each
       indicator's `aria-label` equals the full previous inline text unconditionally (present
       without any hover/focus/tap), for both available and unavailable states, per FR-006/SC-002.
-- [ ] T014 [US2] Add Playwright coverage (touch emulation) in `tests/e2e/info-panel.spec.js` for
+- [x] T014 [US2] Add Playwright coverage (touch emulation) in `tests/e2e/info-panel.spec.js` for
       the tap-to-reveal fallback: tapping an indicator opens its tooltip, and tapping elsewhere (or
       pressing Escape) closes it, per the Edge Cases touch-device requirement and research.md §3.
-- [ ] T015 [US2] Add a 320px-viewport Playwright assertion in `tests/e2e/info-panel.spec.js`
+- [x] T015 [US2] Add a 320px-viewport Playwright assertion in `tests/e2e/info-panel.spec.js`
       confirming neither indicator nor an open tooltip clips or overflows the viewport edge
       (constitution Principle IV / plan.md Constraints).
 
@@ -170,15 +170,15 @@ reveal via hover, focus, and tap, with no accessibility regression.
 
 **Purpose**: Documentation and final validation across both stories.
 
-- [ ] T016 [P] Update `README.md`/`README.de.md` and `docs/user-guide.md`/
+- [x] T016 [P] Update `README.md`/`README.de.md` and `docs/user-guide.md`/
       `docs/user-guide.de.md` for any mention/screenshot of the old inline weather text format,
       describing the new compact icon + hover-detail behavior (plan.md Documentation Standards).
-- [ ] T017 Run the full regression gate per quickstart.md: `npm run lint`, `npm run format:check`,
+- [x] T017 Run the full regression gate per quickstart.md: `npm run lint`, `npm run format:check`,
       `npx playwright test --reporter=line` — all three MUST pass.
-- [ ] T018 Walk through quickstart.md's Manual visual check end-to-end in a real browser
+- [x] T018 Walk through quickstart.md's Manual visual check end-to-end in a real browser
       (`npm start`) to confirm the compact layout, divider, hover/focus/tap tooltip reveal, and
       independent unavailable states all match the approved mockup.
-- [ ] T019 Update `**Status**` in `spec.md` from `Draft` to `Implemented` (only once every task
+- [x] T019 Update `**Status**` in `spec.md` from `Draft` to `Implemented` (only once every task
       above is checked off).
 
 ---

@@ -1542,34 +1542,172 @@ a {
   font-size: var(--font-size-xs, 0.8em);
 }
 
+/* 025-weather-icon-compact: two compact icon-over-value indicators (current conditions,
+   forecast) side by side, split by a divider (see .info-panel__weather-forecast's border-left
+   below), rather than the previous stacked inline-sentence pair. Each indicator carries its own
+   tabindex="0" and `aria-label` (set in info-panel-controller.js), so this wrapper itself no
+   longer needs to be the sole focusable/labeled element. */
 .info-panel__weather {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  align-items: stretch;
+  gap: 0;
   color: inherit;
   text-decoration: none;
   border-radius: var(--radius-md);
-  padding: var(--space-xs) var(--space-sm);
+  padding: var(--space-xs) 0;
 }
 
 .info-panel__weather:hover {
   background: var(--color-border);
 }
 
+/* Shared shape for both compact indicators: icon above, value below, centered as one column.
+   position: relative anchors each indicator's own tooltip to its own bottom edge. Generous
+   padding keeps the hover/focus/tap hit target larger than just the glyph's tiny box. */
+.info-panel__weather-current,
 .info-panel__weather-forecast {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs, 0.8em);
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: default;
+  padding: 2px var(--space-sm);
 }
 
-/* Decorative icon glyph (weather/weather-icon.js) prefixing the current-conditions/forecast
-   text (023-weather-panel-icons). inline-flex + no-wrap keeps it glued to its label at 320px
-   width (FR-010/SC-003) instead of the glyph wrapping onto its own line. */
+/* FR-008: visible divider between the current-conditions and forecast indicators — a border on
+   the forecast indicator's leading edge rather than a separate element, present regardless of
+   either indicator's availability. */
+.info-panel__weather-forecast {
+  border-left: 1px solid var(--color-border);
+}
+
+/* Decorative icon glyph (weather/weather-icon.js), or the dimmed dash when an indicator is
+   unavailable (data-model.md's "Unavailable" column) — dimmed via the per-indicator
+   `data-available` attribute below, not a class of its own. */
 .info-panel__weather-icon {
-  display: inline-flex;
-  vertical-align: -0.1em;
-  margin-right: var(--space-2xs, 0.25em);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.info-panel__weather-temp,
+.info-panel__weather-range {
+  font-size: var(--font-size-xs, 0.8em);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
   white-space: nowrap;
+}
+
+/* Below ~400px, the mobile bar's three widgets (production, yield, weather) side by side no
+   longer fit at their normal spacing — unlike the pre-025 stacked-text weather widget, this
+   compact row of two indicators has a fixed minimum content width (no text left to wrap), so it
+   can't shrink on its own the way the old inline sentences could. Tighten the mobile bar's own
+   gaps/padding and this widget's per-indicator padding to buy back the needed width instead
+   (constitution Principle IV: no horizontal scroll from 320px up). */
+@media (max-width: 400px) {
+  .info-panel--mobile {
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .info-panel--mobile .info-panel__weather-current,
+  .info-panel--mobile .info-panel__weather-forecast {
+    padding: 2px var(--space-2xs, 0.25rem);
+  }
+}
+
+.info-panel__weather-current[data-available='false'],
+.info-panel__weather-forecast[data-available='false'] {
+  color: var(--color-text-muted);
+}
+
+.info-panel__weather-current[data-available='false'] .info-panel__weather-icon,
+.info-panel__weather-forecast[data-available='false'] .info-panel__weather-icon {
+  opacity: 0.4;
+}
+
+/* Detail tooltip: the same text that used to render inline, now revealed on demand. A styled
+   floating bubble rather than a native title="" attribute, so it can be made keyboard-reachable
+   via :focus-within and styled to match the app (research.md §2). Decorative (aria-hidden, set
+   in info-panel-controller.js) — the indicator's own `aria-label` already covers assistive tech
+   unconditionally, regardless of this tooltip's visibility. No JS layout math for positioning
+   (constitution/plan.md preference) — width is capped with max-width so it can't itself force
+   page-level horizontal scroll, and its horizontal anchor is clamped per-indicator below (left
+   indicator hangs off its own left edge, right indicator off its own right edge) rather than
+   centered, so it can't overflow the viewport at 320px width (Constraints, Principle IV). */
+.info-panel__weather-tooltip {
+  position: absolute;
+  bottom: 100%;
+  margin-bottom: 4px;
+  width: max-content;
+  max-width: min(70vw, 220px);
+  background: var(--color-text);
+  color: var(--color-bg);
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs, 0.8em);
+  font-weight: 500;
+  text-align: center;
+  opacity: 0;
+  /* Paired with opacity so the default state is unambiguously not visible (opacity alone still
+     occupies layout/hit-testing, which some tooling — including Playwright's toBeVisible() —
+     doesn't treat as hidden). Deliberately NOT in the transition list below — it flips instantly
+     alongside the rest of the rule's declarations on both reveal and hide, while opacity/
+     transform keep their own animated fade; animating visibility itself would tie its flip to an
+     actual rendered frame, which e.g. a test page with faked timers (`page.clock.install()`)
+     never produces, leaving it stuck hidden. */
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  z-index: 5;
+}
+
+/* Current-conditions is the leftmost indicator — anchor its tooltip to its own left edge so it
+   grows rightward, away from the viewport's left edge. */
+.info-panel__weather-current .info-panel__weather-tooltip {
+  left: 0;
+}
+
+/* Forecast is the rightmost indicator — anchor its tooltip to its own right edge so it grows
+   leftward, away from the viewport's right edge. */
+.info-panel__weather-forecast .info-panel__weather-tooltip {
+  right: 0;
+}
+
+.info-panel__weather-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-text);
+}
+
+/* Real hover, keyboard focus, and the tap-toggle fallback (`data-open`, wired in
+   info-panel-controller.js's wireWeatherTapToggle) all reveal it. */
+.info-panel__weather-current:hover .info-panel__weather-tooltip,
+.info-panel__weather-current:focus-within .info-panel__weather-tooltip,
+.info-panel__weather-current[data-open='true'] .info-panel__weather-tooltip,
+.info-panel__weather-forecast:hover .info-panel__weather-tooltip,
+.info-panel__weather-forecast:focus-within .info-panel__weather-tooltip,
+.info-panel__weather-forecast[data-open='true'] .info-panel__weather-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-10px);
+  pointer-events: auto;
+}
+
+.info-panel__weather-current:focus-visible,
+.info-panel__weather-forecast:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 2px;
 }
 
 .info-panel__weather[data-available='false'] {

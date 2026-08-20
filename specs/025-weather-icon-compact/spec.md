@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-20
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "I would like to display the weather information in a smaller way, just the icon and beneath the temperature. When the user hovers over the icon, the weather text should be shown (same that is now displayed as text)."
 
