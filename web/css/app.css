@@ -1557,13 +1557,12 @@ a {
   padding: var(--space-xs) 0;
 }
 
-.info-panel__weather:hover {
-  background: var(--color-border);
-}
-
 /* Shared shape for both compact indicators: icon above, value below, centered as one column.
    position: relative anchors each indicator's own tooltip to its own bottom edge. Generous
-   padding keeps the hover/focus/tap hit target larger than just the glyph's tiny box. */
+   padding keeps the hover/focus/tap hit target larger than just the glyph's tiny box. Each
+   indicator highlights on its own — not `.info-panel__weather` as a whole, which spans both and
+   made hovering just one make the other look highlighted too (they share the same <a>, so a
+   parent-level :hover fires for both). */
 .info-panel__weather-current,
 .info-panel__weather-forecast {
   position: relative;
@@ -1574,6 +1573,16 @@ a {
   gap: 1px;
   cursor: default;
   padding: 2px var(--space-sm);
+  border-radius: var(--radius-md);
+}
+
+.info-panel__weather-current:hover,
+.info-panel__weather-current:focus-within,
+.info-panel__weather-current[data-open='true'],
+.info-panel__weather-forecast:hover,
+.info-panel__weather-forecast:focus-within,
+.info-panel__weather-forecast[data-open='true'] {
+  background: var(--color-border);
 }
 
 /* FR-008: visible divider between the current-conditions and forecast indicators — a border on
@@ -1587,13 +1596,13 @@ a {
    unavailable (data-model.md's "Unavailable" column) — dimmed via the per-indicator
    `data-available` attribute below, not a class of its own. */
 .info-panel__weather-icon {
-  font-size: 1.05rem;
+  font-size: var(--font-size-lg);
   line-height: 1;
 }
 
 .info-panel__weather-temp,
 .info-panel__weather-range {
-  font-size: var(--font-size-xs, 0.8em);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -1639,8 +1648,8 @@ a {
    centered, so it can't overflow the viewport at 320px width (Constraints, Principle IV). */
 .info-panel__weather-tooltip {
   position: absolute;
-  bottom: 100%;
-  margin-bottom: 4px;
+  top: 100%;
+  margin-top: 4px;
   width: max-content;
   max-width: min(70vw, 220px);
   background: var(--color-text);
@@ -1660,7 +1669,7 @@ a {
      never produces, leaving it stuck hidden. */
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(-6px);
+  transform: translateY(6px);
   transition:
     opacity 0.12s ease,
     transform 0.12s ease;
@@ -1680,14 +1689,26 @@ a {
   right: 0;
 }
 
-.info-panel__weather-tooltip::after {
+/* The arrow is its own pseudo-element on the *indicator*, not on the tooltip bubble — the
+   tooltip is edge-anchored (left/right: 0 above) rather than centered, on purpose, so it can't
+   overflow the viewport at 320px width; that means the bubble is almost always wider than the
+   icon it belongs to and off-center relative to it. Centering the arrow on the indicator itself
+   (which owns `position: relative`) keeps it pointing at the actual icon regardless of which way
+   the bubble is anchored, instead of drifting to the bubble's own midpoint. */
+.info-panel__weather-current::after,
+.info-panel__weather-forecast::after {
   content: '';
   position: absolute;
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: var(--color-text);
+  border-bottom-color: var(--color-text);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+  z-index: 6;
 }
 
 /* Real hover, keyboard focus, and the tap-toggle fallback (`data-open`, wired in
@@ -1700,8 +1721,18 @@ a {
 .info-panel__weather-forecast[data-open='true'] .info-panel__weather-tooltip {
   opacity: 1;
   visibility: visible;
-  transform: translateY(-10px);
+  transform: translateY(10px);
   pointer-events: auto;
+}
+
+.info-panel__weather-current:hover::after,
+.info-panel__weather-current:focus-within::after,
+.info-panel__weather-current[data-open='true']::after,
+.info-panel__weather-forecast:hover::after,
+.info-panel__weather-forecast:focus-within::after,
+.info-panel__weather-forecast[data-open='true']::after {
+  opacity: 1;
+  visibility: visible;
 }
 
 .info-panel__weather-current:focus-visible,
