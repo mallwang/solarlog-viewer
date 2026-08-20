@@ -38,6 +38,10 @@ Link zur nächstgrößeren Zeitebene (Tag → Monat → Jahr → Gesamt) — z. 
 Tagesansicht direkt zur zugehörigen Monatsansicht. Die Gesamt-Ansicht hat keinen solchen Link, da
 sie die oberste Ebene der Hierarchie ist.
 
+Dieses Handbuch selbst ist bei jeder Bildschirmbreite über ein eigenständiges Dokument-Icon im
+Header erreichbar, direkt links neben dem Transparenz-Umschalter — nicht über die Navigationsliste,
+sodass es immer nur einen Klick entfernt ist, ohne vorher das Burger-Menü zu öffnen.
+
 | Diagrammelement                                        | Verhalten                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Legendeneintrag UDC (V) (Tagesansicht)                 | Standardmäßig ausgeblendet. Ein Klick blendet eine fette Durchschnittslinie über alle meldenden Strings ein (gemittelt, nicht summiert) mit einem schattierten Min/Max-Band; erneuter Klick blendet beides wieder aus. Wahl wird über Reloads und andere Tage gemerkt. Fehlt an Tagen ohne Spannungsdaten. |

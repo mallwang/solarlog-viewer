@@ -10,10 +10,10 @@ const VIEWS = [
   { name: 'events', path: '/#/events', label: 'Ereignisse' },
 ];
 
-// The nav also carries a trailing external "Benutzerhandbuch" (user guide) link, rendered as a
-// plain `<li><a>` alongside the routed views above (see main.js's NAV_ITEMS) — one more than
-// VIEWS.length, but never `aria-current` (it's not a routed view).
-const NAV_LINK_COUNT = VIEWS.length + 1;
+// The "Benutzerhandbuch" (user guide) link now lives as a standalone icon in
+// `.app-header__actions` (see tests/e2e/header-actions.spec.js), not in this list — so the nav
+// list contains exactly one `<li><a>` per routed view, nothing more.
+const NAV_LINK_COUNT = VIEWS.length;
 
 test.describe('Navigation lists all routed views and marks the active one (FR-002, FR-003)', () => {
   for (const { name, path } of VIEWS) {

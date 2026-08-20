@@ -1,0 +1,543 @@
+<title>Benutzerhandbuch-Icon — Layout Review (026-user-guide-icon-nav)</title>
+<style>
+  :root {
+    color-scheme: light;
+
+    /* Copied verbatim from web/css/tokens.css */
+    --color-bg: #ffffff;
+    --color-bg-app: #e3f2fd;
+    --color-bg-elevated: #f4f6f8;
+    --color-text: #1a1d21;
+    --color-text-muted: #5b6470;
+    --color-border: #d8dee4;
+    --color-primary: #ff9800;
+    --color-primary-dark: #e65100;
+    --color-accent: #2e7d32;
+    --color-danger: #c62828;
+
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+
+    --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.75rem;
+
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Review-tool-only tokens — kept visually distinct from the app tokens above. */
+    --review-bg: #f6f5f2;
+    --review-ink: #33312c;
+    --review-muted: #7a7669;
+    --review-line: #ddd9d0;
+    --review-accent: #b45f2c;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--review-bg);
+    color: var(--review-ink);
+    font-family: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, p {
+    text-wrap: balance;
+  }
+
+  /* ============ Review-tool chrome ============ */
+
+  .review-header {
+    padding: var(--space-lg) var(--space-xl) var(--space-md);
+    border-bottom: 1px solid var(--review-line);
+  }
+
+  .review-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--review-accent);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs);
+  }
+
+  .review-header h1 {
+    margin: 0 0 var(--space-xs);
+    font-size: 1.375rem;
+    font-weight: 700;
+  }
+
+  .review-header p {
+    margin: 0;
+    color: var(--review-muted);
+    font-size: 0.9rem;
+    max-width: 62ch;
+  }
+
+  .review-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    align-items: center;
+    padding: var(--space-md) var(--space-xl);
+    background: #fff;
+    border-bottom: 1px solid var(--review-line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .control-group span.label {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--review-muted);
+    font-weight: 600;
+  }
+
+  .segmented {
+    display: inline-flex;
+    border: 1px solid var(--review-line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: #fff;
+    color: var(--review-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    border-right: 1px solid var(--review-line);
+  }
+
+  .segmented button:last-child {
+    border-right: none;
+  }
+
+  .segmented button:hover {
+    background: #f1efe9;
+  }
+
+  .segmented button:focus-visible {
+    outline: 2px solid var(--review-accent);
+    outline-offset: -2px;
+  }
+
+  .segmented button[aria-pressed='true'] {
+    background: var(--review-accent);
+    color: #fff;
+  }
+
+  .review-stage {
+    padding: var(--space-xl);
+    display: flex;
+    justify-content: center;
+  }
+
+  .stage-frame {
+    width: 100%;
+    max-width: 1180px;
+    background: #d9d4c8;
+    border-radius: 14px;
+    padding: var(--space-lg);
+    transition: max-width 0.2s ease;
+  }
+
+  .stage-frame[data-viewport='mobile'] {
+    max-width: 400px;
+  }
+
+  .stage-frame-label {
+    font-size: 0.75rem;
+    color: var(--review-muted);
+    text-align: center;
+    margin: 0 0 var(--space-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .canvas {
+    background: var(--color-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .review-footer {
+    padding: 0 var(--space-xl) var(--space-xl);
+    max-width: 1180px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--review-muted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .review-footer h3 {
+    margin: var(--space-md) 0 var(--space-xs);
+    font-size: 0.8rem;
+    color: var(--review-ink);
+  }
+
+  .review-footer ul {
+    margin: 0;
+    padding-left: 1.2em;
+  }
+
+  .review-footer code {
+    background: #fff;
+    border: 1px solid var(--review-line);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    font-size: 0.8em;
+  }
+
+  /* ============ state-visibility mechanism ============ */
+  [data-state] [data-show] {
+    display: none;
+  }
+
+  [data-state='focus'] [data-show='focus'] {
+    display: inline-flex;
+  }
+  [data-state='default'] [data-show='default'] {
+    display: inline-flex;
+  }
+
+  /* ============ mocked app-header (rebuilt from web/index.html + tokens.css) ============ */
+
+  .app-header {
+    position: relative;
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-family);
+  }
+
+  .app-header__start {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    min-width: 0;
+  }
+
+  .app-header__brand {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-sm);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .app-header__logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  }
+
+  .app-header__title {
+    font-size: var(--font-size-lg);
+    margin: 0;
+  }
+
+  .app-nav {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .stage-frame[data-viewport='mobile'] .app-nav {
+    display: none;
+  }
+
+  .app-header__actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .info-panel--desktop {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-inline-end: var(--space-lg);
+  }
+
+  .stage-frame[data-viewport='mobile'] .info-panel--desktop {
+    display: none;
+  }
+
+  .header-nav-toggle {
+    display: none;
+    width: 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 1rem;
+  }
+
+  .stage-frame[data-viewport='mobile'] .header-nav-toggle {
+    display: inline-flex;
+  }
+
+  /* ============ 026-user-guide-icon-nav: the two icon-only header controls ============ */
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    line-height: 1;
+    position: relative;
+  }
+
+  .icon-btn svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.5;
+  }
+
+  .icon-btn[aria-pressed='true'] {
+    background: var(--color-primary);
+    color: #1a1d21;
+    border-color: var(--color-primary);
+  }
+
+  /* Demo-only affordance: shows a persistent focus ring + label bubble in the "Fokus/Hover"
+     content state, standing in for :hover/:focus-visible which a static mockup can't trigger
+     live for the reviewer. */
+  [data-state='focus'] #user-guide-btn {
+    outline: 2px solid var(--review-accent);
+    outline-offset: 2px;
+  }
+
+  .icon-tooltip {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-text);
+    color: #fff;
+    font-size: 0.7rem;
+    line-height: 1.3;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .annotation {
+    position: absolute;
+    top: -1.6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--review-accent);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .icon-pair {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding-top: 1.75rem;
+  }
+
+  .icon-pair::before {
+    content: '';
+    position: absolute;
+    top: 0.25rem;
+    left: -0.4rem;
+    right: -0.4rem;
+    bottom: -0.4rem;
+    border: 1px dashed var(--review-accent);
+    border-radius: var(--radius-lg);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .icon-pair-caption {
+    position: absolute;
+    bottom: -1.3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.62rem;
+    color: var(--review-accent);
+    white-space: nowrap;
+  }
+</style>
+
+<header class="review-header">
+  <p class="review-eyebrow">Non-functional review mockup</p>
+  <h1>Benutzerhandbuch-Icon neben Transparency-Toggle — Layout Review (026-user-guide-icon-nav)</h1>
+  <p>
+    Zeigt, wie der bisherige „Benutzerhandbuch“-Eintrag aus der Hauptnavigationsliste als
+    eigenständiges, icon-only Control direkt neben dem Transparency-Toggle im Header landet — auf
+    Desktop- und Mobile-Breite, inklusive Fokus/Hover-Zustand. Keine echte App-Logik, keine echten
+    Daten.
+  </p>
+</header>
+
+<div class="review-controls">
+  <div class="control-group">
+    <span class="label">Viewport</span>
+    <div class="segmented" id="viewport-toggle">
+      <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+      <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="label">Zustand</span>
+    <div class="segmented" id="state-toggle">
+      <button type="button" data-state="default" aria-pressed="true">Standard</button>
+      <button type="button" data-state="focus" aria-pressed="false">Fokus / Hover</button>
+    </div>
+  </div>
+</div>
+
+<div class="review-stage">
+  <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+    <p class="stage-frame-label" id="stage-frame-label">Desktop — kombinierte Header+Nav-Zeile</p>
+    <div class="canvas" data-state="default" id="canvas">
+      <div class="app-header">
+        <div class="app-header__start">
+          <a class="app-header__brand" href="#">
+            <span class="app-header__logo" aria-hidden="true"></span>
+            <h2 class="app-header__title">SolarLog Viewer</h2>
+          </a>
+          <nav class="app-nav">
+            <span>Start</span><span>Tag</span><span>Monat</span><span>Jahr</span
+            ><span>Gesamt</span><span>Statistiken</span><span>Ereignisse</span>
+          </nav>
+        </div>
+        <div class="app-header__actions">
+          <div class="info-panel--desktop">
+            <span>1,8 kW · vor 2 Min</span>
+            <span>Heute 9,4 kWh · Monat 214 kWh</span>
+          </div>
+          <div class="icon-pair">
+            <span class="annotation" data-show="focus">neu</span>
+            <button
+              type="button"
+              class="icon-btn"
+              id="user-guide-btn"
+              aria-label="Benutzerhandbuch (öffnet neuen Tab)"
+              title="Benutzerhandbuch"
+            >
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                />
+              </svg>
+              <span class="icon-tooltip" data-show="focus">Benutzerhandbuch ↗</span>
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              aria-pressed="false"
+              aria-label="Transparenzmodus umschalten"
+              title="Transparenzmodus"
+            >
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                />
+                <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+            </button>
+            <span class="icon-pair-caption">Icon-Paar: Handbuch + Transparenz</span>
+          </div>
+          <button type="button" class="header-nav-toggle" aria-label="Navigation öffnen">☰</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="review-footer">
+  <p>
+    <strong>Fixe Vorgaben:</strong> Icon-only, kein sichtbares Label, Ziel bleibt
+    <code>docs/user-guide(.de).md</code> auf GitHub in neuem Tab, Reihenfolge/Größe orientiert sich
+    am bestehenden <code>.transparency-toggle</code>.
+  </p>
+  <h3>Out of scope für dieses Mockup</h3>
+  <ul>
+    <li>Exakte GitHub-URL-Auflösung je Sprache (unverändert, kein visueller Effekt).</li>
+    <li>Sprachumschaltung selbst (Lang-Switcher-Verhalten bleibt wie gehabt).</li>
+    <li>Mobile Sub-Nav-Leiste (Produktion/Wetter) — von dieser Änderung nicht betroffen.</li>
+  </ul>
+</footer>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const stageFrame = document.getElementById('stage-frame');
+  const stageLabel = document.getElementById('stage-frame-label');
+
+  function wire(groupId, attr, target, onChange) {
+    const group = document.getElementById(groupId);
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-' + attr + ']');
+      if (!btn) return;
+      const value = btn.getAttribute('data-' + attr);
+      target.setAttribute('data-' + attr, value);
+      [...group.querySelectorAll('button')].forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)),
+      );
+      if (onChange) onChange(value);
+    });
+  }
+
+  wire('viewport-toggle', 'viewport', stageFrame, (value) => {
+    stageLabel.textContent =
+      value === 'mobile'
+        ? 'Mobile — Burger-Navigation, Icon-Paar bleibt sichtbar'
+        : 'Desktop — kombinierte Header+Nav-Zeile';
+  });
+  wire('state-toggle', 'state', canvas);
+</script>
