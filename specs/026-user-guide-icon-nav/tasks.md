@@ -64,7 +64,7 @@ a mobile viewport width.
 
 > Write these tests FIRST; confirm they FAIL (element doesn't exist yet) before implementing.
 
-- [ ] T001 [P] [US1] Create `tests/e2e/header-actions.spec.js` with failing assertions: the
+- [x] T001 [P] [US1] Create `tests/e2e/header-actions.spec.js` with failing assertions: the
       `#user-guide-link` button is visible in `.app-header__actions` immediately before
       `#transparency-toggle` at a desktop viewport (≥1024px) and at a mobile viewport (≤480px,
       without opening the burger nav); it has a non-empty `aria-label`; clicking it opens
@@ -74,35 +74,35 @@ a mobile viewport width.
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Add `<button type="button" class="user-guide-link transparency-toggle"
-    id="user-guide-link"></button>` to `web/index.html`, inside `.app-header__actions`,
+- [x] T002 [US1] Add `<button type="button" class="user-guide-link transparency-toggle"
+id="user-guide-link"></button>` to `web/index.html`, inside `.app-header__actions`,
       immediately before the existing `#transparency-toggle` button (per design.md's icon
       ordering: guide, then Transparency)
-- [ ] T003 [US1] In `web/js/main.js`, add a `userGuideLink` element reference
+- [x] T003 [US1] In `web/js/main.js`, add a `userGuideLink` element reference
       (`document.getElementById('user-guide-link')`) alongside the existing
       `transparencyToggles` reference
-- [ ] T004 [US1] In `web/js/main.js`, add a `userGuideHref()` helper reusing the language-
+- [x] T004 [US1] In `web/js/main.js`, add a `userGuideHref()` helper reusing the language-
       resolution formula currently inline in `NAV_ITEMS.userGuide.href` (moved, not duplicated —
       see research.md §1/§4):
       `` `https://github.com/mallwang/solarlog-viewer/blob/main/docs/user-guide${getLanguage() === 'de' ? '.de' : ''}.md` ``
-- [ ] T005 [US1] In `web/js/main.js`, add `renderUserGuideLink()` (mirroring
+- [x] T005 [US1] In `web/js/main.js`, add `renderUserGuideLink()` (mirroring
       `renderTransparencyToggle()`): sets `userGuideLink.innerHTML = icon('documentText',
-    'size-5')` and sets both `aria-label` and `title` to
+'size-5')` and sets both `aria-label` and `title` to
       `` `${t('nav.userGuideView')} (${t('nav.opensNewTab')})` `` (research.md §2)
-- [ ] T006 [US1] In `web/js/main.js`, add `initUserGuideLink()` (mirroring
+- [x] T006 [US1] In `web/js/main.js`, add `initUserGuideLink()` (mirroring
       `initTransparencyToggle()`): calls `renderUserGuideLink()` once, then wires a `click`
       listener on `userGuideLink` that opens `userGuideHref()` via
       `window.open(userGuideHref(), '_blank', 'noopener,noreferrer')`
-- [ ] T007 [US1] In `web/js/main.js`'s `bootstrap()`, call `initUserGuideLink()` alongside the
+- [x] T007 [US1] In `web/js/main.js`'s `bootstrap()`, call `initUserGuideLink()` alongside the
       existing `initTransparencyToggle()` call
-- [ ] T008 [US1] In `web/js/main.js`'s `renderLangSwitcher()` language-switch handler, call
+- [x] T008 [US1] In `web/js/main.js`'s `renderLangSwitcher()` language-switch handler, call
       `renderUserGuideLink()` alongside the existing `renderNav()` call so the `aria-label`/
       `title` re-resolve without a page reload (FR-010)
-- [ ] T009 [US1] Verify `de.json`/`en.json`'s `nav.userGuideView` and `nav.opensNewTab` strings
+- [x] T009 [US1] Verify `de.json`/`en.json`'s `nav.userGuideView` and `nav.opensNewTab` strings
       still read naturally when concatenated as `"{userGuideView} ({opensNewTab})"` for an
       `aria-label`/`title`-only context (no visible text); tweak wording only if it reads
       awkwardly out of its old sr-only-suffix context
-- [ ] T010 [US1] Run `npx playwright test tests/e2e/header-actions.spec.js --reporter=line` and
+- [x] T010 [US1] Run `npx playwright test tests/e2e/header-actions.spec.js --reporter=line` and
       confirm all assertions from T001 now pass
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — the guide is
@@ -125,23 +125,23 @@ header) nor disappears entirely.
 > Write/update these tests FIRST; confirm they FAIL (old entry still present) before
 > implementing.
 
-- [ ] T011 [P] [US2] Update `tests/e2e/dashboard-nav.spec.js`: remove `userGuide`/
+- [x] T011 [P] [US2] Update `tests/e2e/dashboard-nav.spec.js`: remove `userGuide`/
       "Benutzerhandbuch"/"User Guide" from its expected nav-list label set and adjust any item-
       count assertion so the test currently fails against the not-yet-changed `NAV_ITEMS` (i.e.
       it now expects the entry gone, which is false until T012 lands)
-- [ ] T012 [P] [US2] Add an assertion to `tests/e2e/header-actions.spec.js` (from T001) that
+- [x] T012 [P] [US2] Add an assertion to `tests/e2e/header-actions.spec.js` (from T001) that
       `#app-nav-list` contains no link with `href` matching `docs/user-guide` — i.e. the guide
       exists in exactly one place (header icon only)
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] In `web/js/main.js`, remove the `userGuide` entry (and its now-orphaned
+- [x] T013 [US2] In `web/js/main.js`, remove the `userGuide` entry (and its now-orphaned
       `external`/`href` fields) from `NAV_ITEMS`
-- [ ] T014 [US2] In `web/js/main.js`'s `renderNav()`, remove the now-dead `item.external`
+- [x] T014 [US2] In `web/js/main.js`'s `renderNav()`, remove the now-dead `item.external`
       branch (no remaining `NAV_ITEMS` entry sets `external: true`) so the function only renders
       routed view links, per the constitution's minimalism bias against unreachable code
-- [ ] T015 [US2] Run `npx playwright test tests/e2e/dashboard-nav.spec.js
-    tests/e2e/header-actions.spec.js --reporter=line` and confirm all assertions from T011/T012
+- [x] T015 [US2] Run `npx playwright test tests/e2e/dashboard-nav.spec.js
+tests/e2e/header-actions.spec.js --reporter=line` and confirm all assertions from T011/T012
       now pass, and manually click through the remaining nav items (day/month/year/total/
       statistics/events) to confirm none regressed
 
@@ -154,20 +154,20 @@ header icon, with no regression to the rest of the nav or the Transparency toggl
 
 **Purpose**: Documentation and final verification across both stories
 
-- [ ] T016 [P] Update `docs/user-guide.md`: note that the user guide link now lives as a
+- [x] T016 [P] Update `docs/user-guide.md`: note that the user guide link now lives as a
       standalone icon in the header next to the Transparency toggle, not in the main nav list
-- [ ] T017 [P] Update `docs/user-guide.de.md` with the same change, in German, kept consistent
+- [x] T017 [P] Update `docs/user-guide.de.md` with the same change, in German, kept consistent
       with T016 (constitution Documentation Standards)
-- [ ] T018 [P] Check `README.md` (line ~35, "see the [User Guide](docs/user-guide.md)") and
+- [x] T018 [P] Check `README.md` (line ~35, "see the [User Guide](docs/user-guide.md)") and
       `README.de.md` (line ~37) for any wording implying the guide is reached via the nav list;
       update if so, otherwise leave unchanged
-- [ ] T019 Run `npx playwright test tests/e2e/transparency-mode.spec.js --reporter=line` to
+- [x] T019 Run `npx playwright test tests/e2e/transparency-mode.spec.js --reporter=line` to
       confirm the adjacent Transparency toggle's styling/behavior is unaffected by the new
       sibling button
-- [ ] T020 Run `npm run lint` and `npm run format:check`; fix any violations
-- [ ] T021 Walk through `quickstart.md` end-to-end (manual desktop/mobile checks + full
+- [x] T020 Run `npm run lint` and `npm run format:check`; fix any violations
+- [x] T021 Walk through `quickstart.md` end-to-end (manual desktop/mobile checks + full
       automated check list) to confirm the feature is done
-- [ ] T022 Update `**Status**` in `spec.md` from `Draft` to `Implemented` (only once every task
+- [x] T022 Update `**Status**` in `spec.md` from `Draft` to `Implemented` (only once every task
       above is checked off)
 
 ---

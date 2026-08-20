@@ -34,6 +34,10 @@ current period" link (e.g. "Heute"/"Dieser Monat"), and a link to zoom out to th
 period (day → month → year → total) — e.g. from a day view, click "Monat" to jump straight to
 that day's month view. The total view has no such link since it's the top of the hierarchy.
 
+This guide itself is reachable at every screen width via a standalone document icon in the
+header, immediately left of the Transparency toggle — not from the nav list, so it's always one
+click away without opening the burger menu first.
+
 | Chart element                                     | Behavior                                                                                                                                                                                                                                                                                     |
 | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | UDC (V) legend entry (day view)                   | Hidden by default. Click reveals a bold average line across reporting inverter strings (averaged, not summed) with a shaded min/max band; click again to hide both. Choice is remembered across reloads and other day charts. Omitted on days with no voltage data.                          |

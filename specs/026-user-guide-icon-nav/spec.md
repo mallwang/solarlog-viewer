@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-20
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Benutzerhandbuch nur als Icon anzeigen neben dem Transparency icon" (Show the user guide only as an icon next to the Transparency icon)
 

@@ -44,21 +44,18 @@ const NAV_ITEMS = [
     params: { topic: 'common' },
   },
   { view: 'events', labelKey: 'nav.eventsView', icon: 'listBullet', params: {} },
-  // External link, not a routed view: opens the language-specific user guide on GitHub in a
-  // new tab. `href` is a function (not a static string) so it re-resolves the language-specific
-  // file (docs/user-guide.md vs docs/user-guide.de.md) on every renderNav() call, picking up a
-  // language switch without a page reload.
-  {
-    view: 'userGuide',
-    labelKey: 'nav.userGuideView',
-    icon: 'documentText',
-    external: true,
-    href: () =>
-      `https://github.com/mallwang/solarlog-viewer/blob/main/docs/user-guide${
-        getLanguage() === 'de' ? '.de' : ''
-      }.md`,
-  },
 ];
+
+// The language-specific user guide URL on GitHub — opened in a new tab by the standalone
+// `#user-guide-link` header icon (see renderUserGuideLink/initUserGuideLink below). Kept as a
+// function (not a static string) so it re-resolves docs/user-guide.md vs docs/user-guide.de.md
+// on every call, picking up a language switch without a page reload. Previously inline as
+// `NAV_ITEMS.userGuide.href` before the link moved out of the nav list (026-user-guide-icon-nav).
+function userGuideHref() {
+  return `https://github.com/mallwang/solarlog-viewer/blob/main/docs/user-guide${
+    getLanguage() === 'de' ? '.de' : ''
+  }.md`;
+}
 
 let plant = null;
 let currentRoute = { view: 'day', params: todayParams() };
@@ -68,10 +65,15 @@ const viewNav = document.getElementById('app-nav');
 const viewNavList = document.getElementById('app-nav-list');
 const navToggle = document.getElementById('app-nav-toggle');
 const langSwitcher = document.getElementById('lang-switcher');
+const userGuideLink = document.getElementById('user-guide-link');
 // A NodeList rather than a single element — currently always exactly one (`.transparency-
 // toggle` in `.app-header__actions`), but kept as a NodeList so a future second instance (e.g.
 // a mobile-specific one) would need no change here, only in initTransparencyToggle's callers.
-const transparencyToggles = document.querySelectorAll('.transparency-toggle');
+// `:not(.user-guide-link)` excludes the header guide-link button, which reuses the
+// `.transparency-toggle` class purely for shared CSS chrome (border/background/radius — see
+// research.md §3) but isn't a toggle and must not have its icon/aria-pressed state overwritten
+// by renderTransparencyToggle()/initTransparencyToggle() below.
+const transparencyToggles = document.querySelectorAll('.transparency-toggle:not(.user-guide-link)');
 
 function applyNavLabels() {
   viewNav.setAttribute('aria-label', t('nav.ariaLabel'));
@@ -92,23 +94,10 @@ function renderNav() {
   for (const item of NAV_ITEMS) {
     const li = document.createElement('li');
     const link = document.createElement('a');
-    if (item.external) {
-      // Not a routed view — an outbound link to the GitHub-hosted user guide, so it gets its
-      // own branch here rather than going through formatRoute()/aria-current below. Plain
-      // document icon, no visible "opens in new tab" badge (reads more natural alongside the
-      // other nav icons) — the sr-only suffix still tells screen-reader users it leaves the app.
-      link.href = item.href();
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.innerHTML = `${icon(item.icon)}<span>${t(item.labelKey)}<span class="sr-only"> (${t(
-        'nav.opensNewTab',
-      )})</span></span>`;
-    } else {
-      const params = typeof item.params === 'function' ? item.params() : item.params;
-      link.href = formatRoute({ view: item.view, params });
-      link.innerHTML = `${icon(item.icon)}<span>${t(item.labelKey)}</span>`;
-      if (currentRoute.view === item.view) link.setAttribute('aria-current', 'page');
-    }
+    const params = typeof item.params === 'function' ? item.params() : item.params;
+    link.href = formatRoute({ view: item.view, params });
+    link.innerHTML = `${icon(item.icon)}<span>${t(item.labelKey)}</span>`;
+    if (currentRoute.view === item.view) link.setAttribute('aria-current', 'page');
     link.addEventListener('click', () => closeNav());
     li.append(link);
     viewNavList.append(li);
@@ -190,6 +179,30 @@ function initTransparencyToggle() {
   });
 }
 
+/**
+ * Sets the user guide header icon's content and accessible name/tooltip. Re-callable (from
+ * initUserGuideLink() and from the language-switch handler in renderLangSwitcher()) so the
+ * label re-resolves per-language without a page reload — mirrors renderTransparencyToggle().
+ */
+function renderUserGuideLink() {
+  userGuideLink.innerHTML = icon('documentText', 'size-5');
+  const label = `${t('nav.userGuideView')} (${t('nav.opensNewTab')})`;
+  userGuideLink.setAttribute('aria-label', label);
+  userGuideLink.title = label;
+}
+
+/**
+ * Renders the user guide header icon once and wires its click handler to open the language-
+ * specific guide in a new tab — mirrors initTransparencyToggle(), but with no toggled state
+ * since this is a navigation action, not a persisted setting.
+ */
+function initUserGuideLink() {
+  renderUserGuideLink();
+  userGuideLink.addEventListener('click', () => {
+    window.open(userGuideHref(), '_blank', 'noopener,noreferrer');
+  });
+}
+
 function renderLangSwitcher() {
   langSwitcher.innerHTML = '';
   if (!SHOW_LANGUAGE_SWITCHER) {
@@ -205,6 +218,7 @@ function renderLangSwitcher() {
       const { setLanguage } = await import('./i18n.js');
       await setLanguage(lang);
       renderNav();
+      renderUserGuideLink();
       renderLangSwitcher();
       await dispatch(currentRoute);
     });
@@ -245,6 +259,7 @@ async function bootstrap() {
   await initI18n();
   renderLangSwitcher();
   initNavToggle();
+  initUserGuideLink();
   initTransparencyToggle();
   initChromeHeightSync();
   initInfoTooltips();
