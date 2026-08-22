@@ -121,6 +121,26 @@ export const DATA_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 export const WEATHER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 
 /**
+ * The live PV status endpoint the global info panel's production figure is sourced from
+ * (`info-panel/live-reading-client.js`) — a small JSON status API on the same device host as
+ * `data/`/`hist/`, but not one of the device's own `.js` data files (it's fetched by absolute
+ * URL, not through `bs-config.cjs`'s dev-only `/data`/`/hist` proxy — see research.md §1 of
+ * specs/027-navbar-live-panel/). Matches this file's existing manual-override pattern.
+ * @type {string}
+ */
+export const LIVE_ENDPOINT_URL = 'https://wolfsbach.synology.me/live/index.php';
+
+/**
+ * How often the global info panel re-polls `LIVE_ENDPOINT_URL` for the navbar's live wattage
+ * figure (`info-panel/info-panel-controller.js`'s `pollProduction()`). Deliberately independent
+ * of `DATA_REFRESH_INTERVAL_MS` (FR-003, specs/027-navbar-live-panel/) — the live endpoint is a
+ * near-real-time status feed the device updates far more often than its `.js` data files, and
+ * the two cycles must never trigger or block each other (FR-002/SC-002). Defaults to 1 minute.
+ * @type {number}
+ */
+export const LIVE_REFRESH_INTERVAL_MS = 60 * 1000;
+
+/**
  * Filenames under `web/img/plant/`, in carousel display order, shown by the welcome page's photo
  * carousel (`web/js/views/photo-carousel.js`). Matches this file's existing manual-override
  * pattern (`SITE_TITLE`, `SKY_LOCATION_OVERRIDE`): the operator drops a file into `web/img/plant/`

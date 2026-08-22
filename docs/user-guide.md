@@ -154,23 +154,25 @@ icon. Hovering, focusing (keyboard), or tapping (touch) either icon reveals a fl
 with the full description that used to be shown inline, e.g. "Regen, 18°C" for the current
 condition, or "Heute: Sonnig (13°C - 19°C)" for the forecast — switching to "Morgen:" (tomorrow's
 forecast) once it's past 18:00 local time; the same full text is also always available as the
-icon's accessible name for screen readers, independent of hover/focus/tap state. Production (and
-the "Today's yield"/"Month's yield" figures)
-refreshes on the same schedule as the day view's chart (see "Day view auto-refresh" below) — one
-shared setting, so the two never drift out of sync. The weather/forecast side refreshes on its
-own, slower schedule (every ~10 minutes by default), since weather doesn't change meaningfully
-minute to minute. A small pulsing dot next to the production value gets larger
-and pulses faster the closer current output is to the plant's configured peak capacity, and
-calms to idle near zero (e.g. at night). Next to the production wattage, the panel shows the
-inverter's current efficiency (AC output ÷ DC input, e.g. "1234 W · 94%") whenever DC input is
-available and non-zero — hidden rather than showing a misleading 0%/∞ when it isn't. The day
-view (`#/day/YYYY/MM/DD`) shows the same efficiency figure as a second curve alongside the power
-curve, gapped wherever DC input is zero or missing, and not shown at all for backfilled/archived
-days that only have a reconstructed yield curve. Click or tap the weather/forecast area to open a
-wetteronline.de search for the installation's address in a new tab. If production or weather
-data can't be retrieved, that side of the panel shows "Unavailable" while the other side keeps
-working normally. The panel is hidden entirely below 768px — it contributes no extra space to
-the mobile layout.
+icon's accessible name for screen readers, independent of hover/focus/tap state. The production
+wattage is sourced from a live status endpoint on its own dedicated refresh cadence (every 1
+minute by default, `LIVE_REFRESH_INTERVAL_MS` in `web/js/config.js`), fully independent of the
+"Today's yield"/"Month's yield" figures' schedule (see "Day view auto-refresh" below) and of the
+weather/forecast side's own, slower schedule (every ~10 minutes by default), since weather
+doesn't change meaningfully minute to minute. If a live poll fails, the panel keeps showing the
+last successfully-fetched wattage (and its own "as of" time) rather than blanking or freezing —
+only a genuinely never-yet-successful reading shows "Unavailable" — and it repolls promptly if you
+switch back to the browser tab after being away. A small pulsing dot next to the production value
+gets larger and pulses faster the closer current output is to the plant's configured peak
+capacity, and calms to idle near zero (e.g. at night). The day view (`#/day/YYYY/MM/DD`) shows a
+separate PAC ÷ PDC efficiency curve alongside the power curve (from that day's own minute-by-minute
+data), gapped wherever DC input is zero or missing, and not shown at all for backfilled/archived
+days that only have a reconstructed yield curve — the navbar panel's live wattage itself no longer
+shows this per-inverter efficiency percentage, since the live status endpoint doesn't carry that
+detail. Click or tap the weather/forecast area to open a wetteronline.de search for the
+installation's address in a new tab. If production or weather data can't be retrieved, that side
+of the panel shows "Unavailable" while the other side keeps working normally. The panel is hidden
+entirely below 768px — it contributes no extra space to the mobile layout.
 
 ## Day view & welcome page auto-refresh
 
@@ -181,11 +183,13 @@ keep showing new readings without a manual reload. A failed refresh attempt is s
 leaving the last good reading on screen rather than clearing the view. Days other than today never
 auto-refresh, since their data is archived and no longer changes. The welcome page (`#/`,
 "Anlageninfo") does the same for its today-chart and yield-summary stats card. All three — the
-info panel's production/yield figures above, the day view, and the welcome page — use the same
-refresh interval, so they always show data of the same age rather than drifting apart on separate
-timers. The interval defaults to 1 minute and can be changed by a site administrator via
-`DATA_REFRESH_INTERVAL_MS` in `web/js/config.js` (the info panel's weather/forecast poll has its
-own separate, slower interval, `WEATHER_REFRESH_INTERVAL_MS`).
+info panel's "Today's yield"/"Month's yield" figures above, the day view, and the welcome page —
+use the same refresh interval, so they always show data of the same age rather than drifting
+apart on separate timers. The interval defaults to 1 minute and can be changed by a site
+administrator via `DATA_REFRESH_INTERVAL_MS` in `web/js/config.js`. The info panel's live
+production wattage and its weather/forecast poll each have their own separate intervals instead
+(`LIVE_REFRESH_INTERVAL_MS` and `WEATHER_REFRESH_INTERVAL_MS`, respectively — see "Global desktop
+info panel" above).
 
 ## CO2 avoidance figures
 

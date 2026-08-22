@@ -89,10 +89,14 @@ vollständige Spezifikation/Planung.
 Ein dauerhaftes Panel im Header, sichtbar ab Desktop-Breiten, zeigt die aktuelle Leistung der
 Anlage sowie kompakte Icon-über-Temperatur-Anzeigen für das aktuelle Wetter und eine Prognose
 (für heute, ab 18:00 Uhr Ortszeit für morgen) — Bedingung und Tagespräfix erscheinen als
-Sprechblase bei Hover/Fokus/Tap — aus jeder Ansicht, nicht nur dem Dashboard. Es hält seine
-Leistungs-/Ertragswerte synchron mit der automatischen Aktualisierung des Tagesdiagramms, und das
-Wetter aktualisiert sich separat und seltener. Siehe `specs/010-global-info-panel/`,
-`specs/023-weather-panel-icons/` und `specs/025-weather-icon-compact/` für die vollständige
+Sprechblase bei Hover/Fokus/Tap — aus jeder Ansicht, nicht nur dem Dashboard. Der Leistungswert
+stammt von einem Live-Status-Endpunkt mit eigenem `LIVE_REFRESH_INTERVAL_MS`-Takt
+(`web/js/config.js`, standardmäßig 1 Minute), vollständig unabhängig vom
+`DATA_REFRESH_INTERVAL_MS`-Takt des Tagesdiagramms/der Ertragswerte; bei einem fehlgeschlagenen
+Abruf bleibt der letzte erfolgreiche Wert sichtbar, und bei Rückkehr in den Tab wird sofort erneut
+abgefragt. Das Wetter aktualisiert sich auf einem eigenen, separaten, selteneren Takt. Siehe
+`specs/010-global-info-panel/`, `specs/023-weather-panel-icons/`,
+`specs/025-weather-icon-compact/` und `specs/027-navbar-live-panel/` für die vollständige
 Spezifikation/Planung.
 
 ## Ereignisse-Seite

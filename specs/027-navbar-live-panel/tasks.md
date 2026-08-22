@@ -33,7 +33,7 @@ feature adds no new package, just a second `fetch()` target). Setup is limited t
 two new files' naming matches the existing `weather-forecast-client.js`/`*.test.js` co-location
 pattern already in `web/js/info-panel/`.
 
-- [ ] T001 Confirm `web/js/info-panel/` naming/co-location plan: `web/js/info-panel/live-reading-client.js` + `web/js/info-panel/live-reading-client.test.js`, mirroring `weather-forecast-client.js` —
+- [x] T001 Confirm `web/js/info-panel/` naming/co-location plan: `web/js/info-panel/live-reading-client.js` + `web/js/info-panel/live-reading-client.test.js`, mirroring `weather-forecast-client.js` —
       no action needed beyond creating the files in Phase 2, this task is a no-op checkpoint (no
       new lint config, no new `package.json` dependency required).
 
@@ -46,17 +46,17 @@ user stories — nothing in Phase 3+ can be wired up until these exist.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 [P] Add `LIVE_ENDPOINT_URL` (`'https://wolfsbach.synology.me/live/index.php'`) and
+- [x] T002 [P] Add `LIVE_ENDPOINT_URL` (`'https://wolfsbach.synology.me/live/index.php'`) and
       `LIVE_REFRESH_INTERVAL_MS` (default `60 * 1000`) constants to `web/js/config.js`, with a doc
       comment matching the file's existing style (see `WEATHER_REFRESH_INTERVAL_MS`'s comment for
       the pattern) explaining the constant is independent of `DATA_REFRESH_INTERVAL_MS` (FR-003).
-- [ ] T003 [P] Write `web/js/info-panel/live-reading-client.test.js` FIRST (must fail before T004):
+- [x] T003 [P] Write `web/js/info-panel/live-reading-client.test.js` FIRST (must fail before T004):
       `node:test` cases against inline fixture JSON strings and an injected `fetchImpl`, covering
       every FR-004/contracts/live-endpoint.md classification rule — success (`available: true,
-    watt, timestamp`), thrown fetch/network error, non-2xx `response.ok: false`, unparseable
+  watt, timestamp`), thrown fetch/network error, non-2xx `response.ok: false`, unparseable
       JSON body, missing/non-numeric top-level `watt`, and `sources.solarlog.ok` false/missing —
       each non-success case asserting the exact `{ available: false }` shape (data-model.md).
-- [ ] T004 [US-shared] Implement `web/js/info-panel/live-reading-client.js` exporting
+- [x] T004 [US-shared] Implement `web/js/info-panel/live-reading-client.js` exporting
       `fetchLiveReading({ fetchImpl = fetch } = {})`: fetches `LIVE_ENDPOINT_URL` from
       `web/js/config.js`, applies the FR-004 classification rules (research.md §7) inside a single
       `try/catch`, and returns `{ available: true, watt, timestamp }` or `{ available: false }` —
@@ -80,7 +80,7 @@ diagram/data-panel figure also updating.
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] In `web/js/info-panel/info-panel-controller.js`, import `fetchLiveReading` from
+- [x] T005 [US1] In `web/js/info-panel/info-panel-controller.js`, import `fetchLiveReading` from
       `./live-reading-client.js` and `LIVE_REFRESH_INTERVAL_MS` from `../config.js`; replace the
       body of `pollProduction()` (currently calling the local `fetchCurrentProduction()`, which
       reads `data/min_cur.js`) with a call to `fetchLiveReading()`, mapping its
@@ -88,28 +88,28 @@ diagram/data-panel figure also updating.
       shape `renderProduction()`/`productionValueText()`/`productionTimestampText()` already
       expect (no `perInverter` field — research.md §6, efficiency suffix drops silently since
       `efficiencyPercent(undefined)` already returns `null`).
-- [ ] T006 [US1] Remove the now-unused `fetchCurrentProduction()` function and its
+- [x] T006 [US1] Remove the now-unused `fetchCurrentProduction()` function and its
       `parseMinFile`/`data/min_cur.js`-only imports from `info-panel-controller.js` if nothing else
       in the file still uses them (check `parseMinFile`'s only other caller before removing the
       import — keep `fetchText`/`parseMinFile` imports only if `fetchYield()` or another function
       still needs them).
-- [ ] T007 [US1] Add a third, independent `setInterval(pollProduction, LIVE_REFRESH_INTERVAL_MS)`
+- [x] T007 [US1] Add a third, independent `setInterval(pollProduction, LIVE_REFRESH_INTERVAL_MS)`
       in `initInfoPanelController()`, separate from the existing `dataIntervalId` (which now polls
       only `pollYield` on `DATA_REFRESH_INTERVAL_MS` — production comes out of that combined call)
       and `weatherIntervalId`; call `pollProduction()` once immediately on mount (already done) and
       return the new interval's id from the cleanup function alongside the other two
       (`clearInterval` for all three).
-- [ ] T008 [US1] Update the file-level doc comment at the top of `info-panel-controller.js` to
+- [x] T008 [US1] Update the file-level doc comment at the top of `info-panel-controller.js` to
       describe the new three-timer setup (production/live on `LIVE_REFRESH_INTERVAL_MS`, yield on
       `DATA_REFRESH_INTERVAL_MS`, weather on `WEATHER_REFRESH_INTERVAL_MS`) and drop the outdated
       references to `data/min_cur.js` driving the production figure.
-- [ ] T009 [US1] Update `tests/e2e/info-panel.spec.js`'s `mockProduction()` helper (or add a new
+- [x] T009 [US1] Update `tests/e2e/info-panel.spec.js`'s `mockProduction()` helper (or add a new
       `mockLiveReading()` helper) to mock `**/live/index.php` via `page.route()` with a JSON body
       matching contracts/live-endpoint.md's success shape, replacing the `data/min_cur.js` mock
       used by production-value assertions; keep/adjust existing assertions that read
       `[data-role="production-value"]`/`[data-role="production-timestamp"]` to expect the live
       endpoint's `watt`/`timestamp` fields (accounting for the dropped efficiency suffix, T005).
-- [ ] T010 [US1] Add a new Playwright test in `tests/e2e/info-panel.spec.js` (patching
+- [x] T010 [US1] Add a new Playwright test in `tests/e2e/info-panel.spec.js` (patching
       `LIVE_REFRESH_INTERVAL_MS` down to a small value the same way `overrideBackgroundWeather()`
       patches `BACKGROUND_WEATHER` — see its `**/js/config.js` route handler pattern) that: (a)
       asserts the initial render matches the mocked `watt`, (b) changes the mocked response's
@@ -133,30 +133,30 @@ panel shows its defined fallback state rather than crashing or silently freezing
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] In `info-panel-controller.js`, add a closure-held `lastGoodProduction` variable
+- [x] T011 [US2] In `info-panel-controller.js`, add a closure-held `lastGoodProduction` variable
       (module-scope inside `initInfoPanelController()`, initial value `{ available: false }` —
       research.md §3) that `pollProduction()` only _replaces_ when `fetchLiveReading()` returns
       `available: true`; every render call (initial mount + every tick, success or failure) renders
       whatever `lastGoodProduction` currently holds, not the tick's own raw result.
-- [ ] T012 [US2] Add a monotonic request-sequence guard (research.md §4): a closure-held
+- [x] T012 [US2] Add a monotonic request-sequence guard (research.md §4): a closure-held
       `let requestSeq = 0` in `initInfoPanelController()`; `pollProduction()` captures
       `const seq = ++requestSeq` before `await fetchLiveReading()` and only updates
       `lastGoodProduction`/re-renders if `seq === requestSeq` when the fetch resolves (FR-008 — no
       out-of-order/overlapping results applied).
-- [ ] T013 [US2] Add a `document.visibilitychange` listener in `initInfoPanelController()` that
+- [x] T013 [US2] Add a `document.visibilitychange` listener in `initInfoPanelController()` that
       calls `pollProduction()` immediately when `document.visibilityState === 'visible'` (FR-009,
       research.md §5); remove the listener in the controller's returned cleanup function alongside
       the existing `clearInterval` calls.
-- [ ] T014 [US2] Add Playwright tests in `tests/e2e/info-panel.spec.js`: (a) mock
+- [x] T014 [US2] Add Playwright tests in `tests/e2e/info-panel.spec.js`: (a) mock
       `**/live/index.php` to abort/fail after an initial successful mock, wait one patched
       `LIVE_REFRESH_INTERVAL_MS` interval, and assert the panel still shows the last successful
       `watt`/timestamp with no page error (SC-003); (b) mock `**/live/index.php` to abort from page
       load with no prior success, and assert the panel shows `t('infoPanel.unavailable')`
       (FR-006), distinct from a real `0` reading; (c) mock a response with `sources.solarlog.ok:
-    false` and assert it's treated the same as a failed reading (FR-004).
-- [ ] T015 [US2] Add a `node:test` case in `live-reading-client.test.js` (if not already covered
+  false` and assert it's treated the same as a failed reading (FR-004).
+- [x] T015 [US2] Add a `node:test` case in `live-reading-client.test.js` (if not already covered
       by T003) confirming a `watt: 0` success response returns `{ available: true, watt: 0,
-    timestamp }` — not `{ available: false }` — so FR-011's genuine-zero-vs-no-data distinction
+  timestamp }` — not `{ available: false }` — so FR-011's genuine-zero-vs-no-data distinction
       is guaranteed at the client layer, not just the controller's render layer.
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — the panel now degrades gracefully
@@ -174,13 +174,13 @@ cadence follows the new value.
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] Add a Playwright test in `tests/e2e/info-panel.spec.js` that patches
+- [x] T016 [US3] Add a Playwright test in `tests/e2e/info-panel.spec.js` that patches
       `LIVE_REFRESH_INTERVAL_MS` to a distinct small value (different from the value used in T010),
       via the same `**/js/config.js` route-patch pattern as `overrideBackgroundWeather()`, and
       asserts (via request count/timing on the mocked `**/live/index.php` route) that the panel
       polls at that new cadence rather than the default 60 000 ms or the unrelated
       `DATA_REFRESH_INTERVAL_MS` (SC-004).
-- [ ] T017 [US3] Confirm (code inspection, no code change expected if T007 was done correctly)
+- [x] T017 [US3] Confirm (code inspection, no code change expected if T007 was done correctly)
       that `LIVE_REFRESH_INTERVAL_MS` is read once from `../config.js` and used directly as the
       `setInterval` delay in `initInfoPanelController()` — no hardcoded fallback/duplicate literal
       elsewhere in the file that could silently override an operator's edit.
@@ -194,19 +194,19 @@ operator-configurable via a single constant.
 
 **Purpose**: Documentation and repo-wide consistency required by plan.md's Constitution Check.
 
-- [ ] T018 [P] Update `README.md` and `README.de.md` to describe the new live-refresh behavior
+- [x] T018 [P] Update `README.md` and `README.de.md` to describe the new live-refresh behavior
       (navbar wattage now sourced from `live/index.php`, polled every `LIVE_REFRESH_INTERVAL_MS`
       independent of the 10-minute diagram cycle) per plan.md's "Documentation standards" gate.
-- [ ] T019 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md` with the same behavior
+- [x] T019 [P] Update `docs/user-guide.md` and `docs/user-guide.de.md` with the same behavior
       description, wherever the navbar's live wattage figure is currently documented.
-- [ ] T020 Run the full quickstart.md validation checklist manually (`npm start`, compare navbar
+- [x] T020 Run the full quickstart.md validation checklist manually (`npm start`, compare navbar
       value against a direct tab on `https://wolfsbach.synology.me/live/index.php`, confirm the
       10-minute diagram cadence is unaffected in dev tools' Network tab) — User Stories 1–3.
-- [ ] T021 Run automated tests and fix any failures:
+- [x] T021 Run automated tests and fix any failures:
       `node --test web/js/info-panel/live-reading-client.test.js` and
       `npx playwright test tests/e2e/info-panel.spec.js --reporter=line`.
-- [ ] T022 Run `npx eslint web/js/info-panel/live-reading-client.js web/js/info-panel/live-reading-client.test.js web/js/info-panel/info-panel-controller.js` and resolve all errors (project CLAUDE.md linting standard); also address any SonarLint warnings visible in the IDE for these files.
-- [ ] T023 Update `**Status**` in `specs/027-navbar-live-panel/spec.md` from `Draft` to
+- [x] T022 Run `npx eslint web/js/info-panel/live-reading-client.js web/js/info-panel/live-reading-client.test.js web/js/info-panel/info-panel-controller.js` and resolve all errors (project CLAUDE.md linting standard); also address any SonarLint warnings visible in the IDE for these files.
+- [x] T023 Update `**Status**` in `specs/027-navbar-live-panel/spec.md` from `Draft` to
       `Implemented` (only once every task above is checked off).
 
 ---

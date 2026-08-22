@@ -1,25 +1,51 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Mocks `data/min_cur.js` with a fixed-wattage live reading, matching the real file's
- * var-based format (see `web/js/data/min-file.js#parseLiveReading`).
+ * Mocks the live status endpoint (`**\/live/index.php`, contracts/live-endpoint.md of
+ * specs/027-navbar-live-panel/) with a fixed-wattage successful reading, or an
+ * abort/`sources.solarlog.ok: false` failure. Named `mockProduction` (rather than
+ * `mockLiveReading`) to keep every existing call site below unchanged — the navbar's production
+ * figure is now sourced from this endpoint instead of `data/min_cur.js` (see
+ * info-panel-controller.js's `pollProduction()`).
  * @param {import('@playwright/test').Page} page
- * @param {{ pacW?: number, aborted?: boolean }} [options]
+ * @param {{ pacW?: number, timestamp?: string, aborted?: boolean, solarlogOk?: boolean }} [options]
  */
-async function mockProduction(page, { pacW = 3100, pdcW = [0, 0], aborted = false } = {}) {
+async function mockProduction(
+  page,
+  { pacW = 3100, timestamp = '2026-08-10T14:00:05', aborted = false, solarlogOk = true } = {},
+) {
   if (aborted) {
-    await page.route('**/data/min_cur.js', (route) => route.abort());
+    await page.route('**/live/index.php', (route) => route.abort());
     return;
   }
-  const body = [
-    'var Datum="10.08.26"',
-    'var Uhrzeit="14:00:00"',
-    `PacArr = [[${pacW}]];`,
-    `PdcArr = [[${pdcW.join(',')}]];`,
-  ].join('\n');
-  await page.route('**/data/min_cur.js', (route) =>
-    route.fulfill({ contentType: 'application/javascript', body }),
+  await page.route('**/live/index.php', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        watt: pacW,
+        timestamp,
+        sources: { solarlog: { watt: pacW, ok: solarlogOk, error: null, inverters: [] } },
+      }),
+    }),
   );
+}
+
+/**
+ * Test-time override for `LIVE_REFRESH_INTERVAL_MS` (a static `config.js` export), matching
+ * `overrideBackgroundWeather()`'s route-patch pattern below.
+ * @param {import('@playwright/test').Page} page
+ * @param {number} intervalMs
+ */
+async function overrideLiveRefreshInterval(page, intervalMs) {
+  await page.route('**/js/config.js', async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const patched = body.replace(
+      /export const LIVE_REFRESH_INTERVAL_MS = [^;]*;/,
+      `export const LIVE_REFRESH_INTERVAL_MS = ${intervalMs};`,
+    );
+    await route.fulfill({ response, body: patched });
+  });
 }
 
 /**
@@ -278,28 +304,14 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     await expect(pulse).toHaveCSS('background-color', 'rgb(132, 153, 48)');
   });
 
-  test('shows efficiency percentage next to the wattage when PAC>0 and PDC>0', async ({ page }) => {
-    await mockProduction(page, { pacW: 1234, pdcW: [1312] }); // 1234/1312*100 ≈ 94%
+  test('shows no efficiency percentage suffix — the live endpoint carries no per-inverter detail (research.md §6)', async ({
+    page,
+  }) => {
+    await mockProduction(page, { pacW: 1234 });
     await mockForecast(page);
     await page.goto('/');
     const desktop = page.locator('[data-info-panel="desktop"]');
-    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('1234 W · 94%');
-  });
-
-  test('shows no efficiency percentage when idle (PAC=0, PDC=0)', async ({ page }) => {
-    await mockProduction(page, { pacW: 0, pdcW: [0, 0] });
-    await mockForecast(page);
-    await page.goto('/');
-    const desktop = page.locator('[data-info-panel="desktop"]');
-    await expect(desktop.locator('[data-role="production-value"]')).not.toContainText('%');
-  });
-
-  test('shows no efficiency percentage when PDC is 0/missing but PAC>0', async ({ page }) => {
-    await mockProduction(page, { pacW: 800, pdcW: [0, 0] });
-    await mockForecast(page);
-    await page.goto('/');
-    const desktop = page.locator('[data-info-panel="desktop"]');
-    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('800 W');
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('1234 W');
   });
 
   test('shows no efficiency percentage on fetch failure', async ({ page }) => {
@@ -330,6 +342,132 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     await page.goto('/');
     const desktop = page.locator('[data-info-panel="desktop"]');
     await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText('');
+  });
+});
+
+test.describe('Global info panel — live reading polls on its own decoupled cadence (US1)', () => {
+  test('updates the wattage after one patched interval, without a full page reload, and without extra data/hist requests (SC-002)', async ({
+    page,
+  }) => {
+    await overrideLiveRefreshInterval(page, 200);
+    await mockProduction(page, { pacW: 3100 });
+    await mockForecast(page);
+
+    const dataRequests = [];
+    page.on('request', (request) => {
+      if (/\/(data|hist)\/.*\.js(\?|$)/.test(request.url())) dataRequests.push(request.url());
+    });
+
+    await page.goto('/');
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('3100 W');
+
+    const dataRequestCountAfterLoad = dataRequests.length;
+
+    await mockProduction(page, { pacW: 4200 });
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('4200 W', {
+      timeout: 2000,
+    });
+
+    // No reload happened (same page identity is implicit — a reload would drop the route mocks
+    // and this assertion would time out), and no data/hist file was re-requested outside its own
+    // DATA_REFRESH_INTERVAL_MS cadence during that short wait.
+    expect(dataRequests).toHaveLength(dataRequestCountAfterLoad);
+  });
+});
+
+test.describe('Global info panel — live reading degrades gracefully (US2)', () => {
+  test('a mid-session failure keeps showing the last successful reading, with no page error (SC-003)', async ({
+    page,
+  }) => {
+    await overrideLiveRefreshInterval(page, 200);
+    await mockProduction(page, { pacW: 2500, timestamp: '2026-08-10T14:00:05' });
+    await mockForecast(page);
+
+    const pageErrors = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+    let liveRequestCount = 0;
+    page.on('request', (request) => {
+      if (request.url().includes('/live/index.php')) liveRequestCount += 1;
+    });
+
+    await page.goto('/');
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('2500 W');
+    const requestCountBeforeFailure = liveRequestCount;
+
+    await mockProduction(page, { aborted: true });
+    // Wait for at least one more poll to actually fire against the now-aborting mock, rather
+    // than sleeping a fixed duration.
+    await expect
+      .poll(() => liveRequestCount, { timeout: 2000 })
+      .toBeGreaterThan(requestCountBeforeFailure);
+
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('2500 W');
+    await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText('Stand: 14:00');
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('a failure from first load with no prior success shows the "no data yet" state, not zero/blank (FR-006)', async ({
+    page,
+  }) => {
+    await mockProduction(page, { aborted: true });
+    await mockForecast(page);
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'data-available',
+      'false',
+    );
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('Nicht verfügbar');
+  });
+
+  test('sources.solarlog.ok: false is treated the same as a failed reading (FR-004)', async ({
+    page,
+  }) => {
+    await mockProduction(page, { solarlogOk: false });
+    await mockForecast(page);
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'data-available',
+      'false',
+    );
+  });
+});
+
+test.describe('Global info panel — live refresh cadence is operator-configurable (US3)', () => {
+  test('polls the live endpoint at the configured LIVE_REFRESH_INTERVAL_MS, not the default or DATA_REFRESH_INTERVAL_MS', async ({
+    page,
+  }) => {
+    await overrideLiveRefreshInterval(page, 150);
+    await mockProduction(page, { pacW: 1000 });
+    await mockForecast(page);
+
+    let liveRequestCount = 0;
+    await page.route('**/live/index.php', (route) => {
+      liveRequestCount += 1;
+      route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          watt: 1000,
+          timestamp: '2026-08-10T14:00:05',
+          sources: { solarlog: { watt: 1000, ok: true, error: null, inverters: [] } },
+        }),
+      });
+    });
+
+    await page.goto('/');
+
+    // At least 3 polls within ~4 patched intervals confirms the 150ms cadence is in effect (not
+    // the 60s default, and not the much slower DATA_REFRESH_INTERVAL_MS).
+    await expect.poll(() => liveRequestCount, { timeout: 2000 }).toBeGreaterThanOrEqual(3);
   });
 });
 

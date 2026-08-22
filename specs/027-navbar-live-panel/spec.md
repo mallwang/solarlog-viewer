@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-22
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "I would like to change the navbar live panel with the real live data, which we now get from \"https://wolfsbach.synology.me/live/index.php\" in the following format: `{\"watt\":600,\"timestamp\":\"2026-08-22T09:21:05\",\"sources\":{\"solarlog\":{\"watt\":600,\"ok\":true,\"error\":null,\"inverters\":[{\"index\":0,\"ac_w\":430,\"dc_w\":[678,677],\"status\":7,\"error\":0},{\"index\":1,\"ac_w\":170,\"dc_w\":[186],\"status\":7,\"error\":0}]}}}`. It should be refreshed every minute (should be configurable in the config.js), and being decoupled from the existing 10-minute refresh cycle for the daily data (which is used in the diagrams)."
 
