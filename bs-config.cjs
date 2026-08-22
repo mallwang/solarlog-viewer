@@ -6,7 +6,7 @@ module.exports = {
     middleware: [
       createProxyMiddleware({
         target: 'https://wolfsbach.synology.me',
-        pathFilter: ['/data', '/hist'],
+        pathFilter: ['/data', '/hist', '/live'],
         changeOrigin: true,
       }),
     ],

@@ -123,12 +123,14 @@ export const WEATHER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 /**
  * The live PV status endpoint the global info panel's production figure is sourced from
  * (`info-panel/live-reading-client.js`) — a small JSON status API on the same device host as
- * `data/`/`hist/`, but not one of the device's own `.js` data files (it's fetched by absolute
- * URL, not through `bs-config.cjs`'s dev-only `/data`/`/hist` proxy — see research.md §1 of
- * specs/027-navbar-live-panel/). Matches this file's existing manual-override pattern.
+ * `data/`/`hist/`. Like `DATA_DIR`/`HIST_DIR`, this is a page-relative path: in production the
+ * app is served from that same device host, so `/live/index.php` is same-origin there too; in
+ * dev, `bs-config.cjs`'s proxy forwards `/live` requests to the live device the same way it does
+ * for `/data`/`/hist`, avoiding the CORS failure a hardcoded absolute URL hit when fetched from
+ * `localhost` (see research.md §1 of specs/027-navbar-live-panel/).
  * @type {string}
  */
-export const LIVE_ENDPOINT_URL = 'https://wolfsbach.synology.me/live/index.php';
+export const LIVE_ENDPOINT_URL = 'live/index.php';
 
 /**
  * How often the global info panel re-polls `LIVE_ENDPOINT_URL` for the navbar's live wattage
