@@ -33,17 +33,21 @@ test.describe('Dashboard (US1: mobile view)', () => {
 // Current production moved from the (now-unreachable) dashboard.js widget grid to the persistent
 // nav info panel — see info-panel-controller.js's top comment.
 test.describe('Live production widget (US4)', () => {
-  // DATA_REFRESH_INTERVAL_MS (config.js) is 10 minutes, not 5 - shared by the info panel's own
-  // production/yield poll and day-view.js's today-only auto-refresh (see info-panel-controller.js
-  // top comment); the dead dashboard.js widget this test used to describe never had its own timer
-  // to begin with.
-  test('shows a wattage value or "not producing" and re-fetches every 10 minutes', async ({
-    page,
-  }) => {
+  // LIVE_REFRESH_INTERVAL_MS (config.js) is 1 minute, not the DATA_REFRESH_INTERVAL_MS/day-
+  // view.js's own 10-minute cadence — the navbar production figure now comes from the live status
+  // endpoint on its own decoupled timer (specs/027-navbar-live-panel/), not `data/min_cur.js`.
+  test('shows a wattage value or "not producing" and re-fetches every minute', async ({ page }) => {
     let requestCount = 0;
-    await page.route('**/min_cur.js', (route) => {
+    await page.route('**/live/index.php', (route) => {
       requestCount += 1;
-      route.continue();
+      route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          watt: 1200,
+          timestamp: '2026-08-06T12:00:00',
+          sources: { solarlog: { watt: 1200, ok: true, error: null, inverters: [] } },
+        }),
+      });
     });
 
     await page.clock.install();
@@ -57,7 +61,7 @@ test.describe('Live production widget (US4)', () => {
     expect(requestCount).toBeGreaterThanOrEqual(1);
 
     const countAfterLoad = requestCount;
-    await page.clock.fastForward('10:01');
+    await page.clock.fastForward('01:01');
     await expect.poll(() => requestCount).toBeGreaterThan(countAfterLoad);
   });
 });

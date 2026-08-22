@@ -121,6 +121,28 @@ export const DATA_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 export const WEATHER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 
 /**
+ * The live PV status endpoint the global info panel's production figure is sourced from
+ * (`info-panel/live-reading-client.js`) — a small JSON status API on the same device host as
+ * `data/`/`hist/`. Like `DATA_DIR`/`HIST_DIR`, this is a page-relative path: in production the
+ * app is served from that same device host, so `/live/index.php` is same-origin there too; in
+ * dev, `bs-config.cjs`'s proxy forwards `/live` requests to the live device the same way it does
+ * for `/data`/`/hist`, avoiding the CORS failure a hardcoded absolute URL hit when fetched from
+ * `localhost` (see research.md §1 of specs/027-navbar-live-panel/).
+ * @type {string}
+ */
+export const LIVE_ENDPOINT_URL = 'live/index.php';
+
+/**
+ * How often the global info panel re-polls `LIVE_ENDPOINT_URL` for the navbar's live wattage
+ * figure (`info-panel/info-panel-controller.js`'s `pollProduction()`). Deliberately independent
+ * of `DATA_REFRESH_INTERVAL_MS` (FR-003, specs/027-navbar-live-panel/) — the live endpoint is a
+ * near-real-time status feed the device updates far more often than its `.js` data files, and
+ * the two cycles must never trigger or block each other (FR-002/SC-002). Defaults to 1 minute.
+ * @type {number}
+ */
+export const LIVE_REFRESH_INTERVAL_MS = 60 * 1000;
+
+/**
  * Filenames under `web/img/plant/`, in carousel display order, shown by the welcome page's photo
  * carousel (`web/js/views/photo-carousel.js`). Matches this file's existing manual-override
  * pattern (`SITE_TITLE`, `SKY_LOCATION_OVERRIDE`): the operator drops a file into `web/img/plant/`

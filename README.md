@@ -84,10 +84,13 @@ spec/plan.
 A persistent panel in the header, visible at desktop widths, shows the plant's current production
 plus compact icon-over-temperature indicators for current weather and a forecast (today's,
 switching to tomorrow's after 18:00 local time) — condition and day prefix reveal in a tooltip on
-hover/focus/tap — from every view, not just the dashboard. It keeps its production/yield figures
-in sync with the day chart's own auto-refresh, and weather refreshes on a separate, slower
-schedule. See `specs/010-global-info-panel/`, `specs/023-weather-panel-icons/`, and
-`specs/025-weather-icon-compact/` for the full spec/plan.
+hover/focus/tap — from every view, not just the dashboard. The production wattage is sourced from
+a live status endpoint on its own `LIVE_REFRESH_INTERVAL_MS` cadence (`web/js/config.js`, 1 minute
+by default), fully independent of the day chart's/yield figures' `DATA_REFRESH_INTERVAL_MS`; it
+keeps the last successfully-fetched reading on screen if a poll fails, and re-polls immediately
+when the tab regains focus. Weather refreshes on its own, separate, slower schedule. See
+`specs/010-global-info-panel/`, `specs/023-weather-panel-icons/`, `specs/025-weather-icon-compact/`,
+and `specs/027-navbar-live-panel/` for the full spec/plan.
 
 ## Ereignisse (events) page
 

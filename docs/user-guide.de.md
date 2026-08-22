@@ -172,25 +172,27 @@ eine schwebende Sprechblase mit der vollständigen Beschreibung, die früher dir
 z. B. „Regen, 18°C“ für die aktuelle Bedingung oder „Heute: Sonnig (13°C - 19°C)“ für die
 Prognose — wechselt ab 18:00 Uhr Ortszeit auf „Morgen:“ (Prognose für den Folgetag); derselbe
 vollständige Text steht Screenreadern unabhängig von Hover/Fokus/Tap auch immer als
-Accessible-Name des Icons zur Verfügung. Die Leistung (sowie „Tagesertrag“/„Monatsertrag“)
-aktualisiert sich nach demselben
-Zeitplan wie das Diagramm der Tagesansicht (siehe „Automatische Aktualisierung der Tagesansicht &
-Startseite“ unten) — eine gemeinsame Einstellung, damit beide nie auseinanderlaufen. Der Wetter-/
-Prognosebereich aktualisiert sich separat und seltener (standardmäßig alle ~10 Minuten), da sich
-das Wetter nicht minütlich merklich ändert. Ein kleiner pulsierender Punkt neben dem Leistungswert
-wird größer und pulsiert schneller,
-je näher die aktuelle Leistung an der konfigurierten Spitzenleistung der Anlage liegt, und
-beruhigt sich nahe null (z. B. nachts). Neben dem Leistungswert zeigt das Panel den aktuellen
-Wirkungsgrad des Wechselrichters (AC-Ausgang ÷ DC-Eingang, z. B. „1234 W · 94%“), sofern
-DC-Eingangsdaten verfügbar und ungleich null sind — andernfalls bleibt er ausgeblendet statt eines
-irreführenden 0%/∞. Die Tagesansicht (`#/day/YYYY/MM/DD`) zeigt denselben Wirkungsgrad als zweite
-Kurve neben der Leistungskurve, mit Lücken überall dort, wo der DC-Eingang null oder unbekannt
+Accessible-Name des Icons zur Verfügung. Der Leistungswert stammt von einem Live-Status-Endpunkt
+mit eigenem, dediziertem Aktualisierungstakt (standardmäßig 1 Minute,
+`LIVE_REFRESH_INTERVAL_MS` in `web/js/config.js`), vollständig unabhängig vom Takt von
+„Tagesertrag“/„Monatsertrag“ (siehe „Automatische Aktualisierung der Tagesansicht & Startseite“
+unten) und vom eigenen, langsameren Takt des Wetter-/Prognosebereichs (standardmäßig alle
+~10 Minuten), da sich das Wetter nicht minütlich merklich ändert. Schlägt ein Abruf fehl, zeigt
+das Panel weiterhin den zuletzt erfolgreich abgerufenen Leistungswert (samt eigenem Zeitstempel)
+an, statt zu leeren oder einzufrieren — nur ein Wert, der noch nie erfolgreich abgerufen wurde,
+zeigt „Nicht verfügbar“ — und fragt sofort erneut ab, sobald der Browser-Tab wieder aktiv wird.
+Ein kleiner pulsierender Punkt neben dem Leistungswert wird größer und pulsiert schneller, je
+näher die aktuelle Leistung an der konfigurierten Spitzenleistung der Anlage liegt, und beruhigt
+sich nahe null (z. B. nachts). Die Tagesansicht (`#/day/YYYY/MM/DD`) zeigt einen eigenen
+Wirkungsgrad (AC-Ausgang ÷ DC-Eingang) als zweite Kurve neben der Leistungskurve (aus den
+minutengenauen Werten dieses Tages), mit Lücken überall dort, wo der DC-Eingang null oder unbekannt
 ist, und komplett ausgeblendet für rekonstruierte/archivierte Tage, die nur eine Ertragskurve
-besitzen. Ein Klick/Tap auf den Wetter-/Prognosebereich öffnet eine wetteronline.de-Suche für die
-Adresse der Anlage in einem neuen Tab. Können Leistungs- oder Wetterdaten nicht abgerufen werden,
-zeigt der jeweilige Bereich "Nicht verfügbar" an, während der andere Bereich normal weiterarbeitet.
-Das Panel ist unterhalb von 768px vollständig ausgeblendet — es beansprucht im mobilen Layout
-keinen zusätzlichen Platz.
+besitzen — der Leistungswert im Infopanel selbst zeigt diesen Wirkungsgrad nicht mehr an, da der
+Live-Status-Endpunkt diese Detailinformation nicht liefert. Ein Klick/Tap auf den
+Wetter-/Prognosebereich öffnet eine wetteronline.de-Suche für die Adresse der Anlage in einem
+neuen Tab. Können Leistungs- oder Wetterdaten nicht abgerufen werden, zeigt der jeweilige Bereich
+"Nicht verfügbar" an, während der andere Bereich normal weiterarbeitet. Das Panel ist unterhalb
+von 768px vollständig ausgeblendet — es beansprucht im mobilen Layout keinen zusätzlichen Platz.
 
 ## Automatische Aktualisierung der Tagesansicht & Startseite
 
@@ -202,11 +204,12 @@ Aktualisierungsversuch wird stillschweigend übersprungen — der zuletzt bekann
 sichtbar, statt die Ansicht zu leeren. Andere Tage als der heutige aktualisieren sich nie
 automatisch, da ihre Daten archiviert sind und sich nicht mehr ändern. Die Startseite (`#/`,
 „Anlageninfo“) tut dasselbe für ihr Tagesdiagramm und ihre Statistikkarte. Alle drei — die
-Leistungs-/Ertragswerte des Infopanels oben, die Tagesansicht und die Startseite — verwenden
-dasselbe Aktualisierungsintervall, sodass sie nie unterschiedlich aktuell sind. Es beträgt
-standardmäßig 1 Minute und kann von einem Seitenbetreiber über `DATA_REFRESH_INTERVAL_MS` in
-`web/js/config.js` geändert werden (der Wetter-/Prognoseabruf des Infopanels hat sein eigenes,
-langsameres Intervall, `WEATHER_REFRESH_INTERVAL_MS`).
+„Tagesertrag“/„Monatsertrag“-Werte des Infopanels oben, die Tagesansicht und die Startseite —
+verwenden dasselbe Aktualisierungsintervall, sodass sie nie unterschiedlich aktuell sind. Es
+beträgt standardmäßig 1 Minute und kann von einem Seitenbetreiber über `DATA_REFRESH_INTERVAL_MS`
+in `web/js/config.js` geändert werden. Der Live-Leistungswert und der Wetter-/Prognoseabruf des
+Infopanels haben jeweils ihre eigenen, separaten Intervalle (`LIVE_REFRESH_INTERVAL_MS` bzw.
+`WEATHER_REFRESH_INTERVAL_MS` — siehe „Globales Desktop-Infopanel“ oben).
 
 ## Vermiedenes CO2
 

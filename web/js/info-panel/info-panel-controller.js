@@ -1,19 +1,22 @@
 /**
  * @file DOM-glue orchestrator for the global info panel. Resolves the installation's location,
- * fetches current production (`data/min_cur.js`, same path `dashboard.js`'s widget already
- * uses) and today's/this month's yield-so-far (`data/days.js` + `months.js`, same figures the
- * disabled dashboard used to show — see renderYield below) on mount and every
+ * fetches the live current-production wattage (`live-reading-client.js`, the live status endpoint
+ * — see specs/027-navbar-live-panel/) on mount and every `LIVE_REFRESH_INTERVAL_MS`, fully
+ * decoupled from today's/this month's yield-so-far (`data/days.js` + `months.js`, same figures
+ * the disabled dashboard used to show — see renderYield below), which still polls on
  * `DATA_REFRESH_INTERVAL_MS` (config.js; FR-004) — the same constant `views/day-view.js` uses for
- * its own today-only auto-refresh, so the nav bar's "W"/"Stand"/yield figures and the day chart
- * stay in lockstep rather than drifting on two independently-tuned timers. Current weather +
- * today's forecast (Open-Meteo) poll separately on their own, slower `WEATHER_REFRESH_INTERVAL_MS`
- * (weather doesn't change meaningfully minute to minute). Renders all three, drives the
- * production-animation pulse's size/speed tier (`data-intensity`) and its continuous
- * red→orange→yellow→green color (`--pulse-color`, from `productionColor()`), links the
+ * its own today-only auto-refresh, so the yield figure and the day chart stay in lockstep. Current
+ * weather + today's forecast (Open-Meteo) poll separately on their own, slower
+ * `WEATHER_REFRESH_INTERVAL_MS` (weather doesn't change meaningfully minute to minute). Renders
+ * all three, drives the production-animation pulse's size/speed tier (`data-intensity`) and its
+ * continuous red→orange→yellow→green color (`--pulse-color`, from `productionColor()`), links the
  * production value to today's day view (mirroring `dashboard.js`'s widget), and wires the
  * weather/forecast area's wetteronline.com click-through (FR-007). Each data source's
  * "unavailable" state (FR-008) is fully independent — a production, yield, or weather/location
- * failure never blocks or resets the others.
+ * failure never blocks or resets the others. The live reading keeps its last-known-good value on
+ * screen through a failed poll (FR-005/FR-006, research.md §3 of specs/027-navbar-live-panel/),
+ * guards against out-of-order responses with a request-sequence token (FR-008, research.md §4),
+ * and re-polls promptly on tab refocus (FR-009, research.md §5).
  *
  * The panel exists twice in the DOM (see index.html): `.info-panel--desktop` inside
  * `.app-nav__end`, sharing the persistent nav row with the nav links and the desktop
@@ -24,8 +27,6 @@
  * tests/e2e/info-panel.spec.js, mirroring the sky feature's controller/pure-logic split.
  */
 
-import { fetchText } from '../data/fetch-text.js';
-import { parseMinFile } from '../data/min-file.js';
 import {
   parseDailyTotalsFile,
   parseMonthsFile,
@@ -33,11 +34,13 @@ import {
   mergeDailyTotals,
   addMissingDays,
 } from '../data/aggregates.js';
+import { fetchText } from '../data/fetch-text.js';
 import { fetchFromBothSources } from '../data/data-source.js';
 import { efficiencyPercent } from '../data/efficiency.js';
 import { formatKwh, formatNumber } from '../format.js';
 import { resolveInstallationLocation } from '../sky/location.js';
 import { formatRoute } from '../router.js';
+import { fetchLiveReading } from './live-reading-client.js';
 import { fetchWeatherAndForecast, weatherCodeToLabelKey } from './weather-forecast-client.js';
 import { weatherCodeToCategory } from '../weather/weather-category.js';
 import { weatherCategoryToIcon, MOON_ICON } from '../weather/weather-icon.js';
@@ -52,6 +55,7 @@ import { buildWetteronlineSearchUrl } from './wetteronline-link.js';
 import { t } from '../i18n.js';
 import {
   DATA_REFRESH_INTERVAL_MS,
+  LIVE_REFRESH_INTERVAL_MS,
   WEATHER_REFRESH_INTERVAL_MS,
   FORECAST_DAY_SWITCH_HOUR,
 } from '../config.js';
@@ -63,15 +67,6 @@ import {
 function todayParams() {
   const now = new Date();
   return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
-}
-
-/**
- * @returns {string} Today's date as 'DD.MM.YY', matching `parseMinFile`'s expected fallback
- *   format (only used as a fallback for min_cur.js's own embedded date, per min-file.js).
- */
-function todayDdMmYy() {
-  const now = new Date();
-  return `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getFullYear()).slice(-2)}`;
 }
 
 /**
@@ -128,33 +123,13 @@ async function fetchYield() {
 }
 
 /**
- * Fetches and parses `data/min_cur.js`, summing all inverters' current AC output and keeping the
- * reading's `perInverter` map so `productionValueText` can derive efficiency without re-fetching,
- * plus its `timestamp` (FR: show the reading's "as of" time so a stale value is recognizable).
- * @returns {Promise<{ totalPacW: number, perInverter: object, timestamp: string, available: true } |
- *   { available: false }>}
- */
-async function fetchCurrentProduction() {
-  const result = await fetchText('data/min_cur.js');
-  if (!result.ok) return { available: false };
-  const trace = parseMinFile(result.text, todayDdMmYy());
-  const [reading] = trace.readings;
-  if (!reading) return { available: false };
-  const totalPacW = Object.values(reading.perInverter).reduce((s, inv) => s + inv.pacW, 0);
-  return {
-    totalPacW,
-    perInverter: reading.perInverter,
-    timestamp: reading.timestamp,
-    available: true,
-  };
-}
-
-/**
  * @param {{ totalPacW: number, perInverter?: object, available: true } | { available: false }}
  *   production
  * @returns {string} Display text for the production value, per the "0 W is real, idle" and
  *   "unavailable" states; appends the rounded efficiency percentage (e.g. "1234 W · 94%") when
- *   `efficiencyPercent` returns a value, per FR-002/FR-003.
+ *   `efficiencyPercent` returns a value, per FR-002/FR-003. The live-endpoint-sourced reading
+ *   never carries a `perInverter` field, so `efficiencyPercent(undefined)` safely returns `null`
+ *   and this suffix drops silently (research.md §6, specs/027-navbar-live-panel/).
  */
 function productionValueText(production) {
   if (!production.available) return t('infoPanel.unavailable');
@@ -167,7 +142,7 @@ function productionValueText(production) {
 /**
  * @param {{ timestamp: string, available: true } | { available: false }} production
  * @returns {string} "Stand: HH:MM" (localized label), so the user can tell whether the wattage
- *   above is current or stale (e.g. min_cur.js not refreshed since sundown); empty when
+ *   above is current or stale (e.g. the live endpoint not refreshed recently); empty when
  *   unavailable, since `productionValueText` already renders that state's own message.
  */
 function productionTimestampText(production) {
@@ -403,13 +378,18 @@ function wireWeatherTapToggle(indicatorEls) {
 }
 
 /**
- * Mounts the global info panel: fetches production + yield + weather/forecast immediately, then
- * re-polls production/yield every `DATA_REFRESH_INTERVAL_MS` and weather/forecast every (slower)
- * `WEATHER_REFRESH_INTERVAL_MS` on two separate timers (config.js). Call once, after
- * `bootstrap()`'s initial render, per plan.md's dynamic-import wiring in `main.js`.
+ * Mounts the global info panel: fetches the live production reading + yield + weather/forecast
+ * immediately, then re-polls each on its own fully independent timer (config.js) — live
+ * production on `LIVE_REFRESH_INTERVAL_MS`, yield on `DATA_REFRESH_INTERVAL_MS`, weather/forecast
+ * on the slower `WEATHER_REFRESH_INTERVAL_MS` — so none of the three cycles trigger or block each
+ * other (FR-002/SC-002, specs/027-navbar-live-panel/). The live reading keeps the last
+ * successfully-fetched value on screen through a failed poll (FR-005/FR-006), only ever applies
+ * the most recently *started* poll's result via a request-sequence guard (FR-008), and re-polls
+ * immediately when the tab regains visibility (FR-009). Call once, after `bootstrap()`'s initial
+ * render, per plan.md's dynamic-import wiring in `main.js`.
  * @param {{ plant: { location?: string, capacityKwp?: number } | null,
  *   locationOverride?: { lat: number, lon: number } | null }} ctx
- * @returns {() => void} Cleanup function that stops both poll intervals.
+ * @returns {() => void} Cleanup function that stops all poll intervals and listeners.
  */
 export async function initInfoPanelController({ plant, locationOverride } = {}) {
   if (document.querySelectorAll('[data-info-panel]').length === 0) return () => {};
@@ -447,9 +427,30 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
 
   const capacityKwp = plant?.capacityKwp ?? 0;
 
+  // Last-known-good live reading (research.md §3 of specs/027-navbar-live-panel/) — only ever
+  // *replaced* on a successful poll, so a failed tick keeps rendering whatever this already
+  // holds; starts as "never fetched" (FR-006), which a session can never return to once any poll
+  // has succeeded.
+  let lastGoodProduction = { available: false };
+  // Monotonic request-sequence guard (FR-008, research.md §4): each poll captures its own `seq`
+  // before awaiting the fetch and only applies its result if it's still the most recently
+  // *started* poll when the fetch resolves — avoids a stale, slow response overwriting a newer
+  // one without blocking overlapping requests outright (needed so the visibility-regain repoll
+  // below can't be a no-op while a regular poll is still in flight).
+  let requestSeq = 0;
+
   async function pollProduction() {
-    const production = await fetchCurrentProduction();
-    renderProduction(elements, production, capacityKwp);
+    const seq = ++requestSeq;
+    const reading = await fetchLiveReading();
+    if (seq !== requestSeq) return;
+    if (reading.available) {
+      lastGoodProduction = {
+        totalPacW: reading.watt,
+        timestamp: reading.timestamp,
+        available: true,
+      };
+    }
+    renderProduction(elements, lastGoodProduction, capacityKwp);
   }
 
   async function pollYield() {
@@ -467,17 +468,22 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
     renderWeather(elements, weather);
   }
 
+  function handleVisibilityChange() {
+    if (document.visibilityState === 'visible') pollProduction();
+  }
+
   pollProduction();
   pollYield();
   pollWeather();
-  const dataIntervalId = setInterval(() => {
-    pollProduction();
-    pollYield();
-  }, DATA_REFRESH_INTERVAL_MS);
+  const liveIntervalId = setInterval(pollProduction, LIVE_REFRESH_INTERVAL_MS);
+  const dataIntervalId = setInterval(pollYield, DATA_REFRESH_INTERVAL_MS);
   const weatherIntervalId = setInterval(pollWeather, WEATHER_REFRESH_INTERVAL_MS);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 
   return () => {
+    clearInterval(liveIntervalId);
     clearInterval(dataIntervalId);
     clearInterval(weatherIntervalId);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
   };
 }
