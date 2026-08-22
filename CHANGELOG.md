@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/mallwang/solarlog-viewer/compare/v1.2.0...v1.3.0) (2026-08-22)
+
+### Features
+
+- **info-panel:** source live production wattage from live status endpoint ([#64](https://github.com/mallwang/solarlog-viewer/issues/64)) ([fa84173](https://github.com/mallwang/solarlog-viewer/commit/fa8417382ea23a0a612b6e068038a9a8d3decb0d))
+- **nav:** move user guide link to standalone header icon ([#63](https://github.com/mallwang/solarlog-viewer/issues/63)) ([dd6c462](https://github.com/mallwang/solarlog-viewer/commit/dd6c462b973ff0a734a8d80458a2a5b5f7ec8037))
+- render weather/forecast as compact icon-over-value indicators ([#62](https://github.com/mallwang/solarlog-viewer/issues/62)) ([a1003a5](https://github.com/mallwang/solarlog-viewer/commit/a1003a5a1fa77210c6bffb3002b8c200546abac2))
+
 ## [1.2.0](https://github.com/mallwang/solarlog-viewer/compare/v1.1.0...v1.2.0) (2026-08-18)
 
 ### Features
