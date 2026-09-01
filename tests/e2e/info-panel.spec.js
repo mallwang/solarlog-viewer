@@ -208,6 +208,7 @@ test.describe('Global info panel — desktop placement (beneath the header icons
     page,
   }) => {
     await mockProduction(page, { aborted: true });
+    await mockDailyFallback(page, { empty: true }); // isolates this from 028's daily-data fallback
     await mockForecast(page);
     await page.goto('/');
 
@@ -367,6 +368,7 @@ test.describe('Global info panel — desktop placement (beneath the header icons
 
   test('shows no efficiency percentage on fetch failure', async ({ page }) => {
     await mockProduction(page, { aborted: true });
+    await mockDailyFallback(page, { empty: true }); // isolates this from 028's daily-data fallback
     await mockForecast(page);
     await page.goto('/');
     const desktop = page.locator('[data-info-panel="desktop"]');
@@ -389,6 +391,7 @@ test.describe('Global info panel — desktop placement (beneath the header icons
 
   test('clears the timestamp subline on fetch failure', async ({ page }) => {
     await mockProduction(page, { aborted: true });
+    await mockDailyFallback(page, { empty: true }); // isolates this from 028's daily-data fallback
     await mockForecast(page);
     await page.goto('/');
     const desktop = page.locator('[data-info-panel="desktop"]');
@@ -467,6 +470,10 @@ test.describe('Global info panel — live reading degrades gracefully (US2)', ()
     page,
   }) => {
     await mockProduction(page, { aborted: true });
+    // 028-live-panel-fallback's daily-data fallback would otherwise substitute a real reading
+    // from the (proxied, real-device) min_day.js — force it empty so this stays FR-003's true
+    // "neither source has data" case rather than depending on the live plant's current state.
+    await mockDailyFallback(page, { empty: true });
     await mockForecast(page);
     await page.goto('/');
 
@@ -482,6 +489,7 @@ test.describe('Global info panel — live reading degrades gracefully (US2)', ()
     page,
   }) => {
     await mockProduction(page, { solarlogOk: false });
+    await mockDailyFallback(page, { empty: true }); // isolates this from 028's daily-data fallback
     await mockForecast(page);
     await page.goto('/');
 
