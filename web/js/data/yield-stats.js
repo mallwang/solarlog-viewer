@@ -32,6 +32,25 @@ export function maxDailyPowerW(trace) {
 }
 
 /**
+ * The most recent instantaneous total plant power (W, summed across inverters) recorded in a
+ * day's readings, alongside its own recorded time — the same reduction `maxDailyPowerW` performs
+ * but applied to the trace's *last* reading instead of scanning for a peak. Used by the navbar
+ * info panel's daily-data fallback (028-live-panel-fallback) to substitute for a live reading
+ * that has never succeeded, sourced from the same last-row data the day view's table already
+ * shows for today.
+ * @param {{ readings: { timestamp: string, perInverter: { [key: string]: { pacW: number | null } } }[] }} trace
+ * @returns {{ w: number, timestamp: string } | null} timestamp is an ISO string
+ *   ("YYYY-MM-DDTHH:MM:SS"); `null` when there are no readings (distinct from a genuine `0 W`
+ *   last reading, which is a real result, not "no data").
+ */
+export function lastReadingPower(trace) {
+  const last = trace.readings.at(-1);
+  if (!last) return null;
+  const w = Object.values(last.perInverter).reduce((sum, inv) => sum + (inv?.pacW ?? 0), 0);
+  return { w, timestamp: last.timestamp };
+}
+
+/**
  * The highest single day's total plant energy (kWh, summed across inverters) seen across a set
  * of DailyTotal entries (see aggregates.js's parseDailyTotalsFile) — "Maximalwert" for the
  * month/year views: the best single day of production within the period, alongside which date

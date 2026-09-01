@@ -1,9 +1,10 @@
 import { fetchText } from '../data/fetch-text.js';
 import { parseMinFile } from '../data/min-file.js';
+import { fetchTodayMinuteTrace } from '../data/today-trace.js';
 import { renderChart } from '../charts/chart-factory.js';
 import { getLanguage, t } from '../i18n.js';
 import { sourceDirForDate } from '../data/data-source.js';
-import { DATA_DIR, DATA_REFRESH_INTERVAL_MS } from '../config.js';
+import { DATA_REFRESH_INTERVAL_MS } from '../config.js';
 import { formatRoute } from '../router.js';
 import { addDays, isFutureDay, parentOfDay, periodNavMarkup } from './period-nav.js';
 import { emptyStateBody } from './empty-state.js';
@@ -81,28 +82,21 @@ function dayStatsRows(trace, plant, params) {
 
 /**
  * Fetches and parses the routed date's 5-minute trace (min_day.js for today, the archived
- * min{YYMMDD}.js otherwise — see render()'s comment).
+ * min{YYMMDD}.js otherwise — see render()'s comment). For today, delegates to the shared
+ * `fetchTodayMinuteTrace()` (`data/today-trace.js`) so this view and the navbar info panel's
+ * daily-data fallback (028-live-panel-fallback) share one fetch/parse/filter implementation.
  * @param {{ year: number, month: number, day: number }} params
  * @param {boolean} isToday
  * @returns {Promise<{ readings: object[] } | null>} `null` when the file is missing/unreadable
  *   or has no readings — callers treat that as "nothing new to show" rather than an error.
  */
 async function fetchDayTrace(params, isToday) {
-  const result = isToday
-    ? await fetchText(`${DATA_DIR}/min_day.js`)
-    : await fetchText(
-        `${sourceDirForDate(isoFromParams(params))}/min${yymmddFromParams(params)}.js`,
-      );
+  if (isToday) return fetchTodayMinuteTrace();
+  const result = await fetchText(
+    `${sourceDirForDate(isoFromParams(params))}/min${yymmddFromParams(params)}.js`,
+  );
   if (!result.ok) return null;
   const trace = parseMinFile(result.text, ddmmyyFromParams(params));
-  if (isToday) {
-    // The SolarLog device only rolls min_day.js over to the new day on its next sync, so right
-    // after midnight it can still be full of yesterday's finished readings for a while. Each
-    // reading carries its own date (parsed from the file, not from `params`), so drop anything
-    // that isn't actually dated today rather than let the new day's page show yesterday's stale
-    // chart/table until the device catches up.
-    trace.readings = trace.readings.filter((r) => r.timestamp.startsWith(isoFromParams(params)));
-  }
   return trace.readings.length === 0 ? null : trace;
 }
 

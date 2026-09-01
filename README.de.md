@@ -94,10 +94,16 @@ stammt von einem Live-Status-Endpunkt mit eigenem `LIVE_REFRESH_INTERVAL_MS`-Tak
 (`web/js/config.js`, standardmäßig 1 Minute), vollständig unabhängig vom
 `DATA_REFRESH_INTERVAL_MS`-Takt des Tagesdiagramms/der Ertragswerte; bei einem fehlgeschlagenen
 Abruf bleibt der letzte erfolgreiche Wert sichtbar, und bei Rückkehr in den Tab wird sofort erneut
-abgefragt. Das Wetter aktualisiert sich auf einem eigenen, separaten, selteneren Takt. Siehe
+abgefragt. Solange dieser Live-Endpunkt in der aktuellen Sitzung noch nie erfolgreich war, weicht
+das Panel stattdessen auf den letzten Messwert der heutigen Minutendaten aus — denselben
+Leistungswert/Zeitpunkt, der als letzte Zeile der Datentabelle der Tagesansicht für heute
+angezeigt wird —, aktualisiert im bestehenden `DATA_REFRESH_INTERVAL_MS`-Takt statt in einem
+neuen; sobald ein Live-Wert erfolgreich abgerufen wurde, übernimmt er für den Rest der Sitzung,
+und der Ausweich-Wert kann danach nicht mehr erscheinen, selbst wenn ein späterer Live-Abruf
+fehlschlägt. Das Wetter aktualisiert sich auf einem eigenen, separaten, selteneren Takt. Siehe
 `specs/010-global-info-panel/`, `specs/023-weather-panel-icons/`,
-`specs/025-weather-icon-compact/` und `specs/027-navbar-live-panel/` für die vollständige
-Spezifikation/Planung.
+`specs/025-weather-icon-compact/`, `specs/027-navbar-live-panel/` und
+`specs/028-live-panel-fallback/` für die vollständige Spezifikation/Planung.
 
 ## Ereignisse-Seite
 

@@ -160,9 +160,16 @@ minute by default, `LIVE_REFRESH_INTERVAL_MS` in `web/js/config.js`), fully inde
 "Today's yield"/"Month's yield" figures' schedule (see "Day view auto-refresh" below) and of the
 weather/forecast side's own, slower schedule (every ~10 minutes by default), since weather
 doesn't change meaningfully minute to minute. If a live poll fails, the panel keeps showing the
-last successfully-fetched wattage (and its own "as of" time) rather than blanking or freezing —
-only a genuinely never-yet-successful reading shows "Unavailable" — and it repolls promptly if you
-switch back to the browser tab after being away. A small pulsing dot next to the production value
+last successfully-fetched wattage (and its own "as of" time) rather than blanking or freezing.
+Until the live endpoint has succeeded at least once in your current browsing session, the panel
+instead shows today's daily minute data's most recent reading — the same wattage and time you'd
+find as the last row of the day view's data table for today — refreshed on the same schedule as
+the "Today's yield"/"Month's yield" figures (see "Day view & welcome page auto-refresh" below)
+rather than a new one of its own; "Unavailable" only appears once neither source has anything to
+show yet (e.g. very early before any production has been recorded today). Once a live reading
+succeeds, it takes over for the rest of the session — a later failed live poll never reverts the
+panel back to this daily-data fallback — and it repolls promptly if you switch back to the browser
+tab after being away. A small pulsing dot next to the production value
 gets larger and pulses faster the closer current output is to the plant's configured peak
 capacity, and calms to idle near zero (e.g. at night). The day view (`#/day/YYYY/MM/DD`) shows a
 separate PAC ÷ PDC efficiency curve alongside the power curve (from that day's own minute-by-minute

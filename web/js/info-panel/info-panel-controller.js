@@ -16,7 +16,14 @@
  * failure never blocks or resets the others. The live reading keeps its last-known-good value on
  * screen through a failed poll (FR-005/FR-006, research.md §3 of specs/027-navbar-live-panel/),
  * guards against out-of-order responses with a request-sequence token (FR-008, research.md §4),
- * and re-polls promptly on tab refocus (FR-009, research.md §5).
+ * and re-polls promptly on tab refocus (FR-009, research.md §5). Until the live endpoint has ever
+ * succeeded this session, a `pollDailyFallback()` substitutes today's daily minute data's most
+ * recent reading (`data/today-trace.js` + `data/yield-stats.js`'s `lastReadingPower()`) — the
+ * same last-row reading the day view's table already shows for today — on the same
+ * `DATA_REFRESH_INTERVAL_MS` cadence as `pollYield()`, no new fetch schedule
+ * (028-live-panel-fallback, FR-001/FR-006/FR-007). A one-way `liveEverSucceeded` flag guarantees
+ * this fallback can never displace an already-shown live reading (FR-004): once set, every later
+ * fallback poll is a no-op regardless of whether the live poll that follows succeeds or fails.
  *
  * The panel exists twice in the DOM (see index.html): `.info-panel--desktop` inside
  * `.app-nav__end`, sharing the persistent nav row with the nav links and the desktop
@@ -41,6 +48,8 @@ import { formatKwh, formatNumber } from '../format.js';
 import { resolveInstallationLocation } from '../sky/location.js';
 import { formatRoute } from '../router.js';
 import { fetchLiveReading } from './live-reading-client.js';
+import { fetchTodayMinuteTrace } from '../data/today-trace.js';
+import { lastReadingPower } from '../data/yield-stats.js';
 import { fetchWeatherAndForecast, weatherCodeToLabelKey } from './weather-forecast-client.js';
 import { weatherCodeToCategory } from '../weather/weather-category.js';
 import { weatherCategoryToIcon, MOON_ICON } from '../weather/weather-icon.js';
@@ -378,15 +387,19 @@ function wireWeatherTapToggle(indicatorEls) {
 }
 
 /**
- * Mounts the global info panel: fetches the live production reading + yield + weather/forecast
- * immediately, then re-polls each on its own fully independent timer (config.js) — live
- * production on `LIVE_REFRESH_INTERVAL_MS`, yield on `DATA_REFRESH_INTERVAL_MS`, weather/forecast
- * on the slower `WEATHER_REFRESH_INTERVAL_MS` — so none of the three cycles trigger or block each
- * other (FR-002/SC-002, specs/027-navbar-live-panel/). The live reading keeps the last
- * successfully-fetched value on screen through a failed poll (FR-005/FR-006), only ever applies
- * the most recently *started* poll's result via a request-sequence guard (FR-008), and re-polls
- * immediately when the tab regains visibility (FR-009). Call once, after `bootstrap()`'s initial
- * render, per plan.md's dynamic-import wiring in `main.js`.
+ * Mounts the global info panel: fetches the live production reading + yield + daily-data fallback
+ * + weather/forecast immediately, then re-polls each on its own timer (config.js) — live
+ * production on `LIVE_REFRESH_INTERVAL_MS`, yield and the daily-data fallback together on
+ * `DATA_REFRESH_INTERVAL_MS` (one shared interval, not two independent ones — research.md §2 of
+ * specs/028-live-panel-fallback/), weather/forecast on the slower `WEATHER_REFRESH_INTERVAL_MS` —
+ * so the live cycle never triggers or blocks the other two (FR-002/SC-002,
+ * specs/027-navbar-live-panel/). The live reading keeps the last successfully-fetched value on
+ * screen through a failed poll (FR-005/FR-006), only ever applies the most recently *started*
+ * poll's result via a request-sequence guard (FR-008), and re-polls immediately when the tab
+ * regains visibility (FR-009). Until the live endpoint has ever succeeded this session, the
+ * daily-data fallback substitutes today's daily minute data's last reading instead
+ * (028-live-panel-fallback, FR-001-FR-004) — see `pollDailyFallback()` above. Call once, after
+ * `bootstrap()`'s initial render, per plan.md's dynamic-import wiring in `main.js`.
  * @param {{ plant: { location?: string, capacityKwp?: number } | null,
  *   locationOverride?: { lat: number, lon: number } | null }} ctx
  * @returns {() => void} Cleanup function that stops all poll intervals and listeners.
@@ -438,18 +451,43 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
   // one without blocking overlapping requests outright (needed so the visibility-regain repoll
   // below can't be a no-op while a regular poll is still in flight).
   let requestSeq = 0;
+  // One-way precedence flag (028-live-panel-fallback, research.md §4): set true the instant a
+  // live reading ever succeeds, never reset — gates whether pollDailyFallback() below is still
+  // allowed to write to lastGoodProduction (FR-004). Deliberately not requestSeq-guarded itself:
+  // the fallback poll never races against another fallback poll the way the live poll can race
+  // against itself, and once this flag flips every later fallback tick is already a no-op.
+  let liveEverSucceeded = false;
 
   async function pollProduction() {
     const seq = ++requestSeq;
     const reading = await fetchLiveReading();
     if (seq !== requestSeq) return;
     if (reading.available) {
+      liveEverSucceeded = true;
       lastGoodProduction = {
         totalPacW: reading.watt,
         timestamp: reading.timestamp,
         available: true,
       };
     }
+    renderProduction(elements, lastGoodProduction, capacityKwp);
+  }
+
+  /**
+   * Daily-data fallback (028-live-panel-fallback): substitutes today's daily minute data's most
+   * recent reading for the live reading whenever the live endpoint has never succeeded this
+   * session (FR-002) and today's data has at least one reading (FR-003's "no data yet" state
+   * otherwise stays untouched, Story 3). Never overrides an already-shown live reading (FR-004,
+   * US2) — the `liveEverSucceeded` guard below is checked every call, not just once, since a
+   * live reading can start succeeding at any later poll.
+   */
+  async function pollDailyFallback() {
+    if (liveEverSucceeded) return;
+    const trace = await fetchTodayMinuteTrace();
+    if (!trace) return;
+    const reading = lastReadingPower(trace);
+    if (!reading || liveEverSucceeded) return;
+    lastGoodProduction = { totalPacW: reading.w, timestamp: reading.timestamp, available: true };
     renderProduction(elements, lastGoodProduction, capacityKwp);
   }
 
@@ -474,9 +512,13 @@ export async function initInfoPanelController({ plant, locationOverride } = {}) 
 
   pollProduction();
   pollYield();
+  pollDailyFallback();
   pollWeather();
   const liveIntervalId = setInterval(pollProduction, LIVE_REFRESH_INTERVAL_MS);
-  const dataIntervalId = setInterval(pollYield, DATA_REFRESH_INTERVAL_MS);
+  const dataIntervalId = setInterval(() => {
+    pollYield();
+    pollDailyFallback();
+  }, DATA_REFRESH_INTERVAL_MS);
   const weatherIntervalId = setInterval(pollWeather, WEATHER_REFRESH_INTERVAL_MS);
   document.addEventListener('visibilitychange', handleVisibilityChange);
 
