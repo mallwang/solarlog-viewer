@@ -49,6 +49,57 @@ async function overrideLiveRefreshInterval(page, intervalMs) {
 }
 
 /**
+ * Test-time override for `DATA_REFRESH_INTERVAL_MS` (a static `config.js` export) — same pattern
+ * as `overrideLiveRefreshInterval()`, needed so 028-live-panel-fallback's `pollDailyFallback()`
+ * (piggybacked on this same interval, not a dedicated one) can be waited out within a test's
+ * timeout.
+ * @param {import('@playwright/test').Page} page
+ * @param {number} intervalMs
+ */
+async function overrideDataRefreshInterval(page, intervalMs) {
+  await page.route('**/js/config.js', async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const patched = body.replace(
+      /export const DATA_REFRESH_INTERVAL_MS = [^;]*;/,
+      `export const DATA_REFRESH_INTERVAL_MS = ${intervalMs};`,
+    );
+    await route.fulfill({ response, body: patched });
+  });
+}
+
+/**
+ * Mocks `**\/min_day.js` (028-live-panel-fallback) — today's rolling daily-minute-data file the
+ * navbar panel's daily-data fallback reads (`data/today-trace.js` + `pollDailyFallback()` in
+ * info-panel-controller.js), mirroring `mockProduction()`'s pattern above. Uses a fixed "today"
+ * date matching the fixed `page.clock.install()` timestamps this suite's other tests use
+ * (2026-08-10), so a scenario must install that clock before calling this. `empty: true` returns
+ * a file with no readings dated today (Story 3's neutral-state case, `today-trace.js`'s
+ * `null`-on-empty contract) rather than 404ing, matching what `min_day.js` looks like right after
+ * midnight before the device's next sync.
+ * @param {import('@playwright/test').Page} page
+ * @param {{ pacW?: number, timestamp?: string, empty?: boolean }} [options]
+ */
+async function mockDailyFallback(
+  page,
+  { pacW = 1500, timestamp = '2026-08-10T09:15:00', empty = false } = {},
+) {
+  if (empty) {
+    await page.route('**/min_day.js', (route) =>
+      route.fulfill({ contentType: 'text/plain', body: '' }),
+    );
+    return;
+  }
+  const [datePart, timePart] = timestamp.split('T');
+  const [yyyy, mm, dd] = datePart.split('-');
+  const ddmmyy = `${dd}.${mm}.${yyyy.slice(-2)}`;
+  // Epoch 3 (current dates): block0 = SB4200 (6 fields), block1 = SB2100 (4 fields) — see
+  // web/js/data/epoch.js. All of pacW lives in block0 so the summed total equals `pacW` exactly.
+  const body = `m[mi++]="${ddmmyy} ${timePart}|${pacW};100;100;5000;230;231|0;50;3000;229"\n`;
+  await page.route('**/min_day.js', (route) => route.fulfill({ contentType: 'text/plain', body }));
+}
+
+/**
  * Mocks Open-Meteo's forecast endpoint. Both the sky feature's `weather-client.js` (weather
  * code + sunrise/sunset) and this feature's `weather-forecast-client.js` (weather code +
  * temperatures) hit the same host/path with different query params — this responds with a
@@ -439,6 +490,82 @@ test.describe('Global info panel — live reading degrades gracefully (US2)', ()
       'data-available',
       'false',
     );
+  });
+});
+
+test.describe('Global info panel — daily-data fallback when live has never succeeded (028-live-panel-fallback, US1)', () => {
+  test('shows the daily-data fallback when the live endpoint has never succeeded', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T14:00:00') });
+    await mockProduction(page, { aborted: true });
+    await mockDailyFallback(page, { pacW: 1500, timestamp: '2026-08-10T09:15:00' });
+    await mockForecast(page);
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'data-available',
+      'true',
+    );
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('1500 W');
+    await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText('Stand: 09:15');
+  });
+
+  test('live succeeding later replaces the fallback', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-08-10T14:00:00') });
+    await overrideLiveRefreshInterval(page, 200);
+    await mockProduction(page, { aborted: true });
+    await mockDailyFallback(page, { pacW: 1500, timestamp: '2026-08-10T09:15:00' });
+    await mockForecast(page);
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('1500 W');
+
+    await mockProduction(page, { pacW: 4200, timestamp: '2026-08-10T14:00:05' });
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('4200 W', {
+      timeout: 2000,
+    });
+    await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText('Stand: 14:00');
+  });
+
+  test('a single failed live poll never regresses an already-shown live reading to the fallback (US2)', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-08-10T14:00:00') });
+    await overrideLiveRefreshInterval(page, 200);
+    await overrideDataRefreshInterval(page, 300);
+    await mockProduction(page, { pacW: 2500, timestamp: '2026-08-10T14:00:05' });
+    await mockDailyFallback(page, { pacW: 999, timestamp: '2026-08-10T09:15:00' }); // distinguishable
+    await mockForecast(page);
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('2500 W');
+
+    await mockProduction(page, { aborted: true });
+    // Wait out one live poll tick (now failing) and one fallback poll tick — neither should
+    // regress the panel to the fallback's distinguishable 999 W.
+    await page.waitForTimeout(700);
+
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('2500 W');
+    await expect(desktop.locator('[data-role="production-timestamp"]')).toHaveText('Stand: 14:00');
+  });
+
+  test('neutral state preserved when neither source has data (US3)', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-08-10T14:00:00') });
+    await mockProduction(page, { aborted: true });
+    await mockDailyFallback(page, { empty: true });
+    await mockForecast(page);
+    await page.goto('/');
+
+    const desktop = page.locator('[data-info-panel="desktop"]');
+    await expect(desktop.locator('[data-role="production"]')).toHaveAttribute(
+      'data-available',
+      'false',
+    );
+    await expect(desktop.locator('[data-role="production-value"]')).toHaveText('Nicht verfügbar');
   });
 });
 

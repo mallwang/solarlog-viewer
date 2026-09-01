@@ -41,18 +41,18 @@ user story work begins.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T001 [P] Write `node:test` cases in `web/js/data/yield-stats.test.js` for the new
+- [x] T001 [P] Write `node:test` cases in `web/js/data/yield-stats.test.js` for the new
       `lastReadingPower(trace)` per data-model.md: returns `null` for `trace.readings === []`;
       returns `{ w, timestamp }` from the trace's **last** reading (not the max, unlike
       `maxDailyPowerW`), summing `pacW` across `perInverter` the same way `maxDailyPowerW` does;
       returns `{ w: 0, timestamp }` (not `null`) when the last reading's summed `pacW` is exactly
       `0` (genuine idle reading). Confirm these cases fail before T002.
-- [ ] T002 [P] Implement `lastReadingPower(trace)` in `web/js/data/yield-stats.js`, placed near
+- [x] T002 [P] Implement `lastReadingPower(trace)` in `web/js/data/yield-stats.js`, placed near
       `maxDailyPowerW` (same file, same JSDoc conventions per the constitution): reduce the last
       entry of `trace.readings` to `{ w: number, timestamp: string } | null`, mirroring
       `maxDailyPowerW`'s per-reading `pacW` summation but applied only to `trace.readings.at(-1)`
       instead of scanning for a max. Run T001's tests to green.
-- [ ] T003 [P] Write `node:test` cases in `web/js/data/today-trace.test.js` (new file) for the new
+- [x] T003 [P] Write `node:test` cases in `web/js/data/today-trace.test.js` (new file) for the new
       `fetchTodayMinuteTrace()` per data-model.md/research.md §3: mock/stub the underlying
       `fetchText` + `parseMinFile` calls (inline fixture strings, no real file I/O per
       CLAUDE.md's script-testing rules) to cover — a successful fetch with readings filtered to
@@ -60,19 +60,19 @@ user story work begins.
       post-midnight comment); a fetch that fails (`fetchText` not `ok`) resolving to `null`; a
       fetch that parses but has zero readings for today resolving to `null`. Confirm these cases
       fail before T004.
-- [ ] T004 Create `web/js/data/today-trace.js` exporting `fetchTodayMinuteTrace()`, extracted
+- [x] T004 Create `web/js/data/today-trace.js` exporting `fetchTodayMinuteTrace()`, extracted
       byte-for-byte in behavior from `web/js/views/day-view.js`'s `fetchDayTrace()` `isToday`
       branch (research.md §3): fetch `${DATA_DIR}/min_day.js` via `fetchText`, parse with
       `parseMinFile` using today's `ddmmyyFromParams`-equivalent date string, filter
       `trace.readings` to entries whose `timestamp` starts with today's ISO date, return `null`
       when the fetch fails or the filtered `readings` array is empty, else return the trace. Add
       file-level JSDoc per the constitution's format. Run T003's tests to green.
-- [ ] T005 [US-prereq] Refactor `web/js/views/day-view.js`'s `fetchDayTrace()` `isToday` branch to
+- [x] T005 [US-prereq] Refactor `web/js/views/day-view.js`'s `fetchDayTrace()` `isToday` branch to
       call the new `fetchTodayMinuteTrace()` from `web/js/data/today-trace.js` instead of
       duplicating the fetch/parse/filter logic (research.md §3) — no behavior change for the day
       view itself, so no new day-view test coverage is needed (existing day-view Playwright
       coverage must still pass unmodified).
-- [ ] T006 Run `node --test web/js/data/yield-stats.test.js web/js/data/today-trace.test.js` and
+- [x] T006 Run `node --test web/js/data/yield-stats.test.js web/js/data/today-trace.test.js` and
       confirm all pass; run the full `npx playwright test --reporter=line` suite once to confirm
       T005's refactor didn't regress existing day-view/info-panel scenarios.
 
@@ -96,18 +96,18 @@ to it.
 
 ### Tests for User Story 1
 
-- [ ] T007 [P] [US1] Add `mockDailyFallback()` Playwright helper to `tests/e2e/info-panel.spec.js`,
+- [x] T007 [P] [US1] Add `mockDailyFallback()` Playwright helper to `tests/e2e/info-panel.spec.js`,
       mirroring `mockProduction()`'s route-mock pattern: routes `**/min_day.js` with a fixture
       body whose last `m[mi++]=` line carries a controllable wattage/timestamp (or an
       empty/no-readings-for-today file when a scenario needs Story 3's neutral state), per
       quickstart.md's Playwright scenario list.
-- [ ] T008 [US1] Add Playwright case "shows the daily-data fallback when the live endpoint has
+- [x] T008 [US1] Add Playwright case "shows the daily-data fallback when the live endpoint has
       never succeeded" to `tests/e2e/info-panel.spec.js` (quickstart.md scenario 1): mock
       `**/live/index.php` aborted, mock `**/min_day.js` via `mockDailyFallback()` with a known
       wattage/time; load the site; assert `[data-role="production"]` has `data-available="true"`,
       `[data-role="production-value"]` shows that wattage, and `[data-role="production-timestamp"]`
       shows that reading's own `HH:MM` (not the fetch/render time). Confirm it fails before T010.
-- [ ] T009 [US1] Add Playwright case "live succeeding later replaces the fallback"
+- [x] T009 [US1] Add Playwright case "live succeeding later replaces the fallback"
       (quickstart.md scenario 2): start as in T008 (fallback showing), then re-route
       `**/live/index.php` to a successful fixed-wattage response via `mockProduction()` and
       advance past one `LIVE_REFRESH_INTERVAL_MS` tick via `overrideLiveRefreshInterval()`; assert
@@ -116,24 +116,24 @@ to it.
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] In `web/js/info-panel/info-panel-controller.js`: import
+- [x] T010 [US1] In `web/js/info-panel/info-panel-controller.js`: import
       `fetchTodayMinuteTrace` (`../data/today-trace.js`) and `lastReadingPower`
       (`../data/yield-stats.js`); add `let liveEverSucceeded = false;` alongside the existing
       `lastGoodProduction`/`requestSeq` closure state (data-model.md); add a new
       `async function pollDailyFallback()` that calls `fetchTodayMinuteTrace()`, reduces a
       non-null result with `lastReadingPower()`, and — only when `!liveEverSucceeded` and a
       reading was found — writes `lastGoodProduction = { available: true, totalPacW: reading.w,
-    timestamp: reading.timestamp }` and calls `renderProduction(elements, lastGoodProduction,
-    capacityKwp)` (research.md §2/§4); set `liveEverSucceeded = true` inside `pollProduction()`'s
+  timestamp: reading.timestamp }` and calls `renderProduction(elements, lastGoodProduction,
+  capacityKwp)` (research.md §2/§4); set `liveEverSucceeded = true` inside `pollProduction()`'s
       existing `if (reading.available)` branch, before/alongside its `lastGoodProduction` write.
-- [ ] T011 [US1] In the same file's `initInfoPanelController()`: call `pollDailyFallback()`
+- [x] T011 [US1] In the same file's `initInfoPanelController()`: call `pollDailyFallback()`
       once at mount (alongside the existing `pollProduction(); pollYield(); pollWeather();` calls)
       and again on the existing `dataIntervalId = setInterval(pollYield, DATA_REFRESH_INTERVAL_MS)`
       tick — combine into that same interval callback (e.g. `setInterval(() => { pollYield();
-    pollDailyFallback(); }, DATA_REFRESH_INTERVAL_MS)`) per research.md §2, rather than adding a
+  pollDailyFallback(); }, DATA_REFRESH_INTERVAL_MS)`) per research.md §2, rather than adding a
       second `setInterval`. Update the file's top JSDoc comment block to describe the new fallback
       source/precedence, per the constitution's JSDoc standard.
-- [ ] T012 [US1] Run `npx playwright test tests/e2e/info-panel.spec.js --reporter=line` and confirm
+- [x] T012 [US1] Run `npx playwright test tests/e2e/info-panel.spec.js --reporter=line` and confirm
       T008/T009 pass along with all pre-existing cases in the file.
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — the panel shows the
@@ -151,7 +151,7 @@ panel keeps showing the earlier live reading and timestamp, not the fallback.
 
 ### Tests for User Story 2
 
-- [ ] T013 [US2] Add Playwright case "a single failed live poll never regresses an already-shown
+- [x] T013 [US2] Add Playwright case "a single failed live poll never regresses an already-shown
       live reading to the fallback" to `tests/e2e/info-panel.spec.js` (quickstart.md scenario 3):
       mock `**/live/index.php` to succeed once then fail (reuse/extend `mockProduction()`'s
       `aborted` toggle via re-routing between the load and the next tick, as existing "keeps last
@@ -167,13 +167,13 @@ panel keeps showing the earlier live reading and timestamp, not the fallback.
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Verify `pollDailyFallback()` (T010) checks `!liveEverSucceeded` before writing to
+- [x] T014 [US2] Verify `pollDailyFallback()` (T010) checks `!liveEverSucceeded` before writing to
       `lastGoodProduction`, and that `liveEverSucceeded` is set `true` inside `pollProduction()`
       only on a _successful_ reading, never reset — re-read data-model.md's state-transition table
       and confirm the implementation matches every transition listed (mount / fallback resolves /
       fallback resolves null-or-blocked / live succeeds / live fails). No new code expected beyond
       T010 — this is a targeted review-and-fix pass if T013 exposes any gap.
-- [ ] T015 [US2] Run `npx playwright test tests/e2e/info-panel.spec.js --reporter=line` and confirm
+- [x] T015 [US2] Run `npx playwright test tests/e2e/info-panel.spec.js --reporter=line` and confirm
       T013 passes along with all prior cases (T008/T009 and pre-existing ones).
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — the fallback appears when needed
@@ -191,7 +191,7 @@ entries; confirm the panel still shows "no data yet".
 
 ### Tests for User Story 3
 
-- [ ] T016 [US3] Add Playwright case "neutral state preserved when neither source has data" to
+- [x] T016 [US3] Add Playwright case "neutral state preserved when neither source has data" to
       `tests/e2e/info-panel.spec.js` (quickstart.md scenario 4): mock `**/live/index.php` aborted
       and `**/min_day.js` via `mockDailyFallback()` returning an empty/no-readings-for-today body
       (or a 404, matching `fetchText`'s failure contract); load the site; assert
@@ -202,13 +202,13 @@ entries; confirm the panel still shows "no data yet".
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Verify `pollDailyFallback()` (T010) only calls `renderProduction()` /writes
+- [x] T017 [US3] Verify `pollDailyFallback()` (T010) only calls `renderProduction()` /writes
       `lastGoodProduction` when `lastReadingPower()` returns non-`null` — confirm the `null` path
       (empty trace, or `fetchTodayMinuteTrace()` itself returning `null`) leaves
       `lastGoodProduction` untouched so `renderProduction()`'s existing `{ available: false }`
       initial state renders unchanged. No new code expected beyond T010 — fix if T016 exposes a
       gap (e.g. a missing null-check).
-- [ ] T018 [US3] Run `npx playwright test tests/e2e/info-panel.spec.js --reporter=line` and confirm
+- [x] T018 [US3] Run `npx playwright test tests/e2e/info-panel.spec.js --reporter=line` and confirm
       T016 passes along with every prior case in the file (full regression pass across all three
       stories).
 
@@ -222,20 +222,27 @@ possible (US1), never overrides live (US2), neutral state preserved when both so
 
 **Purpose**: Documentation and final validation across all stories.
 
-- [ ] T019 [P] Update `README.md` to describe the navbar panel's new daily-data fallback behavior
+- [x] T019 [P] Update `README.md` to describe the navbar panel's new daily-data fallback behavior
       (constitution Documentation standards), per plan.md's Project Structure.
-- [ ] T020 [P] Update `README.de.md` with the same content, translated, keeping it in sync with
+- [x] T020 [P] Update `README.de.md` with the same content, translated, keeping it in sync with
       T019.
-- [ ] T021 [P] Update `docs/user-guide.md` to describe when/why the panel shows the daily fallback
+- [x] T021 [P] Update `docs/user-guide.md` to describe when/why the panel shows the daily fallback
       instead of "no data yet", and that it's superseded by a live reading once one succeeds.
-- [ ] T022 [P] Update `docs/user-guide.de.md` with the same content, translated, keeping it in
+- [x] T022 [P] Update `docs/user-guide.de.md` with the same content, translated, keeping it in
       sync with T021.
-- [ ] T023 Run the full quickstart.md validation end to end: both `node --test` commands, the full
+- [x] T023 Run the full quickstart.md validation end to end: both `node --test` commands, the full
       `npx playwright test --reporter=line` suite, and the manual smoke check (block the live
       endpoint via devtools network conditions, reload, cross-check the panel's fallback
       wattage/time against `#/day/<today>`'s data table's last row, then unblock and confirm the
       panel switches to live within `LIVE_REFRESH_INTERVAL_MS`).
-- [ ] T024 Update `**Status**` in `specs/028-live-panel-fallback/spec.md` from `Draft` to
+      Automated portion run: `npm run test:scripts` (623/623 pass), `npx playwright test
+    --reporter=line` (239 passed; the same 8 pre-existing dashboard-responsive/statistics-view
+      320px failures and flaky retries reproduce identically on the pre-feature checkout —
+      unrelated to this feature, confirmed via `git stash`). Manual devtools smoke check not run
+      in this non-interactive session — the Playwright coverage above (mocked live-endpoint
+      abort + `min_day.js` fallback, live-supersedes-fallback, never-regresses, neutral-state
+      cases) exercises the same code paths end to end.
+- [x] T024 Update `**Status**` in `specs/028-live-panel-fallback/spec.md` from `Draft` to
       `Implemented` (only once every task above is checked off `[X]`).
 
 ---

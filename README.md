@@ -88,9 +88,14 @@ hover/focus/tap — from every view, not just the dashboard. The production watt
 a live status endpoint on its own `LIVE_REFRESH_INTERVAL_MS` cadence (`web/js/config.js`, 1 minute
 by default), fully independent of the day chart's/yield figures' `DATA_REFRESH_INTERVAL_MS`; it
 keeps the last successfully-fetched reading on screen if a poll fails, and re-polls immediately
-when the tab regains focus. Weather refreshes on its own, separate, slower schedule. See
+when the tab regains focus. Until that live endpoint has ever succeeded in the current session,
+the panel falls back to today's daily minute data's most recent reading instead — the same
+wattage/time shown as the last row of the day view's data table for today — refreshed on the
+existing `DATA_REFRESH_INTERVAL_MS` cadence rather than a new one; once a live reading succeeds,
+it takes over for the rest of the session and the fallback can no longer reappear, even if a later
+live poll fails. Weather refreshes on its own, separate, slower schedule. See
 `specs/010-global-info-panel/`, `specs/023-weather-panel-icons/`, `specs/025-weather-icon-compact/`,
-and `specs/027-navbar-live-panel/` for the full spec/plan.
+`specs/027-navbar-live-panel/`, and `specs/028-live-panel-fallback/` for the full spec/plan.
 
 ## Ereignisse (events) page
 

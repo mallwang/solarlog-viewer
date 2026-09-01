@@ -179,8 +179,16 @@ mit eigenem, dediziertem Aktualisierungstakt (standardmäßig 1 Minute,
 unten) und vom eigenen, langsameren Takt des Wetter-/Prognosebereichs (standardmäßig alle
 ~10 Minuten), da sich das Wetter nicht minütlich merklich ändert. Schlägt ein Abruf fehl, zeigt
 das Panel weiterhin den zuletzt erfolgreich abgerufenen Leistungswert (samt eigenem Zeitstempel)
-an, statt zu leeren oder einzufrieren — nur ein Wert, der noch nie erfolgreich abgerufen wurde,
-zeigt „Nicht verfügbar“ — und fragt sofort erneut ab, sobald der Browser-Tab wieder aktiv wird.
+an, statt zu leeren oder einzufrieren. Solange der Live-Endpunkt in der aktuellen Browser-Sitzung
+noch nie erfolgreich war, zeigt das Panel stattdessen den letzten Messwert der heutigen
+Minutendaten — denselben Leistungswert und Zeitpunkt, den auch die letzte Zeile der Datentabelle
+der Tagesansicht für heute zeigt —, aktualisiert im selben Takt wie „Tagesertrag“/„Monatsertrag“
+(siehe „Automatische Aktualisierung der Tagesansicht & Startseite“ unten) statt in einem eigenen
+neuen Takt; „Nicht verfügbar“ erscheint erst, wenn auch diese Quelle noch nichts liefert (z. B.
+sehr früh morgens, bevor heute überhaupt Leistung erfasst wurde). Sobald ein Live-Wert erfolgreich
+abgerufen wurde, übernimmt er für den Rest der Sitzung — ein später fehlschlagender Live-Abruf
+lässt das Panel nie wieder auf diesen Ausweich-Wert zurückfallen — und das Panel fragt sofort
+erneut ab, sobald der Browser-Tab wieder aktiv wird.
 Ein kleiner pulsierender Punkt neben dem Leistungswert wird größer und pulsiert schneller, je
 näher die aktuelle Leistung an der konfigurierten Spitzenleistung der Anlage liegt, und beruhigt
 sich nahe null (z. B. nachts). Die Tagesansicht (`#/day/YYYY/MM/DD`) zeigt einen eigenen

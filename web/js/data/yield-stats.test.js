@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   dailyYieldWh,
   maxDailyPowerW,
+  lastReadingPower,
   maxDailyYieldKwh,
   maxMonthlyYieldKwh,
   maxYearlyYield,
@@ -78,6 +79,36 @@ test('maxDailyPowerW treats null/missing pacW (backfilled days) as 0', () => {
 
 test('maxDailyPowerW returns w 0 and timestamp null for an empty trace', () => {
   assert.deepEqual(maxDailyPowerW({ readings: [] }), { w: 0, timestamp: null });
+});
+
+test('lastReadingPower returns null for an empty trace (distinct from a genuine 0 W reading)', () => {
+  assert.equal(lastReadingPower({ readings: [] }), null);
+});
+
+test('lastReadingPower returns the last reading (not the max) with its own timestamp', () => {
+  const trace = {
+    readings: [
+      { timestamp: '2026-08-09T08:00:00', perInverter: { 1: { pacW: 1200 }, 2: { pacW: 800 } } }, // 2000 W (peak)
+      { timestamp: '2026-08-09T18:00:00', perInverter: { 1: { pacW: 500 }, 2: { pacW: 300 } } }, // 800 W (last)
+    ],
+  };
+  assert.deepEqual(lastReadingPower(trace), { w: 800, timestamp: '2026-08-09T18:00:00' });
+});
+
+test('lastReadingPower returns w: 0 (not null) when the last reading is a genuine idle 0 W reading', () => {
+  const trace = {
+    readings: [
+      { timestamp: '2026-08-09T20:00:00', perInverter: { 1: { pacW: 0 }, 2: { pacW: 0 } } },
+    ],
+  };
+  assert.deepEqual(lastReadingPower(trace), { w: 0, timestamp: '2026-08-09T20:00:00' });
+});
+
+test('lastReadingPower treats null/missing pacW (backfilled days) as 0', () => {
+  const trace = {
+    readings: [{ timestamp: '2026-08-09T20:00:00', perInverter: { 1: { pacW: null } } }],
+  };
+  assert.deepEqual(lastReadingPower(trace), { w: 0, timestamp: '2026-08-09T20:00:00' });
 });
 
 test('maxDailyYieldKwh finds the best single day (summed per day across inverters) and its date', () => {

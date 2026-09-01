@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-01
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "I would like to adapt the live navbar panel to fallback to the normal daily value (which is displayed in the daily view as last value in the datatable) and use its time in the panel."
 
